@@ -1,0 +1,4 @@
+*!
+/devsrc/*/pkg/
+/devsrc/*/src/
+/devsrc/*/*.tar*

@@ -1,0 +1,19 @@
+[Unit]
+Description=Zettabyte File System (ZFS)
+Documentation=man:zfs(8) man:zpool(8)
+DefaultDependencies=no
+After=cryptsetup.target
+Before=local-fs.target
+Conflicts=shutdown.target umount.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/sbin/modprobe zfs
+ExecStart=/usr/sbin/zpool import -c /etc/zfs/zpool.cache -aN
+ExecStart=/usr/sbin/zfs mount -a
+ExecStart=/usr/sbin/zfs share -a
+ExecStop=/usr/sbin/zfs umount -a
+
+[Install]
+WantedBy=local-fs.target

@@ -1,0 +1,33 @@
+# Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
+# Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
+
+pkgname=('spl')
+pkgver=0.6.0_rc12
+pkgrel=7
+pkgdesc='Solaris Porting Layer kernel modules.'
+depends=('spl-utils=0.6.0_rc12' 'linux=3.6.10')
+makedepends=('linux-headers=3.6.10')
+arch=('x86_64')
+url='http://zfsonlinux.org/'
+source=(http://github.com/downloads/zfsonlinux/spl/spl-0.6.0-rc12.tar.gz spl.install)
+groups=('archzfs')
+md5sums=('97222567144e2987bb18cd1f83fd6173' '99697389f4107ec073edfdf0efd14249')
+license=('GPL')
+install=spl.install
+
+build() {
+  cd ${srcdir}/spl-0.6.0-rc12
+  ./autogen.sh
+  ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/sbin \
+              --with-config=kernel
+  make
+}
+
+package() {
+  cd ${srcdir}/spl-0.6.0-rc12
+  make DESTDIR=${pkgdir} install
+
+  # move module tree /lib -> /usr/lib
+  cp -r ${pkgdir}/{lib,usr}
+  rm -r ${pkgdir}/lib
+}

@@ -1,0 +1,74 @@
+ZPOOL_FORCE=""
+
+zfs_get_bootfs () {
+    ZFS_DATASET=`/usr/sbin/zpool list -H -o bootfs | sed 'q'`
+    if [ "$?" != "0" ] || [ "$ZFS_DATASET" = "" ] || [ "$ZFS_DATASET" = "no pools available" ] ; then
+        return 1
+    fi
+}
+
+zfs_mount_handler () {
+    local node=$1
+    if [ "$ZFS_DATASET" = "bootfs" ] ; then
+        if ! zfs_get_bootfs ; then
+            # Lets import everything and try again
+            /usr/sbin/zpool import -N -a $ZPOOL_FORCE
+            if ! zfs_get_bootfs ; then
+                echo "ZFS: Cannot find bootfs."
+                return 1
+            fi
+        fi
+    fi
+
+    local pool="${ZFS_DATASET%%/*}"
+    if ! "/usr/sbin/zpool" list -H $pool > /dev/null ; then
+        echo "ZFS: Importing pool $pool."
+
+        if ! "/usr/sbin/zpool" import -N $pool $ZPOOL_FORCE ; then
+            echo "ZFS: Unable to import pool $pool."
+            return 1
+        fi
+    fi
+
+    local mountpoint=$("/usr/sbin/zfs" get -H -o value mountpoint $ZFS_DATASET)
+    if [ "$mountpoint" = "legacy" ] ; then
+        mount -t zfs "$ZFS_DATASET" "$node"
+    else
+        mount -o zfsutil -t zfs "$ZFS_DATASET" "$node"
+    fi
+}
+
+run_hook() {
+    case $zfs_force in
+        1|[Yy][Ee][Ss]|[Oo][Nn]|[Tt][Rr][Uu][Ee])
+            ZPOOL_FORCE='-f'
+            ;;
+    esac
+
+    if [ "$root" = 'zfs' ]; then
+        mount_handler='zfs_mount_handler'
+    fi
+
+    case $zfs in
+        auto|bootfs)
+            ZFS_DATASET='bootfs'
+            mount_handler="zfs_mount_handler"
+            ;;
+        *)
+            ZFS_DATASET=$zfs
+            mount_handler="zfs_mount_handler"
+            ;;
+    esac
+
+    if [ -n "$spl_hostid" ]; then
+        echo "The spl_hostid kernel parameter is now deprecated. Please add \
+your hostid to /etc/hostid manually. For more information see the comments \
+section at the ZFS AUR page or the ArchWiki ZFS page."
+    fi
+
+    if [ ! -f "/etc/hostid" ] ; then
+        echo "ZFS: No hostid found on kernel command line or /etc/hostid. ZFS pools may not import correctly."
+    fi
+}
+
+# vim:set ts=4 sw=4 ft=sh et:
