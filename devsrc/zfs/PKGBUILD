@@ -3,15 +3,15 @@
 
 pkgname=('zfs')
 pkgver=0.6.0_rc12
-pkgrel=7
+pkgrel=8
 pkgdesc="Kernel modules for the Zettabyte File System."
 depends=('spl=0.6.0_rc12' 'zfs-utils=0.6.0_rc12' 'linux=3.6.10')
 makedepends=('linux-headers=3.6.10')
 arch=('x86_64')
 url='http://zfsonlinux.org/'
-source=(http://github.com/downloads/zfsonlinux/zfs/zfs-0.6.0-rc12.tar.gz zfs.install)
+source=(http://github.com/downloads/zfsonlinux/zfs/zfs-0.6.0-rc12.tar.gz)
 groups=('archzfs')
-md5sums=('6524f2c20fe9ad33a97879981e5c9a45' '7ac100ebe01cc26da63a06effb2c0405')
+md5sums=('6524f2c20fe9ad33a97879981e5c9a45')
 license=('CDDL')
 install=zfs.install
 

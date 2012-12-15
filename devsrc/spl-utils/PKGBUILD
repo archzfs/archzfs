@@ -3,8 +3,10 @@
 
 pkgname=('spl-utils')
 pkgver=0.6.0_rc12
-pkgrel=7
+pkgrel=8
 pkgdesc='Solaris Porting Layer kernel module support files.'
+depends=('linux=3.6.10')
+makedepends=('linux-headers=3.6.10')
 arch=('x86_64')
 url='http://zfsonlinux.org/'
 source=(http://github.com/downloads/zfsonlinux/spl/spl-0.6.0-rc12.tar.gz spl-utils.hostid)

@@ -1,15 +1,17 @@
+KERNEL_VERSION=3.6.10-1-ARCH
+
 post_install() {
-    depmod -a > /dev/null 2>&1
     check_hostid
+    run_depmod
 }
 
 post_remove() {
-    depmod -a > /dev/null 2>&1
+    run_depmod
 }
 
 post_upgrade() {
-    depmod -a > /dev/null 2>&1
     check_hostid
+    run_depmod
 }
 
 check_hostid() {
@@ -23,4 +25,9 @@ check_hostid() {
         # hostid is 4 byte little endian
         printf $(echo -n $HOSTID | sed 's/\(..\)\(..\)\(..\)\(..\)/\\x\4\\x\3\\x\2\\x\1/') >/etc/hostid
     fi
+}
+
+run_depmod() {
+    echo ">>> Updating module dependencies. Please wait ..."
+    depmod ${KERNEL_VERSION}
 }
