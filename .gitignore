@@ -1,6 +1,8 @@
 *!
-/devsrc/*/*tar.gz*
-/x86_64/*.delta
-/x86_64/*.tar.*
-/archiso/*/*.tar.*
+/devsrc/*/pkg/
+/devsrc/*/src/
+/devsrc/*/*.tar*
+*pkg.tar*
+*src.tar*
+*.delta
 patch_dev/
