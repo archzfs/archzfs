@@ -1,7 +1,7 @@
 ======================================
 Arch ZFS - ZFS On Linux Kernel Modules
 ======================================
-:Modified: Thu Dec 13 20:24:33 PST 2012
+:Modified: Fri Dec 21 01:58:37 PST 2012
 :status: hidden
 :slug: archzfs
 
@@ -98,7 +98,7 @@ current maintainer is Jesus Alvarez and his key can be verified at
 demizerone.com_ This key is not trusted by any of the Arch Linux Master Keys.
 
 0EE7A126_
-~~~~~~~~~
+=========
 
 The short version::
 
@@ -150,13 +150,11 @@ ZFS Cheatsheet: http://lildude.co.uk/zfs-cheatsheet
 
 #. Use cgdisk and create a GPT partition table
 
-   =============================
    Part     Size    Type
    ====     =====  =============
       1     512M   EFI (ef00)
       2     512M   Ext4 (8200)
       2     117G   Solaris Root (bf00)
-   =============================
 
    Note the EFI partion will contain the kernel images
 
@@ -499,12 +497,19 @@ Perform pacman update and restart
 Create a new branch in git
 ==========================
 
+(optional)
+
 The new git branch should be name for the current version of the ZFS on Linux
 project and the Linux Kernel version it will target.
 
 .. code-block:: console
 
-    $ git checkout -b zfs-0.6.0-rc12_linux-3.7
+    $ git checkout -b zfs-0.6.0-rc12-linux-3.7.X
+
+This branch has 'X' as the last revision number because when a minor point
+release kernel is released, such as 3.7, it can take a while for it to move
+into the [core] repository. The 3.7 kernel can remain in testing for multiple
+revisions.
 
 Update the ZFS PKGBUILDs
 ========================
@@ -526,33 +531,22 @@ makepkg to build the packages:
 
 .. code-block:: console
 
-    $ makepkg -sfi
+    $ makepkg -sfic
 
 .. note:: If either SPL or ZFS do not build due to kernel incompatibilities,
           patches will be needed to allow building to continue. See `Patching
           ZFS`_.
 
-Load the ZFS kernel modules
----------------------------
-
-.. code-block:: console
-
-    # modprobe zfs
-
-Import and mount your ZFS pools
--------------------------------
-
-.. code-block:: console
-
-    # zpool import -a
-    # zfs mount -a
-
-Inspect package files
+Start the ZFS service
 ---------------------
 
+This step is not necessary if you are using ZFS as root.
+
 .. code-block:: console
 
-    $ pacman -Qnp <package>
+    # systemctl daemon-reload
+    # zpool import -a
+    # systemctl start zfs
 
 Add packages to repository
 --------------------------
@@ -562,7 +556,7 @@ found `here <https://github.com/demizer/binfiles>`_.
 
 .. code-block:: console
 
-    $ repo_add.py -r archzfs -d
+    $ repo_add.py -r archzfs -v rc12-9
 
 Testing
 -------

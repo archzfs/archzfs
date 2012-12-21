@@ -2,20 +2,22 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=('spl-utils')
-pkgver=0.6.0_rc12
-pkgrel=8
+pkgver=0.6.0_rc13_3.6.10
+pkgrel=1
 pkgdesc='Solaris Porting Layer kernel module support files.'
 depends=('linux=3.6.10')
 makedepends=('linux-headers=3.6.10')
 arch=('x86_64')
 url='http://zfsonlinux.org/'
-source=(http://github.com/downloads/zfsonlinux/spl/spl-0.6.0-rc12.tar.gz spl-utils.hostid)
+source=(http://zfsonlinux.org/downloads/0.6.0-rc13/spl-0.6.0-rc13.tar.gz
+        spl-utils.hostid)
 groups=('archzfs')
-md5sums=('97222567144e2987bb18cd1f83fd6173' 'a54f0041a9e15b050f25c463f1db7449')
+md5sums=('257c3373f40e190743e78fdf65368d2a'
+         'a54f0041a9e15b050f25c463f1db7449')
 license=('GPL')
 
 build() {
-  cd ${srcdir}/spl-0.6.0-rc12
+  cd ${srcdir}/spl-0.6.0-rc13
   ./autogen.sh
   ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/sbin \
               --with-config=user
@@ -23,7 +25,7 @@ build() {
 }
 
 package() {
-  cd ${srcdir}/spl-0.6.0-rc12
+  cd ${srcdir}/spl-0.6.0-rc13
   make DESTDIR=${pkgdir} install
 
   install -D -m644 ${srcdir}/spl-utils.hostid ${pkgdir}/etc/hostid
