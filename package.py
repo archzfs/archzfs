@@ -10,6 +10,9 @@ import datetime
 import sys
 import glob
 
+# This is where the latest testing kernel can be found:
+# http://mirrors.kernel.org/archlinux/testing/os/x86_64/
+
 SIGNING_KEY = '0EE7A126'
 
 # Prefix for logging output
