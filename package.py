@@ -353,27 +353,28 @@ if __name__ == '__main__':
         vers = re.search(r'[\w-]+-([\d\w\._]+-[\d])-(?:i686|x86_64)', bpkg)
         if vers:
             proc = subprocess.call('mkdir -p ../../backup/testing/' +
-                                   vers.group(1), shell=True)
+                                   vers.group(1) + '/x86_64/', shell=True)
             if proc > 1:
                 logger.warning('There was an error creating the backup '
                                'directory')
             log('Moving "' + bpkg + '" to "backup/testing/' + vers.group(1) +
-                '"')
+                '/x86_64/"')
             proc = subprocess.call('mv ' + bpkg + '* ../../backup/testing/' +
-                                   vers.group(1) + '/', shell=True)
+                                   vers.group(1) + '/x86_64/', shell=True)
             if proc > 1:
                 logger.warning('There was a problem copying the package to '
                                'the backup directory')
-        source = glob.glob('*.src.tar.gz')
-        if source:
-            source = source[0]
-        else:
-            source = ''
-        proc = subprocess.call('mv ' + source + ' ../../backup/testing/x86_64/'
-                               + vers.group(1) + '/', shell=True)
-        if proc > 1:
-            logger.warning('There was a problem copying the package source to '
-                           'the backup directory')
+
+            source = glob.glob('*.src.tar.gz')
+            if source:
+                source = source[0]
+            else:
+                source = ''
+            proc = subprocess.call('mv ' + source + ' ../../backup/testing/' +
+                                   vers.group(1) + '/', shell=True)
+            if proc > 1:
+                logger.warning('There was a problem copying the package '
+                               'source to the backup directory')
         # Cleanup
         proc = subprocess.call('rm -r *.log src/', shell=True)
         if proc > 1:
