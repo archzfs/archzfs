@@ -1,9 +1,14 @@
 ======================================
 Arch ZFS - ZFS On Linux Kernel Modules
 ======================================
-:Modified: Fri Dec 21 01:58:37 PST 2012
+:Modified: Fri Jan 04 18:53:20 PST 2013
 :status: hidden
 :slug: archzfs
+
+.. important:: The database path for the archzfs repository has moved. It is now
+               located at "http://demizerone.com/$repo/core/$arch"! Please
+               update the server lines in your pacman.conf as necessary. This
+               change was necessary to add support for a testing repository.
 
 This is the official web page of the Arch ZFS kernel module packages for native
 ZFS on Linux. Here you can find pacman package sources and pre-built x86_64
@@ -45,7 +50,7 @@ To start, add the server information to `/etc/pacman.conf`,
 .. code-block:: bash
 
     [archzfs]
-    Server = http://demizerone.com/$repo/$arch
+    Server = http://demizerone.com/$repo/core/$arch
 
 Both the database and the packages are signed, so you will have to add the
 signing key to pacman's trusted key list:
@@ -74,6 +79,16 @@ and finally, install the package group
 
 .. note:: To read about key management in Arch, see pacman-key_ and
           pacman.conf_
+
+ZFS support for testing
+=======================
+
+It is possible to use ZFS with the official Arch Linux testing repository.
+
+.. code-block:: bash
+
+    [archzfs]
+    Server = http://demizerone.com/$repo/testing/$arch
 
 ZFS support for archiso
 =======================
@@ -136,315 +151,6 @@ and the long version::
     R6y3yNGqe7NjgJQW4e0ibvsbkG6PyUP4BLVUY6CGQFPt1p7dX4xioErHqdqPkjLzMvpi
     =TUqo
     -----END PGP PUBLIC KEY BLOCK-----
-
----------------------
-Insalling ZFS on ROOT
----------------------
-
-https://github.com/dajhorn/pkg-zfs/wiki/HOWTO-install-Ubuntu-to-a-Native-ZFS-Root-Filesystem
-ZFS Cheatsheet: http://lildude.co.uk/zfs-cheatsheet
-
-1. Create live usb for UEFI: https://wiki.archlinux.org/index.php/UEFI#Create_UEFI_bootable_USB_from_ISO
-
-#. Boot from live usb.
-
-#. Use cgdisk and create a GPT partition table
-
-   Part     Size    Type
-   ====     =====  =============
-      1     512M   EFI (ef00)
-      2     512M   Ext4 (8200)
-      2     117G   Solaris Root (bf00)
-
-   Note the EFI partion will contain the kernel images
-
-#. Format the EFI partion fat32
-
-   mkfs.vfat -F 32 /dev/sda1 -n EFIBOOT
-
-#. Format the Ext4 boot partition
-
-   mkfs.ext4 /dev/sda2 -L BOOT
-
-#. Check /etc/pacman.d/mirrorlist and make sure the mirrors are agreeable.
-
-#. Add the archzfs repo to pacman.conf
-
-    [archzfs]
-    SigLevel = Required DatabaseOptional TrustedOnly
-    Server = http://demizerone.com/$repo/$arch
-
-#. Connect to the internet
-
-   wifi-menu
-
-#. Install archzfs key
-
-   pacman-key -r 0EE7A126
-   pacman-key --lsign-key 0EE7A126
-
-#. Update pacman
-
-   pacman -Syy
-
-#. Install zfs
-
-   pacman -S archzfs
-
-#. Load the modules
-
-   modprobe zfs
-
-#. Create zfs pool
-
-    # zpool create rpool /dev/disk/by-id/<id>
-
-   Always use id names when working with zfs, otherwise import errors will
-   occur.
-
-#. Create zfs file systems
-
-    Create the root filesystem
-
-    # zfs create rpool/ROOT
-
-    create the decendent file system that will hold the installation:
-
-    # zfs create rpool/ROOT/arch
-
-    We will set the mountpoints after we have created the filesystems so that
-    they are not mounted automatically to occupied directories causing errors.
-
-    Note: If you like you can create sub-filesystem mount points here such as
-    /home and /root by doing the following:
-
-    # zfs create rpool/HOME
-    # zfs create rpool/HOME/root
-
-#. Umount all zfs filesystems
-
-    # zfs umount -a
-
-#. Set the mount point for the decendent root filesystem
-
-    # zfs set mountpoint=/ rpool/ROOT/arch
-
-    optionally,
-
-    # zfs set mountpoint=/home rpool/HOME
-    # zfs set mountpoint=/root rpool/HOME/root
-
-#. Set the bootfs property on the decendent root filesystem so the bootloader
-   knows where to find the operating system.
-
-    # zpool set bootfs=rpool/ROOT/arch rpool
-
-#. Export the pool
-
-    # zpool export rpool
-
-    Don't skip this, otherwise you will be required to use -f when importing
-    your pools. This unloads the imported pool.
-
-    Note: Ubuntu help says if this command isn't used, the system will be in an
-    incossistant state. The docs say that this allows the pools to be shared
-    accross systems. Is this why I had to use -f when creating the pools the
-    last time?
-
-#. Re-import the pool
-
-    # zpool import -d /dev/disk/by-id -R /mnt rpool
-
-    Note: -d is not the actual device id, but the by-id directory containing
-    the symlinks.
-
-    If there is an error in this step, you can export the pool to redo the
-    command:
-
-    # zpool export rpool
-
-#. Mount the EFI and boot partition
-
-   mkdir /mnt/boot
-   mount /dev/sda2 /mnt/boot
-   mkdir /mnt/boot/efi
-   mount /dev/sda1 /mnt/boot/efi
-
-#. Install base packages
-
-   pacstrap -i /mnt base base-devel archzfs
-
-#. Generate the fstab
-
-    # genfstab -U -p /mnt >> /mnt/etc/fstab
-
-#. Open fstab to edit contents
-
-    # nano /mnt/etc/fstab
-
-   Delete all the lines except for the boot partion. ZFS auto mounts it's own
-   partitions.
-
-#. Load the efivars module
-
-   modprobe efivars
-
-#. Chroot into the installation
-
-   arch-chroot /mnt /bin/bash
-
-# Install a real text editor
-
-    # pacman -S vim
-
-#. Follow https://wiki.archlinux.org/index.php/Beginners%27_Guide from the
-   Locale section to the Configure Pacman Section
-
-#. Edit pacman.conf and add the archzfs repository. If on arch64, uncomment the
-   multilib repo.
-
-#. Update the pacman database
-
-   pacman -Syy
-
-#. Create the initramfs, edit mkinitcpio.conf and add zfs before filesystems.
-   Remove fsck and then regen the initramfs:
-
-    mkinitcpio -p linux
-
-#. Set root passwd and add a regular user.
-
-#. Install UEFI boot loader
-
-   Continuing from the EFISTUB section at
-   https://wiki.archlinux.org/index.php/Beginners'_Guide#Chroot_and_configure_the_base_system
-
-    # mkdir /boot/efi
-    # modprobe efivars
-    # arch-chroot /mnt /bin/bash
-    # mkdir -p /boot/efi/EFI/arch
-    # cp /boot/vmlinuz-linux /boot/efi/EFI/arch/vmlinuz-arch.efi
-    # cp /boot/initramfs-linux.img /boot/efi/EFI/arch/initramfs-arch.img
-    # cp /boot/initramfs-linux-fallback.img /boot/efi/EFI/arch/initramfs-arch-fallback.img
-
-    The images will need to be recopied everytime there is an update, see
-    https://wiki.archlinux.org/index.php/Beginners'_Guide#EFISTUB for more
-    information.
-
-#. Install rEFInd
-
-    # pacman -S refind-efi efibootmgr
-    # mkdir -p /boot/efi/EFI/refind
-    # cp /usr/lib/refind/refindx64.efi /boot/efi/EFI/refind/refindx64.efi
-    # cp /usr/lib/refind/config/refind.conf /boot/efi/EFI/refind/refind.conf
-    # cp -r /usr/share/refind/icons /boot/efi/EFI/refind/icons
-
-    # nano /boot/efi/EFI/arch/refind_linux.conf
-    "Boot to X"          "root=PARTUUID=<id> zfs=bootfs ro rootfstype=ext4 systemd.unit=graphical.target"
-    "Boot to Console"    "root=PARTUUID=<id> zfs=bootfs ro rootfstype=ext4 systemd.unit=multi-user.target"
-
-#. Add rEFInd to the UEFI boot menu
-
-    # efibootmgr -c -g -d /dev/sdX -p Y -w -L "rEFInd" -l '\EFI\refind\refindx64.efi'
-
-    Note: In the above command, X and Y denote the drive and partition of the
-    UEFISYS partition. For example, in /dev/sdc5, X is "c" and Y is "5".
-
-    To delete an existing boot menu item,
-
-    # efibootmgr
-
-    Lists the menu items and
-
-    # efibootmgr -b D -B
-
-    deletes.
-
-#. Unmount and restart
-
-    # exit
-    # umount /mnt/boot
-    # zfs umount -a
-    # zpool export rpool
-    # reboot
-
-Emergency chroot repair with archzfs
-====================================
-
-Here is how to use the archiso to get into your ZFS filesystem.
-
-1. Boot the latest archiso.
-
-#. Bring up your network
-
-   wifi-menu
-
-   or
-
-   ip link set eth0 up
-
-#. Test network
-
-   ping google.com
-
-#. Sync pacman package database
-
-   pacman -Syy
-
-#. (optional) Install a better text editor:
-
-   pacman -S vim
-
-#. Add archzfs archiso repository to pacman.conf
-
-   [archzfs]
-   SigLevel = Required DatabaseOptional TrustedOnly
-   Server = http://demizerone.com/$repo/archiso/$arch/
-
-#. Sync the pacman package database
-
-   pacman -Syy
-
-#. Install archzfs
-
-   pacman -S archzfs
-
-#. Load the kernel modules
-
-   modprobe zfs
-
-#. Import your pool
-
-   zpool import -a -R /mnt
-
-#. Mount your boot partitions (if you have them)
-
-   mount /dev/sda2 /mnt/boot
-   mount /dev/sda1 /mnt/boot/efi
-
-#. Chroot into your zfs filesystem
-
-   arch-chroot /mnt /bin/bash
-
-#. Check your kernel version
-
-   pacman -Qi linux
-   uname -r
-
-   uname will show the kernel version of the archiso. If they are different,
-   you will need to run depmod (in the chroot) with the correct kernel version
-   of your chroot installation:
-
-   depmod -a 3.6.9-1-ARCH (version gathered from pacman -Qi linux)
-
-   This will load the correct kernel modules for the kernel version installed
-   in your chroot installation.
-
-#. Regenerate your ramdisk
-
-   mkinitcpio -p linux
-
-   There should be no errors.
 
 --------------------
 ZFS update procedure
