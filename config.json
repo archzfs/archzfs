@@ -1,0 +1,15 @@
+[
+    {
+        "PackageBuildOrder": [
+            "spl-utils",
+            "spl",
+            "zfs-utils",
+            "zfs"
+        ],
+        "LogLevel": "DEBUG",
+        "ChrootPath": "/opt/chroot",
+        "ChrootCopy": "azfs",
+        "SigningKey": "0EE7A126",
+        "RepoPath": "core"
+    }
+]
