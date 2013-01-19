@@ -9,7 +9,7 @@ depends=('spl-utils=0.6.0_rc13_3.6.10' 'linux=3.6.10')
 makedepends=('linux-headers=3.6.10')
 arch=('i686' 'x86_64')
 url='http://zfsonlinux.org/'
-source=(http://zfsonlinux.org/downloads/0.6.0-rc13/spl-0.6.0-rc13.tar.gz)
+source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.0-rc13.tar.gz)
 groups=('archzfs')
 md5sums=('257c3373f40e190743e78fdf65368d2a')
 license=('GPL')

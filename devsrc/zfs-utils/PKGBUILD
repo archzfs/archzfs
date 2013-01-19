@@ -9,7 +9,7 @@ depends=('spl=0.6.0_rc13_3.6.10' 'linux=3.6.10')
 makedepends=('linux-headers=3.6.10')
 arch=('i686' 'x86_64')
 url='http://zfsonlinux.org/'
-source=(http://zfsonlinux.org/downloads/0.6.0-rc13/zfs-0.6.0-rc13.tar.gz
+source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.0-rc13.tar.gz
         zfs-utils.bash-completion
         zfs-utils.initcpio.install
         zfs-utils.initcpio.hook
