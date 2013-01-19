@@ -1,7 +1,7 @@
 ======================================
 Arch ZFS - ZFS On Linux Kernel Modules
 ======================================
-:Modified: Fri Jan 18 22:45:35 PST 2013
+:Modified: Fri Jan 18 23:02:36 PST 2013
 :status: hidden
 :slug: archzfs
 
@@ -444,6 +444,14 @@ Finally, generate the new patch.
 .. code-block:: console
 
     $ git diff --cached > ../linux-3.7.patch
+
+-------------------
+Anouncment template
+-------------------
+
+Pre-compiled packages are available for those that are using ZFS as root, want
+to do maintenance from an Archiso, or just don't want to deal with doing their
+own update management. They are available at http://demizerone.com/archzfs
 
 .. _archzfs-github: https://github.com/demizer/archzfs
 .. _demizerone.com: http://demizerone.com
