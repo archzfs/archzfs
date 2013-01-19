@@ -1,7 +1,7 @@
 ======================================
 Arch ZFS - ZFS On Linux Kernel Modules
 ======================================
-:Modified: Fri Jan 18 23:02:36 PST 2013
+:Modified: Sat Jan 19 00:21:37 PST 2013
 :status: hidden
 :slug: archzfs
 
@@ -449,9 +449,20 @@ Finally, generate the new patch.
 Anouncment template
 -------------------
 
-Pre-compiled packages are available for those that are using ZFS as root, want
-to do maintenance from an Archiso, or just don't want to deal with doing their
-own update management. They are available at http://demizerone.com/archzfs
+ZFS core update
+===============
+
+Pre-compiled packages are available for those that are using ZFS as root, want to do maintenance from an Archiso, or just don't want to deal with doing their own update management. They are available at http://demizerone.com/archzfs
+
+ZFS testing update
+==================
+
+Information about using the archzfs testing repository can be found at http://demizerone.com/archzfs, or you can use the following server line in your pacman.conf:
+
+[archzfs]
+Server=http://demizerone.com/$repo/testing/$arch
+
+If you want want the PKGBUILDs, download them from here: http://demizerone.com/archzfs/testing/sources/
 
 .. _archzfs-github: https://github.com/demizer/archzfs
 .. _demizerone.com: http://demizerone.com
