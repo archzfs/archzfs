@@ -1,7 +1,7 @@
 ======================================
 Arch ZFS - ZFS On Linux Kernel Modules
 ======================================
-:Modified: Fri Jan 04 18:53:20 PST 2013
+:Modified: Fri Jan 18 22:45:35 PST 2013
 :status: hidden
 :slug: archzfs
 
@@ -11,9 +11,9 @@ Arch ZFS - ZFS On Linux Kernel Modules
                change was necessary to add support for a testing repository.
 
 This is the official web page of the Arch ZFS kernel module packages for native
-ZFS on Linux. Here you can find pacman package sources and pre-built x86_64
-packages. For effortless package installation and updates, it is possible to
-add the unofficial repository to your pacman.conf. There is also a special
+ZFS on Linux. Here you can find pacman package sources and pre-built x86_64 and
+i686 packages. For effortless package installation and updates, it is possible
+to add the unofficial repository to your pacman.conf. There is also a special
 repository for using ZFS with the archiso install media for installing arch
 onto a ZFS root filesystem, or doing emergency maintenance. To see the package
 sources and repository development history, see archzfs-github_.
@@ -27,10 +27,10 @@ sources and repository development history, see archzfs-github_.
           packages.
 
 32bit support for ZFS on Linux is unstable due to inconsistencies in memory
-management between the Solaris kernel and the Linux kernel. For this reason,
-**the ZFS packages for Arch Linux do not yet support i686**. However, 32bit
-support will be added in the future for those brave enough to face the
-consequences. See `ZFS on Linux FAQ - 64bit`_
+management between the Solaris kernel and the Linux kernel. See `ZFS on Linux
+FAQ - 64bit`_ However, users have reported on the AUR ZFS page of running ZFS
+with compiled 32bit packages without any problems. For this reason, ZFS on Arch
+Linux does support i686.
 
 The archzfs repository and packages are signed, but the key is not trusted by
 any of the Arch Linux master keys. You will have to locally sign the key and
@@ -200,17 +200,15 @@ Perform pacman update and restart
     # pacman -Syu
     # systemctl restart
 
-Create a new branch in git
-==========================
-
-(optional)
+Create a new branch in git (optional)
+=====================================
 
 The new git branch should be name for the current version of the ZFS on Linux
 project and the Linux Kernel version it will target.
 
 .. code-block:: console
 
-    $ git checkout -b zfs-0.6.0-rc12-linux-3.7.X
+    $ git checkout -b zfs-0.6.0-rc13-linux-3.7.X
 
 This branch has 'X' as the last revision number because when a minor point
 release kernel is released, such as 3.7, it can take a while for it to move
@@ -220,28 +218,139 @@ revisions.
 Update the ZFS PKGBUILDs
 ========================
 
-1. Change ``pkgrel``.
-
-#. Change the kernel versions to the targeted kernel version.
-
-#. Update ``md5sums`` with ``makepkg -g``.
+1. Update ``pkgrel``.
 
    This step is only necessary if the upstream ZFS version has changed. If this
    is the case, the ``pkgrel`` should also be changed to ``1``.
 
-Building archzfs
-================
+#. Change the kernel versions to the targeted kernel version.
 
-Go into each package directory in order: spl-utils, spl, zfs-utils, zfs and use
-makepkg to build the packages:
+   DON'T forget to update the version information for depmod in the spl.install
+   and zfs.install files! If forgotten, this will report errors after
+   installation and lead to the kernel modules not loading properly.
+
+#. It is not necessary to update the packages sums as the pbldr build tool does
+   that automatically.
+
+Building the packages
+=====================
+
+Building the packages requires that the devtools_ package be installed. This
+section assumes the host system is of x86_64 architecture.
+
+The pbldr tool builds i686 and x86_64 packages in a clean chroot environment.
+This method requires 5-10GB of space and some setup time in order to work
+properly. The size is largely determined by the number of chroots you have. On
+my system I have four copies and two root copies, totaling 13GB.
+
+Creating the chroot environment
+-------------------------------
+
+The steps below outline the creation of the of the chroot root copy that a
+clean chroot is made from using rsync. This root environment is only used as a
+pristine copy, no packages are installed or built inside the root copy.
+
+You can adjust the variables used by pbldr when working with chroot
+environments with the config.json configuration file in the project root
+directory, or you can pass them as arguments to the script.
+
+32bit chroot environment
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+See `Buldinig 32-bit packages on a 64-bit system`_ for more information. While
+this wiki article can be used as a reference, the pbldr tool expects the
+directory structure defined in the following code block.
 
 .. code-block:: console
 
-    $ makepkg -sfic
+    # mkdir -p /opt/chroot/{i686,x86_64}
+    # setarch i686 mkarchroot -C "/usr/share/devtools/pacman-extra.conf" \
+      -M "/usr/share/devtools/makepkg-i686.conf" /opt/chroot/i686 base base-devel sudo
 
-.. note:: If either SPL or ZFS do not build due to kernel incompatibilities,
-          patches will be needed to allow building to continue. See `Patching
-          ZFS`_.
+Edit pacman.conf and makepkg.conf and adjust to your desire. Specifically, the
+packager and host fields.
+
+.. code-block:: console
+
+    # vim /opt/chroot/i686/root/etc/makepkg.conf \
+      /opt/chroot/i686/root/etc/pacman.conf
+
+It is necessary to periodically perform updates to the chroot root copy, to do
+this, you will have to chroot into the root copy and perform the update. This
+same method is used to install new packages in the root copy.
+
+.. code-block:: console
+
+    # linux32 arch-chroot /opt/chroot/i686/root /bin/bash
+    # pacman -Syu
+    # pacman -S <package>
+    # exit
+
+64bit chroot environment
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The procedure for creating the 64bit chroot root environment is nearly
+identical to the commands used to create the 32bit chroot environment.
+
+.. code-block:: console
+
+    # mkarchroot -C "/usr/share/devtools/pacman-multilib.conf" \
+      -M "/usr/share/devtools/makepkg-x86_64.conf" /opt/chroot/x86_64 base \
+      multilib-devel sudo
+
+Edit pacman.conf and makepkg.conf and adjust to your desire. Specifically, the
+packager and host fields.
+
+.. code-block:: console
+
+    # vim /opt/chroot/x86_64/root/etc/makepkg.conf /opt/chroot/x86_64/root/etc/pacman.conf
+
+Periodically it is necessary to perform updates to the chroot root copy, to do
+this, you will have to chroot into the root copy and perform the update. This
+is the same method used to install new packages in the root copy.
+
+.. code-block:: console
+
+    # arch-chroot /opt/chroot/x86_64/root /bin/bash
+    # pacman -Syu
+    # pacman -S <package>
+    # exit
+
+Build the packages
+------------------
+
+To build all the packages in devsrc, simply use,
+
+.. code-block:: console
+
+    # pbldr build -c
+
+To only build spl and spl-utils, use
+
+.. code-block:: console
+
+    # pbldr -p spl build -p spl-utils -c
+
+This command will build i686 and x86_64 packages in a clean chroot copy. In
+this case /opt/chroot/i686/zfs32 for 32bit.
+
+The built packages are output to ./stage/spl-<version>/\*. Inspect them in the
+usual manner, namcap, pacman -Qi/-Ql, and so on. Once it is determined they are
+ready to be added to the repository, use the following command:
+
+.. code-block:: console
+
+    $ pbldr repo
+
+Or, in the case of building packages for the archiso, you can use,
+
+.. code-block:: console
+
+    $ pbldr repo -t archiso
+
+The packages are added to the repository and now the entire project directory
+can be rsync'd to a web host for hosting.
+
 
 Start the ZFS service
 ---------------------
@@ -254,23 +363,6 @@ This step is not necessary if you are using ZFS as root.
     # zpool import -a
     # systemctl start zfs
 
-Add packages to repository
---------------------------
-
-This is done using the ``repo_add.py`` python script for efficiency. It can be
-found `here <https://github.com/demizer/binfiles>`_.
-
-.. code-block:: console
-
-    $ repo_add.py -r archzfs -v rc12-9
-
-Testing
--------
-
-Reboot to make sure the ZFS packages are used after a system boot and the
-systemd file is in working order. Also sync the updates to other local systems
-to make sure the updated packages are picked up by pacman and install properly.
-
 Commit changes to git
 ---------------------
 
@@ -278,15 +370,9 @@ Add PKGBUILD.py and archzfs/ to the index and commit the changes with
 
 .. code-block:: console
 
-    git commit -m "Update to ZFS version 0.6.0-rc12-8 and linux-3.7"
+    $ git commit -m "Update to ZFS version 0.6.0-rc13-1 and linux-3.7.2"
 
-.. note:: "-8" at the end of the ZFS version is the pkgrel.
-
-Now tag the commit on the master branch
-
-.. code-block:: console
-
-    git tag 0.6.0-rc12\_6-linux-3.6.9 -as -m "Support for zfs-0.6.0-rc12\_6 and Kernel 3.6.9"
+.. note:: "-1" at the end of the ZFS version is the pkgrel.
 
 Update the webpage
 ==================
@@ -296,54 +382,16 @@ Use make to generate the updated website:
 
 .. code-block:: console
 
-    make publish
+    $ make publish
 
 then push the changes with rsync,
 
 .. code-block:: console
 
-    ./push_archzfs.sh -n
+    $ ./push_archzfs.sh -n
 
 '-n' is used to verify the files being pushed are correct. Once that is done,
 re-use the command without the dry-run argument.
-
-Anoucement template
-===================
-
-AUR
----
-
-The packages have been updated for kernel 3.6.7.
-
-If you installed the packages from AUR, you will need to first remove the zfs
-and spl packages:
-
-    # pacman -Rsc spl-utils
-
-and then update the kernel:
-
-    # pacman -S linux linux-headers
-
-You will now have to restart your system.
-
-Once your system is back up, you can proceed with building and installing zfs
-and spl, in the following order: spl-utils, spl, zfs-utils, and zfs. Then
-restart, or:
-
-    # modprobe zfs spl
-
-You could also use the prebuilt signed repository available at
-http://demizerone.com/archzfs and you will not have to remove the packages,
-update the kernel, and restart before performing the update.
-
-Also, these new packages now have a group, 'arch-zfs'. So next time you could
-remove the packages with just:
-
-    # pacman -R arch-zfs
-
-If usig the signed repository, you can now install all the packages with:
-
-    # pacman -S arch-zfs
 
 .. _Patching ZFS:
 
@@ -403,3 +451,5 @@ Finally, generate the new patch.
 .. _pacman-key: https://wiki.archlinux.org/index.php/Pacman-key
 .. _pacman.conf: https://www.archlinux.org/pacman/pacman.conf.5.html#_package_and_database_signature_checking
 .. _ZFS on Linux FAQ - 64bit: http://zfsonlinux.org/faq.html#WhyShouldIUseA64BitSystem
+.. _devtools: https://www.archlinux.org/packages/extra/any/devtools
+.. _Buldinig 32-bit packages on a 64-bit system: https://wiki.archlinux.org/index.php/Building_32-bit_packages_on_a_64-bit_system
