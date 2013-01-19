@@ -7,7 +7,7 @@ pkgrel=2
 pkgdesc="Kernel modules for the Zettabyte File System."
 depends=('spl=0.6.0_rc13_3.6.10' 'zfs-utils=0.6.0_rc13_3.6.10' 'linux=3.6.10')
 makedepends=('linux-headers=3.6.10')
-arch=('x86_64')
+arch=('i686' 'x86_64')
 url='http://zfsonlinux.org/'
 source=(http://zfsonlinux.org/downloads/0.6.0-rc13/zfs-0.6.0-rc13.tar.gz)
 groups=('archzfs')

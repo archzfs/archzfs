@@ -7,7 +7,7 @@ pkgrel=2
 pkgdesc='Solaris Porting Layer kernel modules.'
 depends=('spl-utils=0.6.0_rc13_3.6.10' 'linux=3.6.10')
 makedepends=('linux-headers=3.6.10')
-arch=('x86_64')
+arch=('i686' 'x86_64')
 url='http://zfsonlinux.org/'
 source=(http://zfsonlinux.org/downloads/0.6.0-rc13/spl-0.6.0-rc13.tar.gz)
 groups=('archzfs')
@@ -18,8 +18,13 @@ install=spl.install
 build() {
   cd ${srcdir}/spl-0.6.0-rc13
   ./autogen.sh
-  ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/sbin \
-              --with-config=kernel
+  if [[ $CARCH == i686 ]]; then
+    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/sbin \
+                --with-config=kernel --enable-atomic-spinlocks
+  else
+    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/sbin \
+                --with-config=kernel
+  fi
   make
 }
 
