@@ -8,7 +8,7 @@
         ],
         "LogLevel": "DEBUG",
         "ChrootPath": "/opt/chroot",
-        "ChrootCopy": "azfs",
+        "ChrootCopyName": "zfs",
         "SigningKey": "0EE7A126",
         "RepoPath": "core"
     }
