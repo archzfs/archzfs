@@ -10,6 +10,6 @@
         "ChrootPath": "/opt/chroot",
         "ChrootCopyName": "zfs",
         "SigningKey": "0EE7A126",
-        "RepoPath": "core"
+        "DefaultRepoTarget": "core"
     }
 ]
