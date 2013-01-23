@@ -1,15 +1,10 @@
-[
-    {
-        "PackageBuildOrder": [
-            "spl-utils",
-            "spl",
-            "zfs-utils",
-            "zfs"
-        ],
-        "LogLevel": "DEBUG",
-        "ChrootPath": "/opt/chroot",
-        "ChrootCopyName": "zfs",
-        "SigningKey": "0EE7A126",
-        "DefaultRepoTarget": "core"
-    }
-]
+chroot_copy_name: general
+chroot_path: /opt/chroot
+default_repo_target: core
+log_level: DEBUG
+package_build_order:
+  - spl-utils
+  - spl
+  - zfs-utils
+  - zfs
+keyid: 0EE7A126
