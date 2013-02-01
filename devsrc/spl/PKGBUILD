@@ -2,11 +2,11 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=('spl')
-pkgver=0.6.0_rc13_3.7.4
+pkgver=0.6.0_rc13_3.7.5
 pkgrel=1
 pkgdesc='Solaris Porting Layer kernel modules.'
-depends=('spl-utils=0.6.0_rc13_3.7.4' 'linux=3.7.4')
-makedepends=('linux-headers=3.7.4')
+depends=('spl-utils=0.6.0_rc13_3.7.5' 'linux=3.7.5')
+makedepends=('linux-headers=3.7.5')
 arch=('i686' 'x86_64')
 url='http://zfsonlinux.org/'
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.0-rc13.tar.gz)
