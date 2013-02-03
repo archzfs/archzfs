@@ -2,20 +2,20 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=('zfs-utils')
-pkgver=0.6.0_rc13_3.7.5
+pkgver=0.6.0_rc14_3.7.5
 pkgrel=1
 pkgdesc="Kernel module support files for the Zettabyte File System."
-depends=('spl=0.6.0_rc13_3.7.5' 'linux=3.7.5')
+depends=('spl=0.6.0_rc14_3.7.5' 'linux=3.7.5')
 makedepends=('linux-headers=3.7.5')
 arch=('i686' 'x86_64')
 url='http://zfsonlinux.org/'
-source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.0-rc13.tar.gz
+source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.0-rc14.tar.gz
         zfs-utils.bash-completion
         zfs-utils.initcpio.install
         zfs-utils.initcpio.hook
         zfs-utils.service)
 groups=('archzfs')
-md5sums=('0d166fe162d1c5d0ca49e16d89f05c81'
+md5sums=('adf09eb2144ef49734be12565d9ea4fe'
          '3e1c4a29c4f7d590e6a3041f2c61d6ff'
          'b5c75ddf052d6c167459674013811885'
          '105fe46115c6fc6a335399c74bd58289'
@@ -23,7 +23,7 @@ md5sums=('0d166fe162d1c5d0ca49e16d89f05c81'
 license=('CDDL')
 
 build() {
-  cd ${srcdir}/zfs-0.6.0-rc13
+  cd ${srcdir}/zfs-0.6.0-rc14
   ./autogen.sh
   ./configure --prefix=/usr \
               --sysconfdir=/etc \
@@ -32,13 +32,13 @@ build() {
               --datadir=/usr/share \
               --includedir=/usr/include \
               --with-udevdir=/lib/udev \
-              --libexecdir=/usr/lib/zfs-0.6.0-rc13 \
+              --libexecdir=/usr/lib/zfs-0.6.0-rc14 \
               --with-config=user
   make
 }
 
 package() {
-  cd ${srcdir}/zfs-0.6.0-rc13
+  cd ${srcdir}/zfs-0.6.0-rc14
   make DESTDIR=${pkgdir} install
 
   # move module tree /lib -> /usr/lib

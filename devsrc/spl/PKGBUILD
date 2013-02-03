@@ -2,21 +2,21 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=('spl')
-pkgver=0.6.0_rc13_3.7.5
+pkgver=0.6.0_rc14_3.7.5
 pkgrel=1
 pkgdesc='Solaris Porting Layer kernel modules.'
-depends=('spl-utils=0.6.0_rc13_3.7.5' 'linux=3.7.5')
+depends=('spl-utils=0.6.0_rc14_3.7.5' 'linux=3.7.5')
 makedepends=('linux-headers=3.7.5')
 arch=('i686' 'x86_64')
 url='http://zfsonlinux.org/'
-source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.0-rc13.tar.gz)
+source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.0-rc14.tar.gz)
 groups=('archzfs')
-md5sums=('257c3373f40e190743e78fdf65368d2a')
+md5sums=('07b6cf56659a95bc22ac45dbdd8344a0')
 license=('GPL')
 install=spl.install
 
 build() {
-  cd ${srcdir}/spl-0.6.0-rc13
+  cd ${srcdir}/spl-0.6.0-rc14
   ./autogen.sh
   if [[ $CARCH == i686 ]]; then
     ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/sbin \
@@ -29,7 +29,7 @@ build() {
 }
 
 package() {
-  cd ${srcdir}/spl-0.6.0-rc13
+  cd ${srcdir}/spl-0.6.0-rc14
   make DESTDIR=${pkgdir} install
 
   # move module tree /lib -> /usr/lib
