@@ -2,27 +2,31 @@
 
 build() {
     map add_module \
-        zfs \
-        zcommon \
-        znvpair \
         zavl \
+        znvpair \
         zunicode \
+        zcommon \
+        zfs \
+        zpios \
         spl \
+        splat \
         zlib_deflate
 
     map add_binary \
         zfs \
+        spl \
+        splat \
         zpool \
-        zpool_layout \
         mount.zfs \
+        fsck.zfs \
         hostid \
-        /lib/udev/zpool_id \
+        /lib/udev/vdev_id \
         /lib/udev/zvol_id
 
     map add_file \
-        /lib/udev/rules.d/60-z{vol,pool}.rules \
-        /lib/udev/rules.d/90-zfs.rules \
-        /etc/zfs/zdev.conf
+        /lib/udev/rules.d/60-zvol.rules \
+        /lib/udev/rules.d/69-vdev.rules \
+        /lib/udev/rules.d/90-zfs.rules
 
     add_runscript
 
