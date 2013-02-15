@@ -1,7 +1,7 @@
 ======================================
 Arch ZFS - ZFS On Linux Kernel Modules
 ======================================
-:Modified: Sat Jan 19 00:21:37 PST 2013
+:Modified: Tue Feb 12 18:05:02 PST 2013
 :status: hidden
 :slug: archzfs
 
@@ -88,6 +88,7 @@ It is possible to use ZFS with the official Arch Linux testing repository.
 .. code-block:: bash
 
     [archzfs]
+    Server = http://demizerone.com/$nepo/core/$arch
     Server = http://demizerone.com/$repo/testing/$arch
 
 ZFS support for archiso
@@ -460,6 +461,7 @@ ZFS testing update
 Information about using the archzfs testing repository can be found at http://demizerone.com/archzfs, or you can use the following server line in your pacman.conf:
 
 [archzfs]
+Server=http://demizerone.com/$repo/core/$arch
 Server=http://demizerone.com/$repo/testing/$arch
 
 If you want want the PKGBUILDs, download them from here: http://demizerone.com/archzfs/testing/sources/
