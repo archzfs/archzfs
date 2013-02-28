@@ -3,7 +3,7 @@
 
 pkgname=('zfs')
 pkgver=0.6.0_rc14_3.7.9
-pkgrel=1
+pkgrel=2
 pkgdesc="Kernel modules for the Zettabyte File System."
 depends=('spl=0.6.0_rc14_3.7.9' 'zfs-utils=0.6.0_rc14_3.7.9' 'linux=3.7.9')
 makedepends=('linux-headers=3.7.9')
