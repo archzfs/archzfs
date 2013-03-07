@@ -1,5 +1,3 @@
-KERNEL_VERSION=3.7.10-2-ARCH
-
 post_install() {
     check_hostid
     run_depmod
@@ -29,5 +27,6 @@ check_hostid() {
 
 run_depmod() {
     echo ">>> Updating module dependencies. Please wait ..."
-    depmod ${KERNEL_VERSION}
+    KERNEL_VERSION=$(pacman -Qi linux | \grep Version | cut -d : -f 2)
+    depmod ${KERNEL_VERSION}-ARCH
 }
