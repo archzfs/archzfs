@@ -12,7 +12,7 @@ post_upgrade() {
 
 check_initramfs() {
     echo ">>> Updating module dependencies. Please wait ..."
-    KERNEL_VERSION=$(pacman -Qi linux | \grep Version | cut -d : -f 2)
+    KERNEL_VERSION=$(pacman -Qi linux | sed -n 2p | cut -d : -f 2)
     depmod ${KERNEL_VERSION}-ARCH
     MK_CONF=$(grep -v '#' /etc/mkinitcpio.conf | grep zfs >/dev/null; echo $?);
     if [[ $MK_CONF == '0' ]]; then

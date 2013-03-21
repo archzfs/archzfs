@@ -27,6 +27,6 @@ check_hostid() {
 
 run_depmod() {
     echo ">>> Updating module dependencies. Please wait ..."
-    KERNEL_VERSION=$(pacman -Qi linux | \grep Version | cut -d : -f 2)
+    KERNEL_VERSION=$(pacman -Qi linux | sed -n 2p | cut -d : -f 2)
     depmod ${KERNEL_VERSION}-ARCH
 }
