@@ -1,6 +1,7 @@
 #!/bin/bash
 
 build() {
+
     map add_module \
         zavl \
         znvpair \
@@ -13,13 +14,18 @@ build() {
         zlib_deflate
 
     map add_binary \
-        zfs \
-        spl \
-        splat \
-        zpool \
-        mount.zfs \
         fsck.zfs \
+        zdb \
+        zfs \
+        zhack \
+        zinject \
+        zpios \
+        zpool \
+        zstreamdump \
+        ztest \
+        splat \
         hostid \
+        mount.zfs \
         /lib/udev/vdev_id \
         /lib/udev/zvol_id
 
