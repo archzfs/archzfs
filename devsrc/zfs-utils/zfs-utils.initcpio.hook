@@ -1,10 +1,21 @@
 ZPOOL_FORCE=""
 
 zfs_get_bootfs () {
-    ZFS_DATASET=`/usr/sbin/zpool list -H -o bootfs | sed 'q'`
-    if [ "$?" != "0" ] || [ "$ZFS_DATASET" = "" ] || [ "$ZFS_DATASET" = "no pools available" ] ; then
-        return 1
-    fi
+    for zfs_dataset in $(/usr/sbin/zpool list -H -o bootfs); do
+        case ${zfs_dataset} in
+            "" | "-")
+                # skip this line/dataset
+                ;;
+            "no pools available")
+                return 1
+                ;;
+            *)
+                ZFS_DATASET=${zfs_dataset}
+                return 0
+                ;;
+        esac
+    done
+    return 1
 }
 
 zfs_mount_handler () {
