@@ -3,7 +3,7 @@
 
 pkgname=('spl')
 pkgver=0.6.1_3.8.6
-pkgrel=1
+pkgrel=2
 pkgdesc='Solaris Porting Layer kernel modules.'
 depends=('spl-utils=0.6.1_3.8.6' 'linux=3.8.6')
 makedepends=('linux-headers=3.8.6')

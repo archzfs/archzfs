@@ -3,7 +3,7 @@
 
 pkgname=('zfs-utils')
 pkgver=0.6.1_3.8.6
-pkgrel=1
+pkgrel=2
 pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=('spl=0.6.1_3.8.6' 'linux=3.8.6')
 makedepends=('linux-headers=3.8.6')
@@ -18,7 +18,7 @@ groups=('archzfs')
 md5sums=('822cd73c139d89369d6c3944f8afe659'
          '3e1c4a29c4f7d590e6a3041f2c61d6ff'
          'ebea2b1e593a9a19efa0f7ae7451bbc7'
-         '105fe46115c6fc6a335399c74bd58289'
+         '8eec7f96316c7a1b6eeda8d56266a935'
          '161e6a5f5f314c9308b4a4565c01fe45')
 license=('CDDL')
 

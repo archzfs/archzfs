@@ -80,6 +80,12 @@ section at the ZFS AUR page or the ArchWiki ZFS page."
     if [ ! -f "/etc/hostid" ] ; then
         echo "ZFS: No hostid found on kernel command line or /etc/hostid. ZFS pools may not import correctly."
     fi
+
+    # Allow up to 10 seconds for zfs device to show up
+    for i in 1 2 3 4 5 6 7 8 9 10; do
+        [ -c "/dev/zfs" ] && break
+        sleep 1
+    done
 }
 
 # vim:set ts=4 sw=4 ft=sh et:
