@@ -1,5 +1,2 @@
 *!
-*/*/*pkg.tar*
-devsrc/*/*.tar.*
-depends/
-
+*/*.tar.*
