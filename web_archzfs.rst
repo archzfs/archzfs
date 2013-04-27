@@ -1,14 +1,13 @@
 ======================================
 Arch ZFS - ZFS On Linux Kernel Modules
 ======================================
-:Modified: Tue Feb 12 18:05:02 PST 2013
+:Modified: Fri Apr 26 21:13:37 PDT 2013
 :status: hidden
-:slug: archzfs
 
-.. important:: The database path for the archzfs repository has moved. It is now
-               located at "http://demizerone.com/$repo/core/$arch"! Please
-               update the server lines in your pacman.conf as necessary. This
-               change was necessary to add support for a testing repository.
+.. important:: The archzfs packages are now hosed in the demz-repo-core
+               repository and is located at
+               "http://demizerone.com/$repo/$arch". Please update the server
+               lines in your pacman.conf as necessary.
 
 This is the official web page of the Arch ZFS kernel module packages for native
 ZFS on Linux. Here you can find pacman package sources and pre-built x86_64 and
@@ -49,8 +48,8 @@ To start, add the server information to `/etc/pacman.conf`,
 
 .. code-block:: bash
 
-    [archzfs]
-    Server = http://demizerone.com/$repo/core/$arch
+    [demz-repo-core]  # For zfs packages
+    Server = http://demizerone.com/$repo/$arch
 
 Both the database and the packages are signed, so you will have to add the
 signing key to pacman's trusted key list:
@@ -87,9 +86,8 @@ It is possible to use ZFS with the official Arch Linux testing repository.
 
 .. code-block:: bash
 
-    [archzfs]
-    Server = http://demizerone.com/$nepo/core/$arch
-    Server = http://demizerone.com/$repo/testing/$arch
+    [demz-repo-testing]  # For zfs packages
+    Server = http://demizerone.com/$repo/$arch
 
 ZFS support for archiso
 =======================
@@ -102,8 +100,8 @@ the server information to pacman.conf:
 
 .. code-block:: bash
 
-    [archzfs]
-    Server = http://demizerone.com/$repo/archiso/$arch
+    [demz-repo-archiso]
+    Server = http://demizerone.com/$repo/$arch
 
 -----------------------
 Signing key for archzfs
@@ -161,46 +159,6 @@ This is the procedure the ZFS package maintainer should use to update the ZFS
 package versions on the development host. This could be provoked by a new ZFS
 release version or a kernel update.
 
-Unmount all zfs pools
-=====================
-
-.. code-block:: console
-
-    # systemctl stop zfs
-
-If there is a problem unmounting the drive, such as "target is busy", you can
-see what process is using the mount by using fuser.
-
-.. code-block:: console
-
-    # fuser /mnt/data
-    # sudo fuser -v /mnt/data
-
-                        USER        PID ACCESS COMMAND
-    /mnt/data:           root     kernel mount /mnt/data
-
-This directory is exported by nfs, so we'll have to stop the nfs server before
-unmounting.
-
-.. code-block:: console
-
-    # systemctl stop nfsd
-
-Remove the old ZFS version
-==========================
-
-.. code-block:: console
-
-    # pacman -R archzfs
-
-Perform pacman update and restart
-=================================
-
-.. code-block:: console
-
-    # pacman -Syu
-    # systemctl restart
-
 Create a new branch in git (optional)
 =====================================
 
@@ -209,29 +167,12 @@ project and the Linux Kernel version it will target.
 
 .. code-block:: console
 
-    $ git checkout -b zfs-0.6.0-rc13-linux-3.7.X
+    $ git checkout -b zfs-0.6.1_3.7.X
 
 This branch has 'X' as the last revision number because when a minor point
 release kernel is released, such as 3.7, it can take a while for it to move
 into the [core] repository. The 3.7 kernel can remain in testing for multiple
 revisions.
-
-Update the ZFS PKGBUILDs
-========================
-
-1. Update ``pkgrel``.
-
-   This step is only necessary if the upstream ZFS version has changed. If this
-   is the case, the ``pkgrel`` should also be changed to ``1``.
-
-#. Change the kernel versions to the targeted kernel version.
-
-   DON'T forget to update the version information for depmod in the spl.install
-   and zfs.install files! If forgotten, this will report errors after
-   installation and lead to the kernel modules not loading properly.
-
-#. It is not necessary to update the packages sums as the pbldr build tool does
-   that automatically.
 
 Building the packages
 =====================
@@ -239,10 +180,10 @@ Building the packages
 Building the packages requires that the devtools_ package be installed. This
 section assumes the host system is of x86_64 architecture.
 
-The pbldr tool builds i686 and x86_64 packages in a clean chroot environment.
-This method requires 5-10GB of space and some setup time in order to work
-properly. The size is largely determined by the number of chroots you have. On
-my system I have four copies and two root copies, totaling 13GB.
+update.sh builds i686 and x86_64 packages in a clean chroot environment. This
+method requires 5-10GB of space and some setup time in order to work properly.
+The size is largely determined by the number of chroots you have. On my system
+I have four copies and two root copies, totaling 13GB.
 
 Creating the chroot environment
 -------------------------------
@@ -320,41 +261,25 @@ is the same method used to install new packages in the root copy.
 Build the packages
 ------------------
 
-To build all the packages in devsrc, simply use,
+The specially made update script will automatically replace the version string
+with the new one and also add the built packages to the repo. To change the
+paths of the script, edit it and update the variables.
 
 .. code-block:: console
 
-    # pbldr build -c
+    # ./update.sh -k 3.8.8 -p 2 -t core
 
-To only build spl and spl-utils, use
+This command will build i686 and x86_64 packages in a clean chroot copy.
 
-.. code-block:: console
-
-    # pbldr -p spl build -p spl-utils -c
-
-This command will build i686 and x86_64 packages in a clean chroot copy. In
-this case /opt/chroot/i686/zfs32 for 32bit.
-
-The built packages are output to ./stage/spl-<version>/\*. Inspect them in the
-usual manner, namcap, pacman -Qi/-Ql, and so on. Once it is determined they are
-ready to be added to the repository, use the following command:
+Once the packages are added to the repo, sync the databases using pacman and
+update or install archzfs.
 
 .. code-block:: console
 
-    $ pbldr repo
-
-Or, in the case of building packages for the archiso, you can use,
-
-.. code-block:: console
-
-    $ pbldr repo -t archiso
-
-The packages are added to the repository and now the entire project directory
-can be rsync'd to a web host for hosting.
-
+    # pacman -Sy archzfs
 
 Start the ZFS service
----------------------
+=====================
 
 This step is not necessary if you are using ZFS as root.
 
@@ -365,106 +290,30 @@ This step is not necessary if you are using ZFS as root.
     # systemctl start zfs
 
 Commit changes to git
----------------------
+=====================
 
 Add PKGBUILD.py and archzfs/ to the index and commit the changes with
 
 .. code-block:: console
 
-    $ git commit -m "Update to ZFS version 0.6.0-rc13-1 and linux-3.7.2"
+    $ git commit -m "Update core to 0.6.1_3.8.8-2"
 
-.. note:: "-1" at the end of the ZFS version is the pkgrel.
+.. note:: "-2" at the end of the ZFS version is the pkgrel.
 
 Update the webpage
 ==================
 
-Open the command terminal and cd to the webpage repository powered by Pelican.
-Use make to generate the updated website:
+The webpage is a simple restructured text file. To regenerate it, I use a
+script that also pushes the repository to the website.
 
 .. code-block:: console
 
-    $ make publish
-
-then push the changes with rsync,
-
-.. code-block:: console
-
-    $ ./push_archzfs.sh -n
+    $ ./push_demz_repos -n
 
 '-n' is used to verify the files being pushed are correct. Once that is done,
 re-use the command without the dry-run argument.
 
-.. _Patching ZFS:
-
-Creating a patch for ZFS
-========================
-
-On some occasions, a new kernel version is pushed to the [core] repository
-that the latest ZFS on Linux release does not build against. The biggest
-problem with this is that the master branch of the ZFS on Linux repository
-already contains the required build fixes, but the next release could be weeks
-away, causing the packages in AUR to be flagged out of date for that period of
-time.
-
-The goal of this section is to document the procedure for creating a patch to
-bring the release version up-to-date with the latest kernel so that the AUR
-packages do not remain out of date. Otherwise, the user would have to
-un-install the current AUR packages and install special 'zfs-git' packages
-until the next ZFS on Linux release is made and then switch back to the
-standard ZFS AUR packages.
-
-.. note:: The ZFS and SPL projects track each other. If either package requires
-          a patch, then both projects should be patched. Each project is split
-          into two packages for Arch Linux so the patch must be applied to both
-          packages for each project.
-
-.. code-block:: console
-
-    $ git clone https://github.com/zfsonlinux/zfs.git
-
-Once the repository is cloned, create a branch.
-
-.. code-block:: console
-
-    $ git checkout -b archzfs_patch
-
-Revert the head to the last release.
-
-.. code-block:: console
-
-    $ git reset --hard <commit>
-
-Merge the master branch into the archzfs_patch branch.
-
-.. code-block:: console
-
-    $ git merge --squash master
-
-Finally, generate the new patch.
-
-.. code-block:: console
-
-    $ git diff --cached > ../linux-3.7.patch
-
--------------------
-Anouncment template
--------------------
-
-ZFS core update
-===============
-
-Pre-compiled packages are available for those that are using ZFS as root, want to do maintenance from an Archiso, or just don't want to deal with doing their own update management. They are available at http://demizerone.com/archzfs
-
-ZFS testing update
-==================
-
-Information about using the archzfs testing repository can be found at http://demizerone.com/archzfs, or you can use the following server line in your pacman.conf:
-
-[archzfs]
-Server=http://demizerone.com/$repo/core/$arch
-Server=http://demizerone.com/$repo/testing/$arch
-
-If you want want the PKGBUILDs, download them from here: http://demizerone.com/archzfs/testing/sources/
+The script can be found here: https://github.com/demizer/binfiles/blob/master/push_demz_repos.sh
 
 .. _archzfs-github: https://github.com/demizer/archzfs
 .. _demizerone.com: http://demizerone.com
