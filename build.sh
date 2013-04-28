@@ -26,7 +26,8 @@ for PKG in "spl-utils" "spl" "zfs-utils" "zfs"; do
     msg "Building $PKG"
     build "$PWD/$PKG"
     msg "Adding $PKG to the $REPO_PATH repository"
-    add_packages_to_repo "$PWD/$PKG" "$REPO_PATH"
+    add_packages_to_repo "$PWD/$PKG" "$REPO_PATH" \
+        "${CUR_ZFS_VER}_${LIN_VER}-${CUR_PKGREL_VER}"
     msg "Moving package sources to $SOURCE_PATH"
     move_package_sources "$PWD/$PKG" "$SOURCE_PATH"
 done
