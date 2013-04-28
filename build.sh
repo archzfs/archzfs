@@ -1,60 +1,32 @@
 #!/bin/bash
 
-LINUX=3.8.8
-PKGREL=2
+ZFS_VER=0.6.1
+LIN_VER=3.8.10
+PKGREL=1
 
-# CLEAN="-c"
-UPDATE="-u"
+CHROOT_NAME="general"
 
-CHROOT_PATH="/opt/chroot"
+. ../../tools/lib/lib.sh "$@"
 
-CHROOT_BASE_NAME="archzfs"
+CUR_LIN_VER=$(grep "pkgver=" spl-utils/PKGBUILD | cut -d= -f2 | cut -d_ -f2)
+CUR_ZFS_VER=$(grep "pkgver=" spl-utils/PKGBUILD | cut -d= -f2 | cut -d_ -f1)
+CUR_PKGREL_VER=$(grep "pkgrel=" spl-utils/PKGBUILD | cut -d= -f2)
 
-REPO_PATH="/mnt/data/pacman/repo/demz-repo-core"
+find . -iname "PKGBUILD" -print | xargs sed \
+    -i "s/$CUR_LIN_VER-$CUR_PKGREL_VER/$LIN_VER-$PKGREL/g"
 
-SOURCE_PATH="$REPO_PATH/sources"
+find . -iname "PKGBUILD" -print | xargs sed -i \
+    "s/pkgrel=$CUR_PKGREL_VER/pkgrel=$PKGREL/g"
 
-GPG_SIGN_KEY='EE07A126'
+find . -iname "PKGBUILD" -print | xargs sed -i "s/$CUR_ZFS_VER/$ZFS_VER/g"
 
-set -e
+find . -iname "PKGBUILD" -print | xargs sed -i "s/$CUR_LIN_VER/$LIN_VER/g"
 
-function build_in_dir {
-    cd $1
-    for ARCH in 'i686' 'x86_64'; do
-        ARGS="$UPDATE $CLEAN -r $CHROOT_PATH/$ARCH -l ${CHROOT_BASE_NAME}64"
-        [[ $ARCH == "i686" ]] && ARGS="${ARGS:0:-2}32"
-        sudo setarch $ARCH makechrootpkg $ARGS -- -i
-        gpg --batch --yes --detach-sign $1*.pkg.tar.xz
-    done
-    makepkg -Sfc
-    cd -
-}
-
-function add_packages_to_repo {
-    for ARCH in 'i686' 'x86_64'; do
-        REPO=$1/$ARCH/
-        rm -rf $REPO/$2
-        find . -type f -iname "$2-$ARCH.pkg.tar.xz*" -exec mv {} $REPO \;
-        cd $REPO
-        REPO_NAME=$(basename $1)
-        FILES=$(find . -type f -iname "$2.pkg.tar.xz")
-        repo-add -s -v -f $REPO_NAME.db.tar.xz $FILES
-        cd -
-    done
-}
-
-function move_package_sources {
-    [[ ! -d $1 ]] && mkdir -p $1
-    rm -rf "$1/*.src.tar.gz"
-    find . -iname "*.src.tar.gz" -exec mv {} $1 \;
-}
-
-build_in_dir "spl-utils"
-build_in_dir "spl"
-build_in_dir "zfs-utils"
-build_in_dir "zfs"
-
-add_packages_to_repo "$REPO_PATH" "zfs*"
-add_packages_to_repo "$REPO_PATH" "spl*"
-
-move_package_sources "$SOURCE_PATH"
+for PKG in "spl-utils" "spl" "zfs-utils" "zfs"; do
+    msg "Building $PKG"
+    build "$PWD/$PKG"
+    msg "Adding $PKG to the $REPO_PATH repository"
+    add_packages_to_repo "$PWD/$PKG" "$REPO_PATH"
+    msg "Moving package sources to $SOURCE_PATH"
+    move_package_sources "$PWD/$PKG" "$SOURCE_PATH"
+done
