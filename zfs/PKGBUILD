@@ -1,22 +1,22 @@
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
-pkgname=('zfs')
-pkgver=0.6.1_3.8.8
-pkgrel=2
+pkgname=("zfs")
+pkgver=0.6.1_3.8.10
+pkgrel=1
 pkgdesc="Kernel modules for the Zettabyte File System."
-depends=('spl=0.6.1_3.8.8-2' 'zfs-utils=0.6.1_3.8.8-2' 'linux=3.8.8-2')
-makedepends=('linux-headers=3.8.8-2')
-arch=('i686' 'x86_64')
-url='http://zfsonlinux.org/'
+depends=("spl=0.6.1_3.8.10-1" "zfs-utils=0.6.1_3.8.10-1" "linux=3.8.10-1")
+makedepends=("linux-headers=3.8.10-1")
+arch=("i686" "x86_64")
+url="http://zfsonlinux.org/"
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.1.tar.gz)
-groups=('archzfs')
-md5sums=('822cd73c139d89369d6c3944f8afe659')
-license=('CDDL')
+groups=("archzfs")
+md5sums=("822cd73c139d89369d6c3944f8afe659")
+license=("CDDL")
 install=zfs.install
 
 build() {
-  cd ${srcdir}/zfs-0.6.1
+  cd "$srcdir/zfs-0.6.1"
   ./autogen.sh
   ./configure --prefix=/usr \
               --sysconfdir=/etc \
@@ -31,10 +31,10 @@ build() {
 }
 
 package() {
-  cd ${srcdir}/zfs-0.6.1
-  make DESTDIR=${pkgdir} install
+  cd "$srcdir/zfs-0.6.1"
+  make DESTDIR="$pkgdir" install
 
   # move module tree /lib -> /usr/lib
-  cp -r ${pkgdir}/{lib,usr}
-  rm -r ${pkgdir}/lib
+  cp -r $pkgdir/{lib,usr}
+  rm -r $pkgdir/lib
 }

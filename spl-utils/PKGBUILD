@@ -1,23 +1,23 @@
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
-pkgname=('spl-utils')
-pkgver=0.6.1_3.8.8
-pkgrel=2
-pkgdesc='Solaris Porting Layer kernel module support files.'
-depends=('linux=3.8.8-2')
-makedepends=('linux-headers=3.8.8-2')
-arch=('i686' 'x86_64')
-url='http://zfsonlinux.org/'
+pkgname=("spl-utils")
+pkgver=0.6.1_3.8.10
+pkgrel=1
+pkgdesc="Solaris Porting Layer kernel module support files."
+depends=("linux=3.8.10-1")
+makedepends=("linux-headers=3.8.10-1")
+arch=("i686" "x86_64")
+url="http://zfsonlinux.org/"
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.1.tar.gz
         spl-utils.hostid)
-groups=('archzfs')
-md5sums=('0f58806d9fd9cab900181b59b21bae50'
-         'a54f0041a9e15b050f25c463f1db7449')
-license=('GPL')
+groups=("archzfs")
+md5sums=("0f58806d9fd9cab900181b59b21bae50"
+         "a54f0041a9e15b050f25c463f1db7449")
+license=("GPL")
 
 build() {
-  cd ${srcdir}/spl-0.6.1
+  cd "$srcdir/spl-0.6.1"
   ./autogen.sh
   ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/sbin \
               --with-config=user
@@ -25,8 +25,8 @@ build() {
 }
 
 package() {
-  cd ${srcdir}/spl-0.6.1
-  make DESTDIR=${pkgdir} install
+  cd "$srcdir/spl-0.6.1"
+  make DESTDIR=$pkgdir install
 
-  install -D -m644 ${srcdir}/spl-utils.hostid ${pkgdir}/etc/hostid
+  install -D -m644 $srcdir/spl-utils.hostid $pkgdir/etc/hostid
 }
