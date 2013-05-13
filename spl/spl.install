@@ -27,6 +27,11 @@ check_hostid() {
 
 run_depmod() {
     echo ">>> Updating module dependencies. Please wait ..."
-    KERNEL_VERSION=$(pacman -Qi linux | sed -n 2p | cut -d : -f 2)
+    KERNEL_VERSION=$(pacman -Qi linux | sed -n 2p | cut -d: -f2)
+    # For cases when the kernel version is 3.8, 3.9
+    LINUX_VER=$(echo $KERNEL_VERSION | cut -d- -f1)
+    if [ $(grep -o "\." <<<"$LINUX_VER" | wc -l) -eq 1 ]; then
+        KERNEL_VERSION="${LINUX_VER}.0-${KERNEL_VERSION:(-1)}"
+    fi
     depmod ${KERNEL_VERSION}-ARCH
 }
