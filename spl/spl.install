@@ -33,5 +33,5 @@ run_depmod() {
     if [ $(grep -o "\." <<<"$LINUX_VER" | wc -l) -eq 1 ]; then
         KERNEL_VERSION="${LINUX_VER}.0-${KERNEL_VERSION:(-1)}"
     fi
-    depmod ${KERNEL_VERSION}-ARCH
+    depmod $(basename $(find /usr/lib/modules -type d -iname $KERNEL_VERSION\*))
 }

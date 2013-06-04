@@ -2,43 +2,43 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=("zfs-utils")
-pkgver=_
-pkgrel=1
+pkgver=0.6.1_3.9.4
+pkgrel=2
 pkgdesc="Kernel module support files for the Zettabyte File System."
-depends=("spl=_-1" "linux=-1")
-makedepends=("linux-headers=-1")
+depends=("spl=0.6.1_3.9.4-2" "linux=3.9.4-1")
+makedepends=("linux-headers=3.9.4-1")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
-source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-.tar.gz
+source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.1.tar.gz
         zfs-utils.bash-completion
         zfs-utils.initcpio.install
         zfs-utils.initcpio.hook
         zfs-utils.service)
 groups=("archzfs")
-md5sums=("822cd73c139d89369d6c3944f8afe659"
-         "3e1c4a29c4f7d590e6a3041f2c61d6ff"
-         "ebea2b1e593a9a19efa0f7ae7451bbc7"
-         "8eec7f96316c7a1b6eeda8d56266a935"
-         "161e6a5f5f314c9308b4a4565c01fe45")
+md5sums=('822cd73c139d89369d6c3944f8afe659'
+         '3e1c4a29c4f7d590e6a3041f2c61d6ff'
+         'ebea2b1e593a9a19efa0f7ae7451bbc7'
+         '8eec7f96316c7a1b6eeda8d56266a935'
+         '161e6a5f5f314c9308b4a4565c01fe45')
 license=("CDDL")
 
 build() {
-  cd "$srcdir/zfs-"
+  cd "$srcdir/zfs-0.6.1"
   ./autogen.sh
   ./configure --prefix=/usr \
               --sysconfdir=/etc \
-              --sbindir=/usr/sbin \
+              --sbindir=/usr/bin \
               --libdir=/usr/lib \
               --datadir=/usr/share \
               --includedir=/usr/include \
               --with-udevdir=/lib/udev \
-              --libexecdir=/usr/lib/zfs- \
+              --libexecdir=/usr/lib/zfs-0.6.1 \
               --with-config=user
   make
 }
 
 package() {
-  cd "$srcdir/zfs-"
+  cd "$srcdir/zfs-0.6.1"
   make DESTDIR="$pkgdir" install
 
   # Remove uneeded files
@@ -48,6 +48,10 @@ package() {
   # move module tree /lib -> /usr/lib
   cp -r $pkgdir/{lib,usr}
   rm -r $pkgdir/lib
+
+  # Fixup path
+  mv $pkgdir/sbin/mount.zfs $pkgdir/usr/bin/
+  rm -r $pkgdir/sbin
 
   install -D -m644 $srcdir/zfs-utils.initcpio.hook $pkgdir/usr/lib/initcpio/hooks/zfs
   install -D -m644 $srcdir/zfs-utils.initcpio.install $pkgdir/usr/lib/initcpio/install/zfs
