@@ -1,8 +1,8 @@
 #!/bin/bash
 
-PKGREL=2
+PKGREL=1
 ZFS_VER="0.6.1"
-LINUX_VER="3.9.4"
+LINUX_VER="3.9.5"
 
 PKG_LIST="spl-utils spl zfs-utils zfs"
 
@@ -146,7 +146,7 @@ for PKG in $PKG_LIST; do
     pkgname=\$(grep "pkgname=" PKGBUILD | sed -e "s/pkgname=([\\'\\"]\\(.*\\)[\\'\\"])/\\1/")
     for ARCH in "i686" "x86_64"; do
         if [ -n "\$UPDATE" ]; then
-            setarch \$ARCH arch-nspawn $CHROOT_PATH/\$ARCH/$CHROOT_TARGET/root pacman -Syu
+            setarch \$ARCH arch-nspawn $CHROOT_PATH/\$ARCH/$CHROOT_TARGET/root pacman -Syu --noconfirm
         fi
         I_PKGS=\$(package_install_list "$2" \$ARCH)
         ARGS="\$CLEAN $I_PKGS -r $CHROOT_PATH/\$ARCH/$CHROOT_TARGET -l $CHROOT_COPYNAME"
