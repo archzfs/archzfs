@@ -2,7 +2,7 @@
 
 PKGREL=1
 ZFS_VER="0.6.1"
-LINUX_VER="3.9.7"
+LINUX_VER="3.9.8"
 
 PKG_LIST="spl-utils spl zfs-utils zfs"
 
@@ -175,7 +175,7 @@ build_sources() {
 
 sign_packages() {
     # $1: The directory that contains the packages
-    FILES=$(find $1 -iname "*.pkg.tar.xz")
+    FILES=$(find $1 -iname "*${ZFS_VER}_${LINUX_VER}-${PKGREL}*.pkg.tar.xz")
     echo $FILES
     for F in $FILES; do
         msg2 "Signing $F"
@@ -190,21 +190,21 @@ cleanup() {
 
 add_to_repo() {
     # $1: The path to the package source
-    for PKG in $PKG_LIST; do
-        cd "$1/$PKG"
-        VER=$(get_version .)-$(get_pkgrel .)
-        for ARCH in 'i686' 'x86_64'; do
-            REPO=`realpath $REPO_TARGET/$ARCH`
-            [[ ! -d $REPO ]] && mkdir -p $REPO
-            PFILE=$PKG-$VER-$ARCH.pkg.tar.xz
-            OLD_VER=$(get_old_version $PKG)
-            if [ -n "$OLD_VER" ]; then
-                mv $REPO/$PKG-$OLD_VER-$ARCH.pkg.tar.xz $REPO_BASE/backup/
-            fi
-            cp $PFILE* $REPO/
-            repo-add -s -v -f $REPO/$REPO_NAME.db.tar.xz $REPO/$PFILE
+    for ARCH in 'i686' 'x86_64'; do
+        REPO=`realpath $REPO_TARGET/$ARCH`
+        [[ ! -d $REPO ]] && mkdir -p $REPO
+
+        # Move the old packages to backup
+        for X in $(find $REPO -type f -iname "*.pkg.tar.xz*"); do
+            mv $X $REPO_BASE/backup/
         done
-        cd - > /dev/null
+
+        # Copy the new packages
+        for F in $(find $1 -type f -iname "*$FULL_VERSION-$ARCH.pkg.tar.xz*"); do
+            cp $F $REPO/
+        done
+
+        repo-add -s -v -f $REPO/$REPO_NAME.db.tar.xz $REPO/*.pkg.tar.xz
     done
 }
 
@@ -228,32 +228,6 @@ copy_sources() {
     done
 }
 
-get_pkgname() {
-    # $1: The directory of the package containing the PKGBUILD
-    cd "$1"
-    grep "pkgname=" PKGBUILD | sed -e "s/pkgname=([\'\"]\(.*\)[\'\"])/\1/"
-    cd - > /dev/null
-}
-
-get_version() {
-    # $1: The directory of the package containing the PKGBUILD
-    cd "$1"
-    grep "pkgver=" PKGBUILD | sed -e "s/pkgver=\(.*\)/\1/"
-    cd - > /dev/null
-}
-
-get_pkgrel() {
-    # $1: The directory of the package containing the PKGBUILD
-    cd "$1"
-    grep "pkgrel=" PKGBUILD | sed -e "s/pkgrel=\(.*\)/\1/"
-    cd - > /dev/null
-}
-
-get_old_version() {
-    # $1: The name of the package
-    tar --exclude="*/*" -tf $REPO_TARGET/x86_64/$REPO_NAME.db.tar.xz | sed -rn "s/^$1-([0-9]+.*)\//\1/p"
-}
-
 update_pkgbuilds() {
     CUR_ZFS_VER=$(grep "pkgver=" spl-utils/PKGBUILD | cut -d= -f2 | cut -d_ -f1)
     CUR_PKGREL_VER=$(grep "pkgrel=" spl-utils/PKGBUILD | cut -d= -f2)
@@ -263,12 +237,12 @@ update_pkgbuilds() {
     SED_CUR_LIN_VER=$(sed_escape_input_string $CUR_LINUX_VER)
     SED_CUR_ZFS_VER=$(sed_escape_input_string $CUR_ZFS_VER)
 
-    echo "CUR_ZFS_VER: $CUR_ZFS_VER"
-    echo "CUR_PKGREL_VER: $CUR_PKGREL_VER"
-    echo "CUR_LINUX_VER: $CUR_LINUX_VER"
-    echo "CUR_LINUX_PKGREL: $CUR_LINUX_PKGREL"
-    echo "SED_CUR_LIN_VER: $SED_CUR_LIN_VER"
-    echo "SED_CUR_ZFS_VER: $SED_CUR_ZFS_VER"
+    # echo "CUR_ZFS_VER: $CUR_ZFS_VER"
+    # echo "CUR_PKGREL_VER: $CUR_PKGREL_VER"
+    # echo "CUR_LINUX_VER: $CUR_LINUX_VER"
+    # echo "CUR_LINUX_PKGREL: $CUR_LINUX_PKGREL"
+    # echo "SED_CUR_LIN_VER: $SED_CUR_LIN_VER"
+    # echo "SED_CUR_ZFS_VER: $SED_CUR_ZFS_VER"
 
     # Replace the dependency versions of the archzfs packages
     find . -iname "PKGBUILD" -print | xargs sed -i \
