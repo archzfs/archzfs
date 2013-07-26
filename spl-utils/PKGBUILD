@@ -2,19 +2,26 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=("spl-utils")
-pkgver=0.6.1_3.9.9
+pkgver=0.6.1_3.10.2
 pkgrel=1
 pkgdesc="Solaris Porting Layer kernel module support files."
-depends=("linux=3.9.9-1")
-makedepends=("linux-headers=3.9.9-1")
+depends=("linux=3.10.2-1")
+makedepends=("linux-headers=3.10.2-1")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.1.tar.gz
-        spl-utils.hostid)
+        spl-utils.hostid
+        spl_git_head.patch)
 groups=("archzfs")
 md5sums=('0f58806d9fd9cab900181b59b21bae50'
-         'a54f0041a9e15b050f25c463f1db7449')
+         'a54f0041a9e15b050f25c463f1db7449'
+         '634741f1cfaa163feb933999d6caefb1')
 license=("GPL")
+
+prepare() {
+  cd "$srcdir/spl-0.6.1"
+  patch -Np1 -i ../spl_git_head.patch
+}
 
 build() {
   cd "$srcdir/spl-0.6.1"
