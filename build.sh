@@ -19,6 +19,7 @@ UPDATE=""
 UPDATE_PKGBUILDS=""
 CLEAN=""
 SIGN=""
+BURP=""
 CHROOT_TARGET=""
 VERSION="${ZFS_VER}_${LINUX_VER}"
 FULL_VERSION="$VERSION-$PKGREL"
@@ -253,6 +254,12 @@ update_pkgbuilds() {
     done
 }
 
+push_sources_to_aur() {
+    # $1: The directory containing the packages
+    FILES=$(find $1 -iname "*${ZFS_VER}_${LINUX_VER}-${PKGREL}*.src.tar.gz")
+    burp -c modules $FILES -v
+}
+
 if [ $# -lt 1 ]; then
     usage;
     exit 0;
@@ -269,6 +276,8 @@ for (( a = 0; a < $#; a++ )); do
         UPDATE_PKGBUILDS=1
     elif [[ ${ARGS[$a]} == "sign" ]]; then
         SIGN=1
+    elif [[ ${ARGS[$a]} == "burp" ]]; then
+        BURP=1
     elif [[ ${ARGS[$a]} == "repo" ]]; then
         REPO=1
         REPO_NAME=$(get_repo_name_from_shorthand ${ARGS[`expr $a + 1`]})
@@ -307,4 +316,8 @@ if [[ $CLEANUP == 1 ]]; then
     msg2 "Cleaning up work files..."
     find . \( -iname "sed*" -o -iname "*.log" -o -iname "*.pkg.tar.xz*" \
         -o -iname "*.src.tar.gz" \) -print -exec rm -f {} \;
+fi
+
+if [[ $BURP == 1 ]]; then
+    push_sources_to_aur
 fi
