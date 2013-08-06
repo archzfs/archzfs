@@ -78,25 +78,14 @@ usage() {
     echo
 	echo "Usage: $0 [options] [build chroot [options]] [repo name] [source]"
     echo
-    echo "To update the PKGBUILDS"
-    echo
-    echo "  build.sh update"
-    echo
-    echo "To build in the the regular chroot (core) and perform update:"
-    echo
-    echo "  build.sh build core -u"
-    echo
-    echo "To build in the the test chroot (test):"
-    echo
-    echo "  build.sh build test"
-    echo
-    echo "To add the packages to demz-core-repo:"
-    echo
-    echo "  build.sh repo core"
-    echo
-    echo " To update and clean the chroot before building: "
-    echo
-    echo "  build.sh build core -u -c"
+    echo "  build.sh -C                         :: Remove all compiled packages"
+    echo "  build.sh update                     :: Update PKGBUILDS"
+    echo "  build.sh build core -u              :: Update and build in core chroot"
+    echo "  build.sh build test                 :: Build in test chroot"
+    echo "  build.sh update build core -u -c    :: Update PKGBUILDs, Update, clean,"
+    echo "                                         and build in core chroot"
+    echo "  build.sh repo core                  :: Add packages to demz-repo-core"
+    echo "  build.sh burp                       :: Push sources to AUR using Burp"
 }
 
 get_repo_name_from_shorthand() {
