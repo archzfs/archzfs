@@ -47,3 +47,14 @@ error() {
 	local mesg=$1; shift
 	printf "${RED}==> $(gettext "ERROR:")${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
 }
+
+send_email() {
+    # $1 = Message
+    # $2 = Subject
+    # $3 = attachment
+    if [[ $3 == "" ]]; then
+        echo -e "${1}" | mutt -s "${2}" "${EMAIL}" &> /dev/null;
+    else
+        echo -e "${1}" | mutt -s "${2}" "${EMAIL}" -a "${3}" &> /dev/null;
+    fi
+}
