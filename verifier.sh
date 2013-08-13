@@ -9,6 +9,8 @@
 REPO_BASEPATH="/data/pacman/repo"
 REMOTE_LOGIN="jalvarez@jalvarez.webfactional.com"
 
+EMAIL="jeezusjr@gmail.com"
+
 source "lib.sh"
 
 compute_local_repo_hash() {
@@ -39,17 +41,23 @@ compute_remote_repo_hash() {
 
 compare_repo() {
     # $1: The repo name to compare
-    compute_local_repo_hash $1
-    echo $LOCAL_REPO_HASH
-    compute_remote_repo_hash $1
-    echo $REMOTE_REPO_HASH
+    if [[ $(compute_local_repo_hash $1) != $(compute_remote_repo_hash $1) ]]; then
+        return 1
+    fi
 }
 
 #
 # Check demz-repo-archiso
 #
-compare_repo "demz-repo-archiso" "x86_64"
+if [[ $(compare_repo "demz-repo-archiso") != 0 ]]; then
+    msg "The database is out of sync, sending notification..."
+    send_email "demz-repo-archiso is out of sync!" "demz-repo-archiso is not in sync!"
+fi
 
 #
 # Check demz-repo-core
 #
+if [[ $(compare_repo "demz-repo-core") != 0 ]]; then
+    msg "The database is out of sync, sending notification..."
+    send_email "demz-repo-core is out of sync!" "demz-repo-core is not in sync!"
+fi
