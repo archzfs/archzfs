@@ -2,7 +2,8 @@
 
 PKGREL=1
 ZFS_VER="0.6.1"
-LINUX_VER="3.10.5"
+LINUX_VER="3.10.6"
+LINUX_PKGREL=2
 
 PKG_LIST="spl-utils spl zfs-utils zfs"
 
