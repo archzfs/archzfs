@@ -187,24 +187,31 @@ update_pkgbuilds() {
     # echo "SED_CUR_LIN_VER: $SED_CUR_LIN_VER"
     # echo "SED_CUR_ZFS_VER: $SED_CUR_ZFS_VER"
 
-    # Replace the dependency versions of the archzfs packages
-    find . -iname "PKGBUILD" -print | xargs sed -i \
-        "s/_$SED_CUR_LIN_VER-$CUR_PKGREL_VER/_$LINUX_VER-$PKGREL/g"
-
-    # Replace the PKGREL
+    # Change the top level PKGREL
     find . -iname "PKGBUILD" -print | xargs sed -i \
         "s/pkgrel=$CUR_PKGREL_VER/pkgrel=$PKGREL/g"
 
     # Replace the ZFS version
     find . -iname "PKGBUILD" -print | xargs sed -i "s/$SED_CUR_ZFS_VER/$ZFS_VER/g"
 
+    # Replace the linux version in the top level VERSION
+    find . -iname "PKGBUILD" -print | xargs sed -i \
+        "s/_$SED_CUR_LIN_VER/_$LINUX_VER/g"
+
+    # Replace the linux version in the package dependencies (notice the _).
+    # This could probably be merged with the sed below, but I am lazy.
+    find . -iname "PKGBUILD" -print | xargs sed -i \
+        "s/_$SED_CUR_LIN_VER-$CUR_LINUX_PKGREL/_$LINUX_VER-$LINUX_PKGREL/g"
+
     # Replace the linux version
-    find . -iname "PKGBUILD" -print | xargs sed -i "s/$SED_CUR_LIN_VER/$LINUX_VER/g"
+    find . -iname "PKGBUILD" -print | xargs sed -i \
+        "s/$SED_CUR_LIN_VER-$CUR_LINUX_PKGREL/$LINUX_VER-$LINUX_PKGREL/g"
 
     # Update the sums of the files
     for PKG in $PKG_LIST; do
         updpkgsums $PKG/PKGBUILD
     done
+
 }
 
 push_sources_to_aur() {
