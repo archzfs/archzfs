@@ -1,5 +1,3 @@
-set -e
-
 shopt -s nullglob
 
 # check if messages are to be printed using color
