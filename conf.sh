@@ -1,6 +1,6 @@
 PKGREL="1"
 LINUX_PKG_VER="3.10.6-2"
-LINUX_ARCHISO="3.9.8"
+LINUX_ARCHISO="3.10.3"
 ZOL_VER="0.6.1"
 EMAIL="jeezusjr@gmail.com"
 REPO_BASEPATH="/data/pacman/repo"
