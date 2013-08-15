@@ -1,23 +1,19 @@
 #!/bin/bash
 
-SOURCE_PATH="/mnt/data/pacman/repo/sources"
+#
+# push.sh is a script for pushing the archzfs package sources to AUR as well as
+# the archzfs package documentation.
+#
 
-set -e
+source "lib.sh"
+source "conf.sh"
 
-rsync -avhP --delete-before \
-      --exclude=sources/ \
-      /mnt/data/pacman/repo/demz* \
-      jalvarez@jalvarez.webfactional.com:webapps/default/ $1
+msg "Pushing the package sources to AUR..."
+FILES=$(find . -iname "*$ZOL_VER_$LINUX_VER-$PKGREL*.src.tar.gz")
+burp -c modules $FILES -v
 
-
-[ -n $1 ] && exit
-
+# Build the documentation and push it to the remote host
+msg "Building the documentation..."
 rst2html2 $SOURCE_PATH/archzfs/web_archzfs.rst > /tmp/archzfs_index.html
-
-rst2html2 $SOURCE_PATH/archnetflix/web_archnetflix.rst > /tmp/archnetflix_index.html
-
-scp /tmp/archzfs_index.html \
-    jalvarez@jalvarez.webfactional.com:webapps/default/archzfs/index.html
-
-scp /tmp/archnetflix_index.html \
-    jalvarez@jalvarez.webfactional.com:webapps/default/archnetflix/index.html
+msg2 "Pushing the documentation to the remote host..."
+scp /tmp/archzfs_index.html $REMOTE_LOGIN:webapps/default/archzfs/index.html
