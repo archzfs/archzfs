@@ -6,12 +6,8 @@
 # This is necessary because I often forgot to push the changes to the archzfs
 # host after updating my local repositories.
 #
-REPO_BASEPATH="/data/pacman/repo"
-REMOTE_LOGIN="jalvarez@jalvarez.webfactional.com"
-
-EMAIL="jeezusjr@gmail.com"
-
 source "lib.sh"
+source "conf.sh"
 
 compute_local_repo_hash() {
     # $1: The repository to compute

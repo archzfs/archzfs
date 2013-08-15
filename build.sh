@@ -1,18 +1,7 @@
 #!/bin/bash
 
-PKGREL=1
-ZFS_VER="0.6.1"
-LINUX_VER="3.10.6"
-LINUX_PKGREL=2
-
-PKG_LIST="spl-utils spl zfs-utils zfs"
-
-GPG_SIGN_KEY='0EE7A126'
-CHROOT_PATH="/opt/chroot"
-REPO_BASE="/mnt/data/pacman/repo"
-CHROOT_COPYNAME="azfs"
-
 # Default variables, don't edit these.
+PKG_LIST="spl-utils spl zfs-utils zfs"
 BUILD=0
 REPO=0
 CLEANUP=0

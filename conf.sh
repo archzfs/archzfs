@@ -1,0 +1,11 @@
+PKGREL="1"
+LINUX_PKG_VER="3.10.6-2"
+LINUX_ARCHISO="3.9.8"
+ZOL_VER="0.6.1"
+EMAIL="jeezusjr@gmail.com"
+REPO_BASEPATH="/data/pacman/repo"
+REMOTE_LOGIN="jalvarez@jalvarez.webfactional.com"
+GPG_SIGN_KEY='0EE7A126'
+CHROOT_PATH="/opt/chroot"
+REPO_BASE="/mnt/data/pacman/repo"
+CHROOT_COPYNAME="azfs"
