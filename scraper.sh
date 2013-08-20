@@ -37,7 +37,7 @@ fi
 msg "Checking the online package database for linux kernel version changes..."
 
 check_webpage "https://www.archlinux.org/packages/core/i686/linux/" \
-    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" $LINUX_PKG_VER
+    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" $LINUX_VERSION_FULL
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
@@ -53,7 +53,7 @@ fi
 msg "Checking zfsonlinux.org for new versions..."
 
 check_webpage "http://zfsonlinux.org/" \
-    "(?<=zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" $ZOL_VER
+    "(?<=zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" $ZOL_VERSION
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
