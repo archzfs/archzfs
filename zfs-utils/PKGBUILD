@@ -2,35 +2,28 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=("zfs-utils")
-pkgver=0.6.1_3.10.7
+pkgver=0.6.2_3.10.9
 pkgrel=1
 pkgdesc="Kernel module support files for the Zettabyte File System."
-depends=("spl=0.6.1_3.10.7-1" "linux=3.10.7-1")
-makedepends=("linux-headers=3.10.7-1")
+depends=("spl=0.6.2_3.10.9-1" "linux=3.10.9-1")
+makedepends=("linux-headers=3.10.9-1")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
-source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.1.tar.gz
+source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz
         zfs-utils.bash-completion
         zfs-utils.initcpio.install
         zfs-utils.initcpio.hook
-        zfs-utils.service
-        zfs_git_head.patch)
+        zfs-utils.service)
 groups=("archzfs")
-md5sums=('822cd73c139d89369d6c3944f8afe659'
+md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
          '3e1c4a29c4f7d590e6a3041f2c61d6ff'
          'ebea2b1e593a9a19efa0f7ae7451bbc7'
          '8eec7f96316c7a1b6eeda8d56266a935'
-         '2dd798467cfe03aa4532399b86d76300'
-         'c99b1ce589cc409ffd18ef8db33da289')
+         '2dd798467cfe03aa4532399b86d76300')
 license=("CDDL")
 
-prepare() {
-  cd "$srcdir/zfs-0.6.1"
-  patch -Np1 -i ../zfs_git_head.patch
-}
-
 build() {
-  cd "$srcdir/zfs-0.6.1"
+  cd "$srcdir/zfs-0.6.2"
   ./autogen.sh
   ./configure --prefix=/usr \
               --sysconfdir=/etc \
@@ -39,13 +32,13 @@ build() {
               --datadir=/usr/share \
               --includedir=/usr/include \
               --with-udevdir=/lib/udev \
-              --libexecdir=/usr/lib/zfs-0.6.1 \
+              --libexecdir=/usr/lib/zfs-0.6.2 \
               --with-config=user
   make
 }
 
 package() {
-  cd "$srcdir/zfs-0.6.1"
+  cd "$srcdir/zfs-0.6.2"
   make DESTDIR="$pkgdir" install
 
   # Remove uneeded files
