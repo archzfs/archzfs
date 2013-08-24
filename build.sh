@@ -16,6 +16,8 @@ CLEANUP=0
 source "lib.sh"
 source "conf.sh"
 
+set -e
+
 usage() {
 	echo "build.sh - A build script for archzfs"
     echo
