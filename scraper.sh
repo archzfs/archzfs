@@ -7,8 +7,8 @@ check_webpage() {
     # $1: The url to scrape
     # $2: The Perl regex to match with
     # $3: Expect match
-    # Sends a message on mismatch
-    SCRAPED_STRING=$(curl -s "$1" | grep -Po "$2")
+    # Sends a message on mismatch. Only the first match is checked.
+    SCRAPED_STRING=$(curl -s "$1" | grep -Po -m 1 "$2")
     if [[ $SCRAPED_STRING != "$3" ]]; then
         error "Checking \"$1\" expected \"$3\" got \"$SCRAPED_STRING\""
         return 1
