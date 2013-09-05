@@ -2,11 +2,11 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=("zfs")
-pkgver=0.6.2_3.10.9
+pkgver=0.6.2_3.10.10
 pkgrel=1
 pkgdesc="Kernel modules for the Zettabyte File System."
-depends=("spl=0.6.2_3.10.9-1" "zfs-utils=0.6.2_3.10.9-1" "linux=3.10.9-1")
-makedepends=("linux-headers=3.10.9-1")
+depends=("spl=0.6.2_3.10.10-1" "zfs-utils=0.6.2_3.10.10-1" "linux=3.10.10-1")
+makedepends=("linux-headers=3.10.10-1")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz)
