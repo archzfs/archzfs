@@ -5,7 +5,7 @@ PKGREL="1"  # The pkgrel of all the archzfs packages
 ZOL_VERSION="0.6.2"
 
 # Linux version dependencies
-LINUX_VERSION="3.10.9"
+LINUX_VERSION="3.10.10"
 LINUX_PKGREL="1"
 LINUX_VERSION_FULL="$LINUX_VERSION-$LINUX_PKGREL"
 LINUX_ARCHISO="3.10.3"
