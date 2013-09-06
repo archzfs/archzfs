@@ -21,7 +21,7 @@ get_repo_name_from_shorthand() {
 }
 
 usage() {
-	echo "repo.sh - Adds the archzfs packages to the $REPO_NAME repository"
+	echo "repo.sh - Adds the archzfs packages to the $REPO_TARGET repository"
     echo
 	echo "Usage: $0 <repo> [version]"
     echo
@@ -36,6 +36,8 @@ if [ $# -lt 1 ]; then
 fi
 
 REPO_NAME=$(get_repo_name_from_shorthand $1)
+REPO_TARGET=$REPO_BASEPATH/$REPO_NAME
+SOURCE_TARGET="$REPO_TARGET/sources/"
 
 add_to_repo() {
     # $1: The path to the package source
@@ -49,11 +51,11 @@ add_to_repo() {
         done
 
         # Copy the new packages
-        for F in $(find $1 -type f -iname "*$FULL_VERSION-$ARCH.pkg.tar.xz*"); do
+        for F in $(find . -type f -iname "*${FULL_VERSION}-$ARCH.pkg.tar.xz*"); do
             cp $F $REPO/
         done
 
-        repo-add -s -v -f $REPO/$REPO_NAME.db.tar.xz $REPO/*.pkg.tar.xz
+        repo-add -s -v -f $REPO/${REPO_NAME}.db.tar.xz $REPO/*.pkg.tar.xz
     done
 }
 
@@ -77,5 +79,5 @@ copy_sources() {
     done
 }
 
-add_to_repo .
-copy_sources .
+add_to_repo
+copy_sources

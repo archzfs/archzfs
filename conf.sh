@@ -12,7 +12,7 @@ LINUX_ARCHISO="3.10.10"
 
 # Package version number
 PKG_VERSION="${ZOL_VERSION}_${LINUX_VERSION}"
-FULL_VERSION="$VERSION-$PKGREL"
+FULL_VERSION="$PKG_VERSION-$PKGREL"
 
 # Notification address
 EMAIL="jeezusjr@gmail.com"
@@ -22,10 +22,7 @@ CHROOT_PATH="/opt/chroot"
 CHROOT_COPYNAME="azfs"
 
 # Repository path and name
-REPO_NAME="demz-repo-core"
 REPO_BASEPATH="/data/pacman/repo"
-REPO_TARGET=$REPO_BASEPATH/$REPO_NAME
-SOURCE_TARGET="$REPO_TARGET/sources/"
 
 # SSH login address
 REMOTE_LOGIN="jalvarez@jalvarez.webfactional.com"

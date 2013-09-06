@@ -35,8 +35,7 @@ sed_escape_input_string() {
 }
 
 build() {
-    # $1: Directory containing packages
-    # $2: List of dependencies to install
+    # $1: List of dependencies to install
     cat > "$PWD/builder" <<EOF
 set -e
 
@@ -59,14 +58,14 @@ package_install_list() {
 CHROOT_CLEAN="$CHROOT_CLEAN"
 CHROOT_UPDATE="$CHROOT_UPDATE"
 for PKG in $PKG_LIST; do
-    cd "$1/\$PKG"
+    cd "$PWD/\$PKG"
     msg "Building \$PKG";
     pkgname=\$(grep "pkgname=" PKGBUILD | sed -e "s/pkgname=([\\'\\"]\\(.*\\)[\\'\\"])/\\1/")
     for ARCH in "i686" "x86_64"; do
         if [ -n "\$CHROOT_UPDATE" ]; then
             setarch \$ARCH arch-nspawn $CHROOT_PATH/\$ARCH/$CHROOT_TARGET/root pacman -Syu --noconfirm
         fi
-        I_PKGS=\$(package_install_list "$2" \$ARCH)
+        I_PKGS=\$(package_install_list "$1" \$ARCH)
         ARGS="\$CHROOT_CLEAN $I_PKGS -r $CHROOT_PATH/\$ARCH/$CHROOT_TARGET -l $CHROOT_COPYNAME"
         setarch \$ARCH makechrootpkg \$ARGS -- -i
     done
@@ -82,9 +81,8 @@ EOF
 }
 
 build_sources() {
-    # $1: The directory containing the packages
     for PKG in $PKG_LIST; do
-        cd "$1/$PKG"
+        cd "$PWD/$PKG"
         msg2 "Building source for $PKG";
         makepkg -Sfc
         cd - > /dev/null
@@ -92,8 +90,7 @@ build_sources() {
 }
 
 sign_packages() {
-    # $1: The directory that contains the packages
-    FILES=$(find $1 -iname "*${ZOL_VERSION}_${LINUX_VERSION}-${PKGREL}*.pkg.tar.xz")
+    FILES=$(find $PWD -iname "*${ZOL_VERSION}_${LINUX_VERSION}-${PKGREL}*.pkg.tar.xz")
     echo $FILES
     for F in $FILES; do
         msg2 "Signing $F"
@@ -178,13 +175,13 @@ if [[ $UPDATE_PKGBUILDS == 1 ]]; then
 fi
 
 if [[ $SIGN == 1 ]]; then
-    sign_packages .
+    sign_packages
 fi
 
 if [[ $BUILD == 1 ]]; then
-    build .
-    build_sources .
-    sign_packages .
+    build
+    build_sources
+    sign_packages
 fi
 
 if [[ $CLEANUP == 1 ]]; then
