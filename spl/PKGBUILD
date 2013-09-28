@@ -2,11 +2,11 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=("spl")
-pkgver=0.6.2_3.11.1
-pkgrel=2
+pkgver=0.6.2_3.11.2
+pkgrel=1
 pkgdesc="Solaris Porting Layer kernel modules."
-depends=("spl-utils=0.6.2_3.11.1-2" "linux=3.11.1-2")
-makedepends=("linux-headers=3.11.1-2")
+depends=("spl-utils=0.6.2_3.11.2-1" "linux=3.11.2-1")
+makedepends=("linux-headers=3.11.2-1")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.2.tar.gz)
