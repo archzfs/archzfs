@@ -127,18 +127,13 @@ update_pkgbuilds() {
     find . -iname "PKGBUILD" -print | xargs sed -i \
         "s/$SED_CUR_ZFS_VER/$ZOL_VERSION/g"
 
-    # Replace the linux version in the top level VERSION
-    find . -iname "PKGBUILD" -print | xargs sed -i \
-        "s/_$SED_CUR_LIN_VER/_$LINUX_VERSION/g"
-
-    # Replace the linux version in the package dependencies (notice the _).
-    # This could probably be merged with the sed below, but I am lazy.
-    find . -iname "PKGBUILD" -print | xargs sed -i \
-        "s/_$SED_CUR_LIN_VER-$CUR_LINUX_PKGREL/_$LINUX_VERSION-$LINUX_PKGREL/g"
-
     # Replace the linux version
     find . -iname "PKGBUILD" -print | xargs sed -i \
         "s/$SED_CUR_LIN_VER-$CUR_LINUX_PKGREL/$LINUX_VERSION-$LINUX_PKGREL/g"
+
+    # Replace the linux version in the top level VERSION
+    find . -iname "PKGBUILD" -print | xargs sed -i \
+        "s/_$SED_CUR_LIN_VER/_$LINUX_VERSION/g"
 
     # Update the sums of the files
     for PKG in $PKG_LIST; do
