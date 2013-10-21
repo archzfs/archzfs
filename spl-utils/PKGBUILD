@@ -24,7 +24,7 @@ build() {
 
 package() {
   cd "$srcdir/spl-0.6.2"
-  make DESTDIR=$pkgdir install
+  make DESTDIR="$pkgdir" install
 
-  install -D -m644 $srcdir/spl-utils.hostid $pkgdir/etc/hostid
+  install -D -m644 "$srcdir"/spl-utils.hostid "$pkgdir"/etc/hostid
 }

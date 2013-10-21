@@ -30,9 +30,9 @@ build() {
 
 package() {
   cd "$srcdir/spl-0.6.2"
-  make DESTDIR=$pkgdir install
+  make DESTDIR="$pkgdir" install
 
   # move module tree /lib -> /usr/lib
-  cp -r $pkgdir/{lib,usr}
-  rm -r $pkgdir/lib
+  cp -r "$pkgdir"/{lib,usr}
+  rm -r "$pkgdir"/lib
 }
