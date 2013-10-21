@@ -104,10 +104,10 @@ cleanup() {
 }
 
 update_pkgbuilds() {
-    CUR_ZFS_VER=$(grep "pkgver=" spl-utils/PKGBUILD | cut -d= -f2 | cut -d_ -f1)
-    CUR_PKGREL_VER=$(grep "pkgrel=" spl-utils/PKGBUILD | cut -d= -f2)
-    CUR_LINUX_VER=$(grep "linux=" spl-utils/PKGBUILD | sed -r "s/.*linux=(.*)-.+/\1/g")
-    CUR_LINUX_PKGREL=$(grep "linux=" spl-utils/PKGBUILD | sed -r "s/.*linux=.+-(.+)\"\)/\1/g")
+    CUR_ZFS_VER=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2 | cut -d_ -f1)
+    CUR_PKGREL_VER=$(grep "pkgrel=" zfs/PKGBUILD | cut -d= -f2)
+    CUR_LINUX_VER=$(grep "linux=" zfs/PKGBUILD | sed -r "s/.*linux=(.*)-.+/\1/g")
+    CUR_LINUX_PKGREL=$(grep "linux=" zfs/PKGBUILD | sed -r "s/.*linux=.+-(.+)\"\)/\1/g")
 
     SED_CUR_LIN_VER=$(sed_escape_input_string $CUR_LINUX_VER)
     SED_CUR_ZFS_VER=$(sed_escape_input_string $CUR_ZFS_VER)
