@@ -1,7 +1,7 @@
 ZPOOL_FORCE=""
 
 zfs_get_bootfs () {
-    for zfs_dataset in $(/usr/sbin/zpool list -H -o bootfs); do
+    for zfs_dataset in $(/usr/bin/zpool list -H -o bootfs); do
         case ${zfs_dataset} in
             "" | "-")
                 # skip this line/dataset
@@ -23,7 +23,7 @@ zfs_mount_handler () {
     if [ "$ZFS_DATASET" = "bootfs" ] ; then
         if ! zfs_get_bootfs ; then
             # Lets import everything and try again
-            /usr/sbin/zpool import -N -a $ZPOOL_FORCE
+            /usr/bin/zpool import -N -a $ZPOOL_FORCE
             if ! zfs_get_bootfs ; then
                 echo "ZFS: Cannot find bootfs."
                 return 1
@@ -32,16 +32,16 @@ zfs_mount_handler () {
     fi
 
     local pool="${ZFS_DATASET%%/*}"
-    if ! "/usr/sbin/zpool" list -H $pool > /dev/null ; then
+    if ! "/usr/bin/zpool" list -H $pool > /dev/null ; then
         echo "ZFS: Importing pool $pool."
 
-        if ! "/usr/sbin/zpool" import -N $pool $ZPOOL_FORCE ; then
+        if ! "/usr/bin/zpool" import -N $pool $ZPOOL_FORCE ; then
             echo "ZFS: Unable to import pool $pool."
             return 1
         fi
     fi
 
-    local mountpoint=$("/usr/sbin/zfs" get -H -o value mountpoint $ZFS_DATASET)
+    local mountpoint=$("/usr/bin/zfs" get -H -o value mountpoint $ZFS_DATASET)
     if [ "$mountpoint" = "legacy" ] ; then
         mount -t zfs "$ZFS_DATASET" "$node"
     else

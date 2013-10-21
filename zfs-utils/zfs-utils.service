@@ -9,7 +9,7 @@ Conflicts=shutdown.target umount.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/sbin/modprobe zfs
+ExecStart=/usr/bin/modprobe zfs
 ExecStart=/usr/bin/zpool import -c /etc/zfs/zpool.cache -aN
 ExecStart=/usr/bin/zfs mount -a
 ExecStart=/usr/bin/zfs share -a
