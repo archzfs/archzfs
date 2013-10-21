@@ -2,6 +2,15 @@
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
 pkgname=("zfs")
+#
+# This script doesn't use bash variables for the version number because AUR
+# doesn't properly parse bash variables. We use a custom build script to
+# automatically change the appropriate variables before building in a clean
+# chroot environment (using systemd-ndspawn).
+#
+# The build script can be found at
+# https://github.com/demizer/archzfs/blob/master/build.sh
+#
 pkgver=0.6.2_3.11.5
 pkgrel=1
 pkgdesc="Kernel modules for the Zettabyte File System."
