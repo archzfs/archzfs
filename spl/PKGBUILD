@@ -11,15 +11,15 @@ pkgname=("spl")
 # The build script can be found at
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
-pkgver=0.6.2_3.12
-pkgrel=3
+pkgver=0.6.2_3.12.1
+pkgrel=1
 pkgdesc="Solaris Porting Layer kernel modules."
-depends=("spl-utils" "linux=3.12-1")
-makedepends=("linux-headers=3.12-1")
+depends=("spl-utils" "linux=3.12.1-1")
+makedepends=("linux-headers=3.12.1-1")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.2.tar.gz
-        spl_3.12_fix.patch)
+        shrinker_api_fix.patch)
 groups=("archzfs")
 md5sums=('f00535bf89a7fde0e08f44a14a1f1e03'
          '4d30dbda61995e77c5ca976abb80bad6')
@@ -28,7 +28,7 @@ install=spl.install
 
 prepare() {
     cd "$srcdir/spl-0.6.2"
-    patch -Np1 < ../spl_3.12_fix.patch
+    patch -Np1 < ../shrinker_api_fix.patch
 }
 
 build() {
