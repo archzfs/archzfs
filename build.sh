@@ -135,9 +135,9 @@ update_pkgbuilds() {
     find . -iname "PKGBUILD" -print | xargs sed -i \
         "s/$SED_CUR_ZFS_VER/$ZOL_VERSION/g"
 
-    # Replace the linux version
+    # Replace the linux version, notice "="
     find . -iname "PKGBUILD" -print | xargs sed -i \
-        "s/$SED_CUR_LIN_VER-$CUR_LINUX_PKGREL/$LINUX_VERSION-$LINUX_PKGREL/g"
+        "s/=$SED_CUR_LIN_VER-$CUR_LINUX_PKGREL/=$LINUX_VERSION-$LINUX_PKGREL/g"
 
     # Replace the linux version in the top level VERSION
     find . -iname "PKGBUILD" -print | xargs sed -i \
