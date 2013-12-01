@@ -39,6 +39,10 @@ REPO_NAME=$(get_repo_name_from_shorthand $1)
 REPO_TARGET=$REPO_BASEPATH/$REPO_NAME
 SOURCE_TARGET="$REPO_TARGET/sources/"
 
+if [[ $REPO_NAME == "demz-repo-archiso" ]]; then
+    export FULL_VERSION=$ARCHISO_FULL_VERSION
+fi
+
 add_to_repo() {
     # $1: The path to the package source
     for ARCH in 'i686' 'x86_64'; do
