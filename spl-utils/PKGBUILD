@@ -1,7 +1,7 @@
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
 
-pkgname=("spl-utils")
+pkgname="spl-utils"
 #
 # This script doesn't use bash variables for the version number because AUR
 # doesn't properly parse bash variables. We use a custom build script to
@@ -12,7 +12,7 @@ pkgname=("spl-utils")
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
 pkgver=0.6.2_3.12.7
-pkgrel=2
+pkgrel=3
 pkgdesc="Solaris Porting Layer kernel module support files."
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"

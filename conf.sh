@@ -1,5 +1,5 @@
 # Version information
-PKGREL="2"  # The pkgrel of all the archzfs packages
+PKGREL="3"  # The pkgrel of all the archzfs packages
 
 # ZFSonLinux version
 ZOL_VERSION="0.6.2"
