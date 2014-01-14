@@ -12,10 +12,10 @@ pkgname=("spl")
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
 pkgver=0.6.2_3.12.7
-pkgrel=1
+pkgrel=2
 pkgdesc="Solaris Porting Layer kernel modules."
-depends=("spl-utils" "linux=3.12.7-1")
-makedepends=("linux-headers=3.12.7-1")
+depends=("spl-utils" "linux=3.12.7-2")
+makedepends=("linux-headers=3.12.7-2")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.2.tar.gz
