@@ -14,8 +14,8 @@ CHROOT_TARGET=""
 SIGN=""
 CLEANUP=0
 
-source "lib.sh"
-source "conf.sh"
+source ./lib.sh
+source ./conf.sh
 
 set -e
 
