@@ -56,3 +56,10 @@ send_email() {
         echo -e "${1}" | mutt -s "${2}" "${EMAIL}" -a "${3}" &> /dev/null;
     fi
 }
+
+debug() {
+    # $1: The message to print.
+    if [[ $DEBUG -eq 1 ]]; then
+        echo $1
+    fi
+}

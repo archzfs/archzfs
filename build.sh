@@ -2,6 +2,7 @@
 #
 # This script builds the archzfs packages in a clean clean chroot environment.
 #
+# For debug output, use DEBUG=1 ./build.sh
 
 # Defaults, don't edit these.
 PKG_LIST="spl-utils spl zfs-utils zfs"
@@ -115,14 +116,16 @@ update_pkgbuilds() {
     CUR_DEPEND_VER=${CUR_ZFS_VER}_${CUR_LINUX_VER}-$CUR_PKGREL_VER
     NEW_DEPEND_VER=${ZOL_VERSION}_${LINUX_VERSION}-$PKGREL
 
-    # echo "CUR_ZFS_VER: $CUR_ZFS_VER"
-    # echo "CUR_PKGREL_VER: $CUR_PKGREL_VER"
-    # echo "CUR_LINUX_VER: $CUR_LINUX_VER"
-    # echo "CUR_LINUX_PKGREL: $CUR_LINUX_PKGREL"
-    # echo "SED_CUR_LIN_VER: $SED_CUR_LIN_VER"
-    # echo "SED_CUR_ZFS_VER: $SED_CUR_ZFS_VER"
-    # echo "CUR_DEPEND_VER: $CUR_DEPEND_VER"
-    # echo "NEW_DEPEND_VER: $NEW_DEPEND_VER"
+    debug "ZOL_VERSION: ${ZOL_VERSION}"
+    debug "LINUX_VERSION: ${LINUX_VERSION}"
+    debug "CUR_ZFS_VER: $CUR_ZFS_VER"
+    debug "CUR_PKGREL_VER: $CUR_PKGREL_VER"
+    debug "CUR_LINUX_VER: $CUR_LINUX_VER"
+    debug "CUR_LINUX_PKGREL: $CUR_LINUX_PKGREL"
+    debug "SED_CUR_LIN_VER: $SED_CUR_LIN_VER"
+    debug "SED_CUR_ZFS_VER: $SED_CUR_ZFS_VER"
+    debug "CUR_DEPEND_VER: $CUR_DEPEND_VER"
+    debug "NEW_DEPEND_VER: $NEW_DEPEND_VER"
 
     # Change the top level PKGREL
     find . -iname "PKGBUILD" -print | xargs sed -i \
