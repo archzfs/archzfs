@@ -2,7 +2,9 @@
 #
 # This script builds the archzfs packages in a clean clean chroot environment.
 #
-# For debug output, use DEBUG=1 ./build.sh
+# For debug output, use DEBUG=1
+# To show command output, but not do anything, use DRY_RUN=1
+#
 
 # Defaults, don't edit these.
 PKG_LIST="spl-utils spl zfs-utils zfs"
@@ -24,11 +26,16 @@ usage() {
     echo
 	echo "Usage: $0 [-C] [<chroot> [options]]"
     echo
-    echo "  build.sh -C                 :: Remove all compiled packages"
-    echo "  build.sh update             :: Update PKGBUILDS"
-    echo "  build.sh core -u            :: Update and build in core chroot"
-    echo "  build.sh test               :: Build in test chroot"
-    echo "  build.sh update core -u -c  :: Update PKGBUILDs, Update, clean,"
+    echo "    build.sh -C                 :: Remove all compiled packages"
+    echo "    build.sh update             :: Update PKGBUILDS"
+    echo "    build.sh core -u            :: Update and build in core chroot"
+    echo "    build.sh test               :: Build in test chroot"
+    echo "    build.sh update core -u -c  :: Update PKGBUILDs, Update, clean,"
+    echo
+    echo "Variables:"
+    echo
+    echo "    DEBUG=1   :: Show debug output."
+    echo "    DRY_RUN=1 :: Show commands, but don\'t do anything. "
 }
 
 sed_escape_input_string() {
@@ -37,16 +44,21 @@ sed_escape_input_string() {
 
 build() {
     # $1: List of dependencies to install
-    sudo bash $PWD/builder
-    rm $PWD/builder
+    if [[ $DEBUG -eq 1 ]]; then
+        msg "Builder script:"
+        "cat builder.sh"
+    fi
+    run_cmd "cat builder.sh > \"$PWD/builder\""
+    run_cmd "sudo bash $PWD/builder"
+    run_cmd "rm $PWD/builder"
 }
 
 build_sources() {
     for PKG in $PKG_LIST; do
-        cd "$PWD/$PKG"
+        run_cmd "cd \"$PWD/$PKG\""
         msg2 "Building source for $PKG";
-        makepkg -Sfc
-        cd - > /dev/null
+        run_cmd "makepkg -Sfc"
+        run_cmd "cd - > /dev/null"
     done
 }
 
@@ -55,13 +67,8 @@ sign_packages() {
     echo $FILES
     for F in $FILES; do
         msg2 "Signing $F"
-        gpg --batch --yes --detach-sign --use-agent -u $GPG_SIGN_KEY "$F" # &>/dev/null
+        run_cmd "gpg --batch --yes --detach-sign --use-agent -u $GPG_SIGN_KEY \"$F\" &>/dev/null"
     done
-
-}
-
-cleanup() {
-    find . \( -iname "*.log" -o -iname "sed*" \) -exec rm {} \;
 }
 
 update_pkgbuilds() {
@@ -88,27 +95,23 @@ update_pkgbuilds() {
     debug "NEW_DEPEND_VER: $NEW_DEPEND_VER"
 
     # Change the top level PKGREL
-    find . -iname "PKGBUILD" -print | xargs sed -i \
-        "s/pkgrel=$CUR_PKGREL_VER/pkgrel=$PKGREL/g"
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgrel=$CUR_PKGREL_VER/pkgrel=$PKGREL/g\""
 
     # Change the spl version number in zfs/PKGBUILD
-    sed -i "s/$CUR_DEPEND_VER/$NEW_DEPEND_VER/g" zfs/PKGBUILD
+    run_cmd "sed -i \"s/$CUR_DEPEND_VER/$NEW_DEPEND_VER/g\" zfs/PKGBUILD"
 
     # Replace the ZFS version
-    find . -iname "PKGBUILD" -print | xargs sed -i \
-        "s/$SED_CUR_ZFS_VER/$ZOL_VERSION/g"
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/$SED_CUR_ZFS_VER/$ZOL_VERSION/g\""
 
     # Replace the linux version, notice "="
-    find . -iname "PKGBUILD" -print | xargs sed -i \
-        "s/=$SED_CUR_LIN_VER-$CUR_LINUX_PKGREL/=$LINUX_VERSION-$LINUX_PKGREL/g"
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/=$SED_CUR_LIN_VER-$CUR_LINUX_PKGREL/=$LINUX_VERSION-$LINUX_PKGREL/g\""
 
     # Replace the linux version in the top level VERSION
-    find . -iname "PKGBUILD" -print | xargs sed -i \
-        "s/_$SED_CUR_LIN_VER/_$LINUX_VERSION/g"
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/_$SED_CUR_LIN_VER/_$LINUX_VERSION/g\""
 
     # Update the sums of the files
     for PKG in $PKG_LIST; do
-        updpkgsums $PKG/PKGBUILD
+        run_cmd "updpkgsums $PKG/PKGBUILD"
     done
 
 }
@@ -152,6 +155,7 @@ fi
 
 if [[ $CLEANUP == 1 ]]; then
     msg2 "Cleaning up work files..."
-    find . \( -iname "sed*" -o -iname "*.log" -o -iname "*.pkg.tar.xz*" \
-        -o -iname "*.src.tar.gz" \) -print -exec rm -f {} \;
+    run_cmd "find . \( -iname \"sed*\" -o -iname \"*.log\" -o -iname \
+        \"*.pkg.tar.xz*\" -o -iname \"*.src.tar.gz\" -o -iname \"src\" \) \
+        -print -exec rm -rf {} \\;"
 fi

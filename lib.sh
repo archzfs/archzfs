@@ -63,3 +63,12 @@ debug() {
         echo $1
     fi
 }
+
+run_cmd() {
+    # $1: The command to run
+    if [[ $DRY_RUN -eq 1 ]]; then
+        echo "$1"
+    else
+        eval "$1"
+    fi
+}
