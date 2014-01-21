@@ -4,84 +4,185 @@
 # repo.sh adds the archzfs packages to a specified repository.
 #
 
-source "lib.sh"
-source "conf.sh"
+source ./lib.sh
+source ./conf.sh
 
-get_repo_name_from_shorthand() {
-    # $1: The short form of the repo name
-    if [[ $1 == "community" ]]; then
-        echo "demz-repo-community"
-    elif [[ $1 == "testing" ]]; then
-        echo "demz-repo-testing"
-    elif [[ $1 == "core" ]]; then
-        echo "demz-repo-core"
-    elif [[ $1 == "archiso" ]]; then
-        echo "demz-repo-archiso"
-    fi
-}
+set -e
+
+trap 'trap_abort' INT QUIT TERM HUP
+trap 'trap_exit' EXIT
+
+DRY_RUN=0   # Show commands only. Don't do anything.
+AZB_REPO=""     # The destination repo for the packages
+
+msg "repo.sh started!"
 
 usage() {
-	echo "repo.sh - Adds the archzfs packages to the $REPO_TARGET repository"
+	echo "repo.sh - Adds the compiled packages to the archzfs repo."
     echo
-	echo "Usage: $0 <repo> [version]"
+	echo "Usage: repo.sh [options] [repo] [package [...]]"
     echo
-    echo "  $0 core ::"
-    echo "      Adds the latest archzfs packages ($PKG_VERSION) to the "
-    echo "      $(get_repo_name_from_shorthand "core") repository."
+    echo "Options:"
+    echo
+    echo "    -h:    Show help information."
+    echo
+    echo "    -n:    Dryrun; Output commands, but don't do anything."
+    echo
+    echo "    -d:    Show debug info."
+    echo
+    echo "Example Usage:"
+    echo
+    echo "    1) Adding packages in the current directory to a local repo."
+    echo
+    echo "       repm core"
+    echo
+    echo "    2) Show output commands and debug info."
+    echo
+    echo "       repm core -n -d"
+    echo
+    echo "    3) Adding a specific package to a repository."
+    echo
+    echo "       repm core package.tar.xz"
+    echo
+    echo "    4) Adding a multiple packages to a repository."
+    echo
+    echo "       repm core *.tar.xz"
 }
+
+ARGS=("$@")
+for (( a = 0; a < $#; a++ )); do
+    if [[ ${ARGS[$a]} == "core" ]]; then
+        AZB_REPO="demz-repo-core"
+    elif [[ ${ARGS[$a]} == "community" ]]; then
+        AZB_REPO="demz-repo-community"
+    elif [[ ${ARGS[$a]} == "testing" ]]; then
+        AZB_REPO="demz-repo-testing"
+    elif [[ ${ARGS[$a]} == "archiso" ]]; then
+        AZB_REPO="demz-repo-archiso"
+    elif [[ ${ARGS[$a]} == "-h" ]]; then
+        usage;
+        exit 0;
+    elif [[ ${ARGS[$a]} == "-n" ]]; then
+        DRY_RUN=1
+    elif [[ ${ARGS[$a]} == "-d" ]]; then
+        DEBUG=1
+    fi
+done
 
 if [ $# -lt 1 ]; then
     usage;
     exit 0;
 fi
 
-REPO_NAME=$(get_repo_name_from_shorthand $1)
-REPO_TARGET=$REPO_BASEPATH/$REPO_NAME
-SOURCE_TARGET="$REPO_TARGET/sources/"
-
-if [[ $REPO_NAME == "demz-repo-archiso" ]]; then
-    export FULL_VERSION=$ARCHISO_FULL_VERSION
+if [[ $AZB_REPO == "" ]]; then
+    error "No destination repo specified!"
+    exit 1
 fi
 
-add_to_repo() {
-    # $1: The path to the package source
-    for ARCH in 'i686' 'x86_64'; do
-        REPO=`realpath $REPO_TARGET/$ARCH`
-        [[ ! -d $REPO ]] && mkdir -p $REPO
+# The abs path to the repo
+AZB_REPO_TARGET=$AZB_REPO_BASEPATH/$AZB_REPO
+
+# The abs path to the package source directory in the repo
+AZB_SOURCE_TARGET="$AZB_REPO_TARGET/sources/"
+
+debug "DRY_RUN: "$DRY_RUN
+debug "AZB_REPO: "$AZB_REPO
+debug "AZB_REPO_TARGET: $AZB_REPO_TARGET"
+debug "AZB_SOURCE_TARGET: $AZB_SOURCE_TARGET"
+
+# A list of packages to install. Pulled from the command line.
+pkgs=()
+
+# Extract any packages from the arguments passed to the script
+for arg in "$@"; do
+    if [[ $arg =~ pkg.tar.xz$ ]]; then
+        pkgs+=("${pkgs[@]}" $arg)
+    fi
+done
+
+# Get the local packages if no packages were passed to the script
+if [[ "${#pkgs[@]}" -eq 0 ]]; then
+    for pkg in $(find . -iname "*.pkg.tar.xz"); do
+        debug "Found package: $pkg"
+        pkgs+=($pkg)
+    done
+fi
+
+for pkg in ${pkgs[@]}; do
+    debug "PKG: $pkg"
+done
+
+if [[ $AZB_REPO != "" ]]; then
+
+    msg "Creating a list of packages to install..."
+    # A list of packages to install. The strings are in the form of
+    # "name;pkg.tar.xz;repo_path". There must be no spaces.
+    install_list=()
+
+    # Add packages to the install_list
+    for pkg in ${pkgs[@]}; do
+        arch=$(pacman -Qip $pkg | grep "Architecture" | cut -d : -f 2 | tr -d ' ')
+        name=$(pacman -Qip $pkg | grep "Name" | cut -d : -f 2 | tr -d ' ')
+        vers=$(pacman -Qip $pkg | grep "Version" | cut -d : -f 2 | tr -d ' ')
+        if [[ $arch == "any" ]]; then
+            repos=`realpath $AZB_REPO_TARGET/{x86_64,i686}`
+            for repo in $repos; do
+                install_list+=("$name;$vers;$pkg;$repo")
+            done
+            continue
+        fi
+        install_list+=("$name;$vers;$pkg;$AZB_REPO_TARGET/$arch")
+    done
+
+    if [[ ${#install_list[@]} == 0 ]]; then
+        error "No packages to process!"
+        exit 1
+    fi
+
+    # Add the packages to the repo
+    for ipkg in ${install_list[@]}; do
+        IFS=';' read -a pkgopt <<< "$ipkg"
+
+        name="${pkgopt[0]}"
+        vers="${pkgopt[1]}"
+        pbin="${pkgopt[2]}"
+        repo="${pkgopt[3]}"
+
+        msg2 "Processing $pbin to $repo"
+        [[ ! -d $repo ]] && run_cmd "mkdir -p $repo"
 
         # Move the old packages to backup
-        for X in $(find $REPO -type f -iname "*.pkg.tar.xz*"); do
-            mv $X $REPO_BASEPATH/backup/
+        for x in $(find $repo -type f -iname "${name}*.pkg.tar.xz"); do
+            ename=$(pacman -Qip $x | grep "Name" | cut -d : -f 2 | tr -d ' ')
+            evers=$(pacman -Qip $x | grep "Version" | cut -d : -f 2 | tr -d ' ')
+            if [ $ename == $name ]; then
+                # Also mv the signatures
+                run_cmd "mv $repo/$ename-${evers}* $AZB_REPO_BASEPATH/backup/"
+            fi
         done
 
-        # Copy the new packages
-        for F in $(find . -type f -iname "*${FULL_VERSION}-$ARCH.pkg.tar.xz*"); do
-            cp $F $REPO/
-        done
+        run_cmd "cp ${pbin}* $repo"/
 
-        repo-add -s -v -f $REPO/${REPO_NAME}.db.tar.xz $REPO/*.pkg.tar.xz
-    done
-}
+        run_cmd "repo-add -k $AZB_GPG_SIGN_KEY -s -v -f $repo/${AZB_REPO}.db.tar.xz $repo/`basename $pbin`"
 
-copy_sources() {
-    # $1: The package source directory
-    for F in $(find $1 -type f -iname "*${FULL_VERSION}.src.tar.gz"); do
-        msg2 "Copying $F to $SOURCE_TARGET"
-        [[ ! -d $SOURCE_TARGET ]] && mkdir -p $SOURCE_TARGET
-        SEDPAT="s/(^[[:alpha:]\-]*)-${FULL_VERSION}\.src\.tar\.gz/\1/p"
-        FNAME=$(echo $(basename $F) | sed -rn "$SEDPAT")
+        if [[ $? -ne 0 ]]; then
+            error "An error occurred adding the package to the repo!"
+            exit 1
+        fi
+
+        # Copy the sources to the source target
+        [[ ! -d $AZB_SOURCE_TARGET ]] && run_cmd "mkdir -p $AZB_SOURCE_TARGET"
+
         # If there is zfs and zfs-utils in the directory, the glob will get
         # both zfs and zfs-utils when globbing zfs*, therefore we have to check
         # each file to see if it is the one we want.
-        for T in "$(readlink -m $SOURCE_TARGET/$FNAME)"*.src.tar.gz; do
-            ENAME=`echo $(basename $T) | sed -rn "s/(^[[:alpha:]\-]*)-.*\.src\.tar\.gz/\1/p"`
-            if [[ $FNAME == $ENAME ]]; then
-                rm -rf $T
+        for file in "$(readlink -m $AZB_SOURCE_TARGET/$name)"*.src.tar.gz; do
+            src_name=$(tar -O -xzvf $file $name/PKGBUILD 2> /dev/null | grep "Name" | cut -d : -f 2)
+            if [[ $src_name == $name ]]; then
+                run_cmd "rm -rf $file"
             fi
         done
-        cp $F $SOURCE_TARGET
-    done
-}
+        run_cmd "cp ./$name/$name-${vers}.src.tar.gz $AZB_SOURCE_TARGET"
 
-add_to_repo
-copy_sources
+    done
+fi
