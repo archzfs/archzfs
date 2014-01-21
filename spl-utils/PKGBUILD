@@ -11,8 +11,8 @@ pkgname="spl-utils"
 # The build script can be found at
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
-pkgver=0.6.2_3.12.7
-pkgrel=3
+pkgver=0.6.2_3.12.8
+pkgrel=1
 pkgdesc="Solaris Porting Layer kernel module support files."
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
