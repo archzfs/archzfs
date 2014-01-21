@@ -72,3 +72,28 @@ run_cmd() {
         eval "$1"
     fi
 }
+
+cleanup() {
+	# [[ -n $WORKDIR ]] && rm -rf "$WORKDIR"
+	[[ $1 ]] && exit $1
+}
+
+abort() {
+	msg 'Aborting...'
+	cleanup 0
+}
+
+trap_abort() {
+	trap - EXIT INT QUIT TERM HUP
+	abort
+}
+
+trap_exit() {
+	trap - EXIT INT QUIT TERM HUP
+	cleanup
+}
+
+die() {
+	(( $# )) && error "$@"
+	cleanup 1
+}

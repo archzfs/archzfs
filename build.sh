@@ -5,32 +5,33 @@
 # For debug output, use DEBUG=1
 # To show command output, but not do anything, use DRY_RUN=1
 #
+# This script requires clean-chroot-manager (https://github.com/graysky2/clean-chroot-manager)
 
 # Defaults, don't edit these.
-PKG_LIST="spl-utils spl zfs-utils zfs"
-UPDATE_PKGBUILDS=""
-BUILD=0
-CHROOT_CLEAN=""
-CHROOT_UPDATE=""
-CHROOT_TARGET=""
-SIGN=""
-CLEANUP=0
+AZB_PKG_LIST="spl-utils spl zfs-utils zfs"
+AZB_UPDATE_PKGBUILDS=""
+AZB_BUILD=0
+AZB_CHROOT_UPDATE=""
+AZB_SIGN=""
+AZB_CLEANUP=0
 
 source ./lib.sh
 source ./conf.sh
 
 set -e
 
+trap 'trap_abort' INT QUIT TERM HUP
+trap 'trap_exit' EXIT
+
 usage() {
 	echo "build.sh - A build script for archzfs"
     echo
 	echo "Usage: $0 [-C] [<chroot> [options]]"
     echo
-    echo "    build.sh -C                 :: Remove all compiled packages"
-    echo "    build.sh update             :: Update PKGBUILDS"
-    echo "    build.sh core -u            :: Update and build in core chroot"
-    echo "    build.sh test               :: Build in test chroot"
-    echo "    build.sh update core -u -c  :: Update PKGBUILDs, Update, clean,"
+    echo "    build.sh make -u          :: Update the chroot and build all of the packages"
+    echo "    build.sh -C               :: Remove all compiled packages"
+    echo "    build.sh update           :: Update PKGBUILDS only"
+    echo "    build.sh update make -u   :: Update PKGBUILDs, update the chroot, and make all of the packages"
     echo
     echo "Variables:"
     echo
@@ -42,78 +43,71 @@ sed_escape_input_string() {
     echo "$1" | sed -e 's/[]\/$*.^|[]/\\&/g'
 }
 
-build() {
-    # $1: List of dependencies to install
-    if [[ $DEBUG -eq 1 ]]; then
-        msg "Builder script:"
-        "cat builder.sh"
-    fi
-    run_cmd "cat builder.sh > \"$PWD/builder\""
-    run_cmd "sudo bash $PWD/builder"
-    run_cmd "rm $PWD/builder"
-}
-
 build_sources() {
-    for PKG in $PKG_LIST; do
+    for PKG in $AZB_PKG_LIST; do
+        msg "Building source for $PKG";
         run_cmd "cd \"$PWD/$PKG\""
-        msg2 "Building source for $PKG";
         run_cmd "makepkg -Sfc"
         run_cmd "cd - > /dev/null"
     done
 }
 
 sign_packages() {
-    FILES=$(find $PWD -iname "*${ZOL_VERSION}_${LINUX_VERSION}-${PKGREL}*.pkg.tar.xz")
-    echo $FILES
+    FILES=$(find $PWD -iname "*${AZB_ZOL_VERSION}_${AZB_LINUX_VERSION}-${AZB_PKGREL}*.pkg.tar.xz")
+    msg "Signing the packages with GPG"
     for F in $FILES; do
         msg2 "Signing $F"
-        run_cmd "gpg --batch --yes --detach-sign --use-agent -u $GPG_SIGN_KEY \"$F\" &>/dev/null"
+        run_cmd "gpg --batch --yes --detach-sign --use-agent -u $AZB_GPG_SIGN_KEY \"$F\" &>/dev/null"
     done
 }
 
 update_pkgbuilds() {
-    CUR_ZFS_VER=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2 | cut -d_ -f1)
-    CUR_PKGREL_VER=$(grep "pkgrel=" zfs/PKGBUILD | cut -d= -f2)
-    CUR_LINUX_VER=$(grep "linux=" zfs/PKGBUILD | sed -r "s/.*linux=(.*)-.+/\1/g")
-    CUR_LINUX_PKGREL=$(grep "linux=" zfs/PKGBUILD | sed -r "s/.*linux=.+-(.+)\"\)/\1/g")
+    AZB_CUR_ZFS_VER=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2 | cut -d_ -f1)
+    AZB_CUR_PKGREL_VER=$(grep "pkgrel=" zfs/PKGBUILD | cut -d= -f2)
+    AZB_CUR_LINUX_VER=$(grep "linux=" zfs/PKGBUILD | sed -r "s/.*linux=(.*)-.+/\1/g")
+    AZB_CUR_LINUX_PKGREL=$(grep "linux=" zfs/PKGBUILD | sed -r "s/.*linux=.+-(.+)\"\)/\1/g")
 
-    SED_CUR_LIN_VER=$(sed_escape_input_string $CUR_LINUX_VER)
-    SED_CUR_ZFS_VER=$(sed_escape_input_string $CUR_ZFS_VER)
+    AZB_SED_CUR_LIN_VER=$(sed_escape_input_string $AZB_CUR_LINUX_VER)
+    AZB_SED_CUR_ZFS_VER=$(sed_escape_input_string $AZB_CUR_ZFS_VER)
 
-    CUR_DEPEND_VER=${CUR_ZFS_VER}_${CUR_LINUX_VER}-$CUR_PKGREL_VER
-    NEW_DEPEND_VER=${ZOL_VERSION}_${LINUX_VERSION}-$PKGREL
+    AZB_CUR_DEPEND_VER=${AZB_CUR_ZFS_VER}_${AZB_CUR_LINUX_VER}-$AZB_CUR_PKGREL_VER
+    AZB_NEW_DEPEND_VER=${AZB_ZOL_VERSION}_${AZB_LINUX_VERSION}-$AZB_PKGREL
 
-    debug "ZOL_VERSION: ${ZOL_VERSION}"
-    debug "LINUX_VERSION: ${LINUX_VERSION}"
-    debug "CUR_ZFS_VER: $CUR_ZFS_VER"
-    debug "CUR_PKGREL_VER: $CUR_PKGREL_VER"
-    debug "CUR_LINUX_VER: $CUR_LINUX_VER"
-    debug "CUR_LINUX_PKGREL: $CUR_LINUX_PKGREL"
-    debug "SED_CUR_LIN_VER: $SED_CUR_LIN_VER"
-    debug "SED_CUR_ZFS_VER: $SED_CUR_ZFS_VER"
-    debug "CUR_DEPEND_VER: $CUR_DEPEND_VER"
-    debug "NEW_DEPEND_VER: $NEW_DEPEND_VER"
+    debug "AZB_ZOL_VERSION: ${AZB_ZOL_VERSION}"
+    debug "AZB_LINUX_VERSION: ${AZB_LINUX_VERSION}"
+    debug "AZB_CUR_ZFS_VER: $AZB_CUR_ZFS_VER"
+    debug "AZB_CUR_PKGREL_VER: $AZB_CUR_PKGREL_VER"
+    debug "AZB_CUR_LINUX_VER: $AZB_CUR_LINUX_VER"
+    debug "AZB_CUR_LINUX_PKGREL: $AZB_CUR_LINUX_PKGREL"
+    debug "AZB_SED_CUR_LIN_VER: $AZB_SED_CUR_LIN_VER"
+    debug "AZB_SED_CUR_ZFS_VER: $AZB_SED_CUR_ZFS_VER"
+    debug "AZB_CUR_DEPEND_VER: $AZB_CUR_DEPEND_VER"
+    debug "AZB_NEW_DEPEND_VER: $AZB_NEW_DEPEND_VER"
 
-    # Change the top level PKGREL
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgrel=$CUR_PKGREL_VER/pkgrel=$PKGREL/g\""
+    # Change the top level AZB_PKGREL
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
+        \"s/pkgrel=$AZB_CUR_PKGREL_VER/pkgrel=$AZB_PKGREL/g\""
 
     # Change the spl version number in zfs/PKGBUILD
-    run_cmd "sed -i \"s/$CUR_DEPEND_VER/$NEW_DEPEND_VER/g\" zfs/PKGBUILD"
+    run_cmd "sed -i \"s/$AZB_CUR_DEPEND_VER/$AZB_NEW_DEPEND_VER/g\" \
+        zfs/PKGBUILD"
 
     # Replace the ZFS version
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/$SED_CUR_ZFS_VER/$ZOL_VERSION/g\""
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
+        \"s/$AZB_SED_CUR_ZFS_VER/$AZB_ZOL_VERSION/g\""
 
     # Replace the linux version, notice "="
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/=$SED_CUR_LIN_VER-$CUR_LINUX_PKGREL/=$LINUX_VERSION-$LINUX_PKGREL/g\""
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
+        \"s/=$AZB_SED_CUR_LIN_VER-$AZB_CUR_LINUX_PKGREL/=$AZB_LINUX_VERSION-$AZB_LINUX_PKGREL/g\""
 
     # Replace the linux version in the top level VERSION
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/_$SED_CUR_LIN_VER/_$LINUX_VERSION/g\""
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
+        \"s/_$AZB_SED_CUR_LIN_VER/_$AZB_LINUX_VERSION/g\""
 
     # Update the sums of the files
-    for PKG in $PKG_LIST; do
+    for PKG in $AZB_PKG_LIST; do
         run_cmd "updpkgsums $PKG/PKGBUILD"
     done
-
 }
 
 if [ $# -lt 1 ]; then
@@ -123,19 +117,16 @@ fi
 
 ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "test" || ${ARGS[$a]} == "core" ]]; then
-        BUILD=1
-        CHROOT_TARGET=${ARGS[$a]}
+    if [[ ${ARGS[$a]} == "make" ]]; then
+        AZB_BUILD=1
     elif [[ ${ARGS[$a]} == "update" ]]; then
-        UPDATE_PKGBUILDS=1
+        AZB_UPDATE_PKGBUILDS=1
     elif [[ ${ARGS[$a]} == "sign" ]]; then
-        SIGN=1
+        AZB_SIGN=1
     elif [[ ${ARGS[$a]} == "-u" ]]; then
-        CHROOT_UPDATE="-u"
-    elif [[ ${ARGS[$a]} == "-c" ]]; then
-        CHROOT_CLEAN="-c"
+        AZB_CHROOT_UPDATE="-u"
     elif [[ ${ARGS[$a]} == "-C" ]]; then
-        CLEANUP=1
+        AZB_CLEANUP=1
     fi
 done
 
@@ -147,15 +138,24 @@ if [[ $SIGN == 1 ]]; then
     sign_packages
 fi
 
-if [[ $BUILD == 1 ]]; then
-    build
+if [[ $AZB_BUILD == 1 ]]; then
+    if [ -n "$AZB_CHROOT_UPDATE" ]; then
+        msg "Updating the i686 and x86_64 clean chroots..."
+        run_cmd "sudo ccm32 u"
+        run_cmd "sudo ccm64 u"
+    fi
+    for PKG in $AZB_PKG_LIST; do
+        msg "Building $PKG..."
+        run_cmd "cd \"$PWD/$PKG\""
+        run_cmd "sudo ccm32 s"
+        run_cmd "sudo ccm64 s"
+        run_cmd "cd - > /dev/null"
+    done
     build_sources
     sign_packages
 fi
 
-if [[ $CLEANUP == 1 ]]; then
-    msg2 "Cleaning up work files..."
-    run_cmd "find . \( -iname \"sed*\" -o -iname \"*.log\" -o -iname \
-        \"*.pkg.tar.xz*\" -o -iname \"*.src.tar.gz\" -o -iname \"src\" \) \
-        -print -exec rm -rf {} \\;"
+if [[ $AZB_CLEANUP == 1 ]]; then
+    msg "Cleaning up work files..."
+    run_cmd "find . \( -iname \"*.log\" -o -iname \"*.pkg.tar.xz*\" -o -iname \"*.src.tar.gz\" -o -iname \"src\" \) -print -exec rm -rf {} \\;"
 fi
