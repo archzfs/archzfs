@@ -5,7 +5,7 @@ AZB_PKGREL="1"  # The pkgrel of all the archzfs packages
 AZB_ZOL_VERSION="0.6.2"
 
 # Linux version dependencies
-AZB_LINUX_VERSION="3.12.8"
+AZB_LINUX_VERSION="3.12.9"
 AZB_LINUX_PKGREL="1" # The PKGREL must be increased if this value changes.
 AZB_LINUX_VERSION_FULL="$AZB_LINUX_VERSION-$AZB_LINUX_PKGREL"
 

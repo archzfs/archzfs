@@ -11,11 +11,11 @@ pkgname="zfs"
 # The build script can be found at
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
-pkgver=0.6.2_3.12.8
+pkgver=0.6.2_3.12.9
 pkgrel=1
 pkgdesc="Kernel modules for the Zettabyte File System."
-depends=("spl=0.6.2_3.12.8-1" "zfs-utils" "linux=3.12.8-1")
-makedepends=("linux-headers=3.12.8-1")
+depends=("spl=0.6.2_3.12.9-1" "zfs-utils" "linux=3.12.9-1")
+makedepends=("linux-headers=3.12.9-1")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz)
