@@ -130,11 +130,11 @@ for (( a = 0; a < $#; a++ )); do
     fi
 done
 
-if [[ $UPDATE_PKGBUILDS == 1 ]]; then
+if [[ $AZB_UPDATE_PKGBUILDS == 1 ]]; then
     update_pkgbuilds
 fi
 
-if [[ $SIGN == 1 ]]; then
+if [[ $AZB_SIGN == 1 ]]; then
     sign_packages
 fi
 
