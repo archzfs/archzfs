@@ -60,7 +60,7 @@ send_email() {
 debug() {
     # $1: The message to print.
     if [[ $DEBUG -eq 1 ]]; then
-        echo $1
+        echo "$1"
     fi
 }
 
@@ -69,7 +69,9 @@ run_cmd() {
     if [[ $DRY_RUN -eq 1 ]]; then
         echo "$1"
     else
+        echo "Running command: $1"
         eval "$1"
+        echo "Command returned: $?"
     fi
 }
 
