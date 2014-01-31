@@ -13,9 +13,16 @@ pkgname="spl"
 #
 pkgver=0.6.2_3.12.9
 pkgrel=1
+
+if [[ $CARCH == "i686" ]]; then
+    $LINUX_VERSION="$AZB_LINUX_X32_VERSION_FULL"
+else
+    $LINUX_VERSION="$AZB_LINUX_X64_VERSION_FULL"
+fi
+
 pkgdesc="Solaris Porting Layer kernel modules."
-depends=("spl-utils" "linux=3.12.9-1")
-makedepends=("linux-headers=3.12.9-1")
+depends=("spl-utils" "linux=$LINUX_VERSION")
+makedepends=("linux-headers=$LINUX_VERSION")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.2.tar.gz
