@@ -26,17 +26,28 @@ trap 'trap_exit' EXIT
 usage() {
 	echo "build.sh - A build script for archzfs"
     echo
-	echo "Usage: $0 [-C] [<chroot> [options]]"
+	echo "Usage: build.sh [options] [command [...]"
+    echo
+    echo "Options:"
+    echo
+    echo "    -h:    Show help information."
+    echo "    -n:    Dryrun; Output commands, but don't do anything."
+    echo "    -d:    Show debug info."
+    echo "    -u:    Perform an update in the clean chroot."
+    echo "    -C:    Remove all files that are not package sources."
+    echo
+    echo "Commands:"
+    echo
+    echo "    make      Build all packages."
+    echo "    update    Update all PKGBUILDs using conf.sh variables."
+    echo "    sign      GPG detach sign all compiled packages (default)."
+    echo
+	echo "Examples:"
     echo
     echo "    build.sh make -u          :: Update the chroot and build all of the packages"
     echo "    build.sh -C               :: Remove all compiled packages"
     echo "    build.sh update           :: Update PKGBUILDS only"
     echo "    build.sh update make -u   :: Update PKGBUILDs, update the chroot, and make all of the packages"
-    echo
-    echo "Variables:"
-    echo
-    echo "    DEBUG=1   :: Show debug output."
-    echo "    DRY_RUN=1 :: Show commands, but don\'t do anything. "
 }
 
 sed_escape_input_string() {
