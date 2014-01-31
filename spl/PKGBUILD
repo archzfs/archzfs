@@ -15,9 +15,9 @@ pkgver=0.6.2_3.12.9
 pkgrel=1
 
 if [[ $CARCH == "i686" ]]; then
-    $LINUX_VERSION="$AZB_LINUX_X32_VERSION_FULL"
+    LINUX_VERSION="$AZB_LINUX_X32_VERSION_FULL"
 else
-    $LINUX_VERSION="$AZB_LINUX_X64_VERSION_FULL"
+    LINUX_VERSION="$AZB_LINUX_X64_VERSION_FULL"
 fi
 
 pkgdesc="Solaris Porting Layer kernel modules."
