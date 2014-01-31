@@ -73,47 +73,37 @@ sign_packages() {
 }
 
 update_pkgbuilds() {
-    AZB_CUR_ZFS_VER=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2 | cut -d_ -f1)
-    AZB_CUR_PKGREL_VER=$(grep "pkgrel=" zfs/PKGBUILD | cut -d= -f2)
-    AZB_CUR_LINUX_VER=$(grep "linux=" zfs/PKGBUILD | sed -r "s/.*linux=(.*)-.+/\1/g")
-    AZB_CUR_LINUX_PKGREL=$(grep "linux=" zfs/PKGBUILD | sed -r "s/.*linux=.+-(.+)\"\)/\1/g")
+    AZB_CURRENT_PKGVER=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2 | cut -d_ -f1)
+    AZB_CURRENT_PKGREL=$(grep "pkgrel=" zfs/PKGBUILD | cut -d= -f2)
+    AZB_CURRENT_ZOLVER=$(sed_escape_input_string $AZB_CURRENT_PKGVER)
+    AZB_CURRENT_SPL_DEPVER=$(grep "spl=" zfs/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
+    AZB_CURRENT_X32_LINUX_VERSION=$(grep "LINUX_VERSION_X32=" zfs/PKGBUILD | cut -d\" -f2)
+    AZB_CURRENT_X64_LINUX_VERSION=$(grep "LINUX_VERSION_X64=" zfs/PKGBUILD | cut -d\" -f2)
 
-    AZB_SED_CUR_LIN_VER=$(sed_escape_input_string $AZB_CUR_LINUX_VER)
-    AZB_SED_CUR_ZFS_VER=$(sed_escape_input_string $AZB_CUR_ZFS_VER)
-
-    AZB_CUR_DEPEND_VER=${AZB_CUR_ZFS_VER}_${AZB_CUR_LINUX_VER}-$AZB_CUR_PKGREL_VER
-    AZB_NEW_DEPEND_VER=${AZB_ZOL_VERSION}_${AZB_LINUX_VERSION}-$AZB_PKGREL
-
-    debug "AZB_ZOL_VERSION: ${AZB_ZOL_VERSION}"
-    debug "AZB_LINUX_VERSION: ${AZB_LINUX_VERSION}"
-    debug "AZB_CUR_ZFS_VER: $AZB_CUR_ZFS_VER"
-    debug "AZB_CUR_PKGREL_VER: $AZB_CUR_PKGREL_VER"
-    debug "AZB_CUR_LINUX_VER: $AZB_CUR_LINUX_VER"
-    debug "AZB_CUR_LINUX_PKGREL: $AZB_CUR_LINUX_PKGREL"
-    debug "AZB_SED_CUR_LIN_VER: $AZB_SED_CUR_LIN_VER"
-    debug "AZB_SED_CUR_ZFS_VER: $AZB_SED_CUR_ZFS_VER"
-    debug "AZB_CUR_DEPEND_VER: $AZB_CUR_DEPEND_VER"
-    debug "AZB_NEW_DEPEND_VER: $AZB_NEW_DEPEND_VER"
+    debug "AZB_CURRENT_PKGVER: $AZB_CURRENT_PKGVER"
+    debug "AZB_CURRENT_PKGREL: $AZB_CURRENT_PKGREL"
+    debug "AZB_CURRENT_ZOLVER: $AZB_CURRENT_ZOLVER"
+    debug "AZB_CURRENT_SPL_DEPVER: $AZB_CURRENT_SPL_DEPVER"
+    debug "AZB_CURRENT_X32_LINUX_VERSION: $AZB_CURRENT_X32_LINUX_VERSION"
+    debug "AZB_CURRENT_X64_LINUX_VERSION: $AZB_CURRENT_X64_LINUX_VERSION"
 
     # Change the top level AZB_PKGREL
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
-        \"s/pkgrel=$AZB_CUR_PKGREL_VER/pkgrel=$AZB_PKGREL/g\""
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgrel=$AZB_CURRENT_PKGREL/pkgrel=$AZB_PKGREL/g\""
 
     # Change the spl version number in zfs/PKGBUILD
-    run_cmd "sed -i \"s/$AZB_CUR_DEPEND_VER/$AZB_NEW_DEPEND_VER/g\" \
-        zfs/PKGBUILD"
+    run_cmd "sed -i \"s/$AZB_CURRENT_SPL_DEPVER/$AZB_FULL_VERSION/g\" zfs/PKGBUILD"
+
+    # Change LINUX_VERSION_XXX
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
+        \"s/LINUX_VERSION_X32=\\\"$AZB_CURRENT_X32_LINUX_VERSION\\\"/LINUX_VERSION_X32=\\\"$AZB_LINUX_X32_VERSION_FULL\\\"/g\""
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
+        \"s/LINUX_VERSION_X64=\\\"$AZB_CURRENT_X64_LINUX_VERSION\\\"/LINUX_VERSION_X64=\\\"$AZB_LINUX_X64_VERSION_FULL\\\"/g\""
 
     # Replace the ZFS version
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
-        \"s/$AZB_SED_CUR_ZFS_VER/$AZB_ZOL_VERSION/g\""
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/$AZB_CURRENT_ZOLVER/$AZB_ZOL_VERSION/g\""
 
-    # Replace the linux version, notice "="
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
-        \"s/=$AZB_SED_CUR_LIN_VER-$AZB_CUR_LINUX_PKGREL/=$AZB_LINUX_VERSION-$AZB_LINUX_PKGREL/g\""
-
-    # Replace the linux version in the top level VERSION
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
-        \"s/_$AZB_SED_CUR_LIN_VER/_$AZB_LINUX_VERSION/g\""
+    # Replace the linux version in the top level PKGVER
+    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/_$AZB_CURRENT_PKGVER/_$AZB_LINUX_VERSION/g\""
 
     # Update the sums of the files
     for PKG in $AZB_PKG_LIST; do
