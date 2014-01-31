@@ -134,12 +134,21 @@ for (( a = 0; a < $#; a++ )); do
         AZB_UPDATE_PKGBUILDS=1
     elif [[ ${ARGS[$a]} == "sign" ]]; then
         AZB_SIGN=1
+    elif [[ ${ARGS[$a]} == "-h" ]]; then
+        usage;
+        exit 0;
     elif [[ ${ARGS[$a]} == "-u" ]]; then
         AZB_CHROOT_UPDATE="-u"
     elif [[ ${ARGS[$a]} == "-C" ]]; then
         AZB_CLEANUP=1
+    elif [[ ${ARGS[$a]} == "-n" ]]; then
+        DRY_RUN=1
+    elif [[ ${ARGS[$a]} == "-d" ]]; then
+        DEBUG=1
     fi
 done
+
+msg "build.sh Started..."
 
 if [[ $AZB_UPDATE_PKGBUILDS == 1 ]]; then
     update_pkgbuilds
