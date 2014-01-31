@@ -25,28 +25,15 @@ usage() {
     echo "Options:"
     echo
     echo "    -h:    Show help information."
-    echo
     echo "    -n:    Dryrun; Output commands, but don't do anything."
-    echo
     echo "    -d:    Show debug info."
     echo
     echo "Example Usage:"
     echo
-    echo "    1) Adding packages in the current directory to a local repo."
-    echo
-    echo "       repm core"
-    echo
-    echo "    2) Show output commands and debug info."
-    echo
-    echo "       repm core -n -d"
-    echo
-    echo "    3) Adding a specific package to a repository."
-    echo
-    echo "       repm core package.tar.xz"
-    echo
-    echo "    4) Adding a multiple packages to a repository."
-    echo
-    echo "       repm core *.tar.xz"
+    echo "       repm core                  :: Add packages in the current directory to the core repo."
+    echo "       repm core -n -d            :: Show output commands and debug info."
+    echo "       repm core package.tar.xz   :: Add package.tar.xz to the core repo."
+    echo "       repm core *.tar.xz         :: Add *.tar.xz to the core repo."
 }
 
 ARGS=("$@")
