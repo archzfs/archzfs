@@ -12,17 +12,17 @@ pkgname="zfs"
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
 pkgver=0.6.2_3.12.9
-pkgrel=1
+pkgrel=2
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
 # 3.12.9-1 and x86_64 was versioned at 3.12.9-2.
 LINUX_VERSION_X32="3.12.9-1"
-LINUX_VERSION_X64="3.12.9-1"
+LINUX_VERSION_X64="3.12.9-2"
 [[ $CARCH == "i686" ]] && LINUX_VERSION=$LINUX_VERSION_X32 || LINUX_VERSION=$LINUX_VERSION_X64
 
 pkgdesc="Kernel modules for the Zettabyte File System."
-depends=("spl=0.6.2_3.12.9-1" "zfs-utils" "linux=$LINUX_VERSION")
+depends=("spl=0.6.2_3.12.9-2" "zfs-utils" "linux=$LINUX_VERSION")
 makedepends=("linux-headers=$LINUX_VERSION")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"

@@ -1,13 +1,17 @@
 # Version information
-AZB_PKGREL="1"  # The pkgrel of all the archzfs packages
+AZB_PKGREL="2"  # The pkgrel of all the archzfs packages
 
 # ZFSonLinux version
 AZB_ZOL_VERSION="0.6.2"
 
 # Linux version dependencies
 AZB_LINUX_VERSION="3.12.9"
-AZB_LINUX_PKGREL="1" # The PKGREL must be increased if this value changes.
-AZB_LINUX_VERSION_FULL="$AZB_LINUX_VERSION-$AZB_LINUX_PKGREL"
+
+# If either PKGREL version below changes, AZB_PKGREL must be changed
+AZB_LINUX_X32_PKGREL="1"
+AZB_LINUX_X64_PKGREL="2"
+AZB_LINUX_X32_VERSION_FULL="$AZB_LINUX_VERSION-$AZB_LINUX_X32_PKGREL"
+AZB_LINUX_X64_VERSION_FULL="$AZB_LINUX_VERSION-$AZB_LINUX_X64_PKGREL"
 
 # Package version number
 AZB_PKG_VERSION="${AZB_ZOL_VERSION}_${AZB_LINUX_VERSION}"
