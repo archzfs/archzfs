@@ -138,7 +138,7 @@ for (( a = 0; a < $#; a++ )); do
     fi
 done
 
-msg "build.sh Started..."
+msg "build.sh started..."
 
 if [[ $AZB_UPDATE_PKGBUILDS == 1 ]]; then
     update_pkgbuilds
