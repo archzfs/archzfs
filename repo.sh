@@ -61,6 +61,8 @@ if [ $# -lt 1 ]; then
     exit 0;
 fi
 
+msg "repo.sh started..."
+
 if [[ $AZB_REPO == "" ]]; then
     error "No destination repo specified!"
     exit 1
@@ -108,9 +110,9 @@ if [[ $AZB_REPO != "" ]]; then
 
     # Add packages to the pkg_list
     for pkg in ${pkgs[@]}; do
-        arch=$(pacman -Qip $pkg | grep "Architecture" | cut -d : -f 2 | tr -d ' ')
-        name=$(pacman -Qip $pkg | grep "Name" | cut -d : -f 2 | tr -d ' ')
-        vers=$(pacman -Qip $pkg | grep "Version" | cut -d : -f 2 | tr -d ' ')
+        arch=$(package_arch_from_path $pxg)
+        name=$(package_name_from_path $pkg)
+        vers=$(package_version_from_path $pkg)
         debug "DEBUG: Found package: $name, $arch, $vers"
         if [[ $vers != $AZB_FULL_VERSION ]]; then
             continue
@@ -151,8 +153,8 @@ if [[ $AZB_REPO != "" ]]; then
 
         # Move the old packages to backup
         for x in $(find $repo -type f -iname "${name}*.pkg.tar.xz"); do
-            ename=$(pacman -Qip $x | grep "Name" | cut -d : -f 2 | tr -d ' ')
-            evers=$(pacman -Qip $x | grep "Version" | cut -d : -f 2 | tr -d ' ')
+            ename=$(package_name_from_path $x)
+            evers=$(package_version_from_path $x)
             debug "DEBUG: Found Old Package: $ename, Version: $evers"
             if [[ $ename == $name && $evers != $vers ]]; then
                 # The '*' globs the signatures
