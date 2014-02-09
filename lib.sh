@@ -102,24 +102,24 @@ die() {
 
 package_arch_from_path() {
     # $1: Package path
-    pacman -Qip "$2" | grep "Architecture" | cut -d : -f 2 | tr -d ' '
+    pacman -Qip "$1" | grep "Architecture" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
 package_name_from_path() {
     # $1: Package path
-    pacman -Qip "$2" | grep "Name" | cut -d : -f 2 | tr -d ' '
+    pacman -Qip "$1" | grep "Name" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
 package_version_from_path() {
     # $1: Package path
-    pacman -Qip "$2" | grep "Version" | cut -d : -f 2 | tr -d ' '
+    pacman -Qip "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
 package_version_from_syncdb() {
     # $1: Package name
-    pacman -Si "$2" | grep "Version" | cut -d : -f 2 | tr -d ' '
+    pacman -Si "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
     return $?
 }
