@@ -15,8 +15,6 @@ trap 'trap_exit' EXIT
 DRY_RUN=0   # Show commands only. Don't do anything.
 AZB_REPO=""     # The destination repo for the packages
 
-msg "repo.sh started!"
-
 usage() {
 	echo "repo.sh - Adds the compiled packages to the archzfs repo."
     echo
@@ -74,10 +72,10 @@ AZB_REPO_TARGET=$AZB_REPO_BASEPATH/$AZB_REPO
 # The abs path to the package source directory in the repo
 AZB_SOURCE_TARGET="$AZB_REPO_TARGET/sources/"
 
-debug "DEBUG: DRY_RUN: "$DRY_RUN
-debug "DEBUG: AZB_REPO: "$AZB_REPO
-debug "DEBUG: AZB_REPO_TARGET: $AZB_REPO_TARGET"
-debug "DEBUG: AZB_SOURCE_TARGET: $AZB_SOURCE_TARGET"
+debug "DRY_RUN: "$DRY_RUN
+debug "AZB_REPO: "$AZB_REPO
+debug "AZB_REPO_TARGET: $AZB_REPO_TARGET"
+debug "AZB_SOURCE_TARGET: $AZB_SOURCE_TARGET"
 
 # A list of packages to install. Pulled from the command line.
 pkgs=()
@@ -92,13 +90,13 @@ done
 # Get the local packages if no packages were passed to the script
 if [[ "${#pkgs[@]}" -eq 0 ]]; then
     for pkg in $(find . -iname "*.pkg.tar.xz"); do
-        debug "DEBUG: Found package: $pkg"
+        debug "Found package: $pkg"
         pkgs+=($pkg)
     done
 fi
 
 for pkg in ${pkgs[@]}; do
-    debug "DEBUG: PKG: $pkg"
+    debug "PKG: $pkg"
 done
 
 if [[ $AZB_REPO != "" ]]; then
@@ -117,16 +115,19 @@ if [[ $AZB_REPO != "" ]]; then
         if [[ $vers != $AZB_FULL_VERSION ]]; then
             continue
         fi
+
         if [[ $arch == "any" ]]; then
             repos=`realpath $AZB_REPO_TARGET/{x86_64,i686}`
             for repo in $repos; do
-                debug "DEBUG: Using: $name;$vers;$pkg;$repo"
+                debug "Using: $name;$vers;$pkg;$repo"
                 pkg_list+=("$name;$vers;$pkg;$repo")
             done
             continue
         fi
-        debug "DEBUG: Using: $name;$vers;$pkg;$AZB_REPO_TARGET/$arch"
+
+        debug "Using: $name;$vers;$pkg;$AZB_REPO_TARGET/$arch"
         pkg_list+=("$name;$vers;$pkg;$AZB_REPO_TARGET/$arch")
+
     done
 
     if [[ ${#pkg_list[@]} == 0 ]]; then
@@ -155,10 +156,10 @@ if [[ $AZB_REPO != "" ]]; then
         for x in $(find $repo -type f -iname "${name}*.pkg.tar.xz"); do
             ename=$(package_name_from_path $x)
             evers=$(package_version_from_path $x)
-            debug "DEBUG: Found Old Package: $ename, Version: $evers"
             if [[ $ename == $name && $evers != $vers ]]; then
+                debug "Found Old Package: $ename, Version: $evers"
                 # The '*' globs the signatures
-                debug "DEBUG: Added $repo/$ename-${evers}* to move list"
+                debug "Added $repo/$ename-${evers}* to move list"
                 pkg_mv_list+=("$repo/$ename-${evers}*")
             fi
         done
@@ -175,57 +176,53 @@ if [[ $AZB_REPO != "" ]]; then
         # both zfs and zfs-utils when globbing zfs*, therefore we have to check
         # each file to see if it is the one we want.
         for file in $(find -L $AZB_SOURCE_TARGET -iname "${name}*.src.tar.gz" 2>/dev/null); do
-            src_name=$(tar -O -xzvf $file $name/PKGBUILD 2> /dev/null | grep "pkgname" | cut -d \" -f 2)
-            debug "DEBUG: Source name: $src_name, File: $file"
+            src_name=$(tar -O -xzvf "$file" $name/PKGBUILD 2> /dev/null | grep "pkgname" | cut -d \" -f 2)
             if [[ $src_name == $name ]]; then
+                debug "Added $src_name ($file) to src_rm_list"
                 src_rm_list+=("$file")
             fi
         done
         src_cp_list+=("./$name/$name-${vers}.src.tar.gz")
     done
 
-    echo
-    echo
+    msg "Performing file operations..."
 
+    msg2 "Move old packages to backup directory"
     run_cmd "mv ${pkg_mv_list[*]} $AZB_REPO_BASEPATH/backup/"
 
     for arch in "i686" "x86_64"; do
+
+        msg "Copying the new $arch packages and adding to repo..."
+
         cp_list=""
         ra_list=""
         repo=""
+
+        # Create the command file lists from the arrays
         for pkg in "${pkg_cp_list[@]}"; do
-            debug "DEBUG pkg_cp_list: $pkg"
             if [[ "$pkg" == *$arch* ]]; then
+                debug "Copying: $pkg"
                 cp_list="$cp_list "$(echo "$pkg" | cut -d \; -f 1)
                 repo=$(echo "$pkg" | cut -d \; -f 2)
                 ra=$(echo "$pkg" | cut -d \; -f 1 | xargs basename)
                 ra_list="$ra_list $repo/${ra%?}"
-                debug "DEBUG: cp_list: $cp_list"
-                debug "DEBUG: ra_list: $ra_list"
-                debug "DEBUG: REPO: $repo"
             fi
         done
-        echo
-        echo
+
         run_cmd "cp $cp_list $repo/"
-        echo
-        echo
+
         run_cmd "repo-add -k $AZB_GPG_SIGN_KEY -s -v -f $repo/${AZB_REPO}.db.tar.xz $ra_list"
         if [[ $? -ne 0 ]]; then
             error "An error occurred adding the package to the repo!"
             exit 1
         fi
+
     done
 
     if [[ ${#src_rm_list[@]} -ne 0 ]]; then
-        echo
-        echo
         zlist=$(echo "${src_rm_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
         run_cmd "rm $zlist"
     fi
-
-    echo
-    echo
 
     nlist=$(echo "${src_cp_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
     run_cmd "cp $nlist $AZB_SOURCE_TARGET"
