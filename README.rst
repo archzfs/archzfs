@@ -88,4 +88,4 @@ How to use this Repository
    to push the package source version (specified by ``AZB_LINUX_VERSION``) to
    AUR.
 
-.. burp: https://www.archlinux.org/packages/extra/x86_64/burp/
+.. _burp: https://www.archlinux.org/packages/extra/x86_64/burp/
