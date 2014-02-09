@@ -108,7 +108,8 @@ if [[ $AZB_REPO != "" ]]; then
 
     # Add packages to the pkg_list
     for pkg in ${pkgs[@]}; do
-        arch=$(package_arch_from_path $pxg)
+
+        arch=$(package_arch_from_path $pkg)
         name=$(package_name_from_path $pkg)
         vers=$(package_version_from_path $pkg)
         debug "DEBUG: Found package: $name, $arch, $vers"
