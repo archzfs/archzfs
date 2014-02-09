@@ -62,7 +62,7 @@ msg "scraper.sh started..."
 msg "Checking archiso download page for linux kernel version changes..."
 
 check_webpage "https://www.archlinux.org/download/" \
-    "(?<=Included Kernel:</strong> )[\d\.]+" "$AZB_LINUX_ARCHISO"
+    "(?<=Included Kernel:</strong> )[\d\.]+" "$AZB_LINUX_ARCHISO_VERSION"
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
@@ -76,47 +76,48 @@ fi
 #
 # Check i686 linux kernel version
 #
-# msg "Checking the online package database for i686 linux kernel version changes..."
+msg "Checking the online package database for i686 linux kernel version changes..."
 
-# check_webpage "https://www.archlinux.org/packages/core/i686/linux/" \
-    # "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X32_VERSION_FULL"
+check_webpage "https://www.archlinux.org/packages/core/i686/linux/" \
+    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X32_VERSION_FULL"
 
-# if [[ $? != 0 ]]; then
-    # msg2 "Sending notification..."
-    # send_email "Update the archzfs repository!" \
-        # "The i686 linux package has been changed!"
-# else
-    # msg2 "The i686 linux kernel package is current."
-# fi
+if [[ $? != 0 ]]; then
+    msg2 "Sending notification..."
+    send_email "Update the archzfs repository!" \
+        "The i686 linux package has been changed!"
+else
+    msg2 "The i686 linux kernel package is current."
+fi
 
-# #
-# # Check x86_64 linux kernel version
-# #
-# msg "Checking the online package database for x86_64 linux kernel version changes..."
+#
+# Check x86_64 linux kernel version
+#
+msg "Checking the online package database for x86_64 linux kernel version changes..."
 
-# check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" \
-    # "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X64_VERSION_FULL"
+check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" \
+    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X64_VERSION_FULL"
 
-# if [[ $? != 0 ]]; then
-    # msg2 "Sending notification..."
-    # send_email "Update the archzfs repository!" \
-        # "The x86_64 linux package has been changed!"
-# else
-    # msg2 "The x86_64 linux kernel package is current."
-# fi
-# #
-# # Check ZFSonLinux.org
-# #
-# msg "Checking zfsonlinux.org for new versions..."
+if [[ $? != 0 ]]; then
+    msg2 "Sending notification..."
+    send_email "Update the archzfs repository!" \
+        "The x86_64 linux package has been changed!"
+else
+    msg2 "The x86_64 linux kernel package is current."
+fi
 
-# check_webpage "http://zfsonlinux.org/" \
-    # "(?<=zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "$AZB_ZOL_VERSION"
+#
+# Check ZFSonLinux.org
+#
+msg "Checking zfsonlinux.org for new versions..."
+
+check_webpage "http://zfsonlinux.org/" \
+    "(?<=zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "$AZB_ZOL_VERSION"
 
 
-# if [[ $? != 0 ]]; then
-    # msg2 "Sending notification..."
-    # run_cmd send_email "Update the archzfs repository!" \
-        # "The ZOL packages have been changed!"
-# else
-    # msg2 "The ZOL sources are current."
-# fi
+if [[ $? != 0 ]]; then
+    msg2 "Sending notification..."
+    run_cmd send_email "Update the archzfs repository!" \
+        "The ZOL packages have been changed!"
+else
+    msg2 "The ZOL sources are current."
+fi
