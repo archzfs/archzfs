@@ -1,20 +1,19 @@
 # Version information
-AZB_PKGREL="2"  # The pkgrel of all the archzfs packages
+AZB_PKGREL="1"  # The pkgrel of all the archzfs packages
 
 # ZFSonLinux version
 AZB_ZOL_VERSION="0.6.2"
 
-# Linux version dependencies
+# Core repo Linux version dependencies
 AZB_LINUX_VERSION="3.12.9"
 AZB_LINUX_X32_PKGREL="1"
 AZB_LINUX_X64_PKGREL="2"
-AZB_LINUX_X32_VERSION_FULL="$AZB_LINUX_VERSION-$AZB_LINUX_X32_PKGREL"
-AZB_LINUX_X64_VERSION_FULL="$AZB_LINUX_VERSION-$AZB_LINUX_X64_PKGREL"
+AZB_LINUX_X32_VERSION="$AZB_LINUX_VERSION-$AZB_LINUX_X32_PKGREL"
+AZB_LINUX_X64_VERSION="$AZB_LINUX_VERSION-$AZB_LINUX_X64_PKGREL"
 AZB_LINUX_PKG_VERSION="${AZB_ZOL_VERSION}_${AZB_LINUX_VERSION}"
 AZB_LINUX_FULL_VERSION="$AZB_LINUX_PKG_VERSION-$AZB_PKGREL"
 
-# Linux version dependencies (testing)
-# Usefull for testing on minor kernel upgrades
+# Testing repo Linux version dependencies
 AZB_LINUX_TEST_VERSION="3.13.2"
 AZB_LINUX_TEST_X32_PKGREL="1"
 AZB_LINUX_TEST_X64_PKGREL="1"
