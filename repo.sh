@@ -112,8 +112,17 @@ if [[ $AZB_REPO != "" ]]; then
         arch=$(package_arch_from_path $pkg)
         name=$(package_name_from_path $pkg)
         vers=$(package_version_from_path $pkg)
-        debug "DEBUG: Found package: $name, $arch, $vers"
-        if [[ $vers != $AZB_FULL_VERSION ]]; then
+        debug "Found package: $name, $arch, $vers"
+
+        # Use a specific version incase of archiso
+        if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
+                REQUIRED_VERSION="$AZB_LINUX_ARCHISO_FULL_VERSION"
+        elif [[ $AZB_REPO == "demz-repo-core" ]]; then
+                AZB_FULL_VERSION="$AZB_LINUX_FULL_VERSION"
+        fi
+
+        if [[ $vers != $REQUIRED_VERSION ]]; then
+            debug "$vers not equal to $REQUIRED_VERSION"
             continue
         fi
 
