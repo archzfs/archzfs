@@ -35,15 +35,29 @@ install=zfs.install
 build() {
   cd "$srcdir/zfs-0.6.2"
   ./autogen.sh
-  ./configure --prefix=/usr \
-              --sysconfdir=/etc \
-              --sbindir=/usr/bin \
-              --libdir=/usr/lib \
-              --datadir=/usr/share \
-              --includedir=/usr/include \
-              --with-udevdir=/lib/udev \
-              --libexecdir=/usr/lib/zfs-0.6.2 \
-              --with-config=kernel
+  if [[ $CARCH == "i686" ]]; then
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --sbindir=/usr/bin \
+                --libdir=/usr/lib \
+                --datadir=/usr/share \
+                --includedir=/usr/include \
+                --with-udevdir=/lib/udev \
+                --libexecdir=/usr/lib/zfs-0.6.2 \
+                --with-config=kernel \
+                --with-linux=/usr/lib/modules/$LINUX_VERSION_X32-ARCH/build
+  else
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --sbindir=/usr/bin \
+                --libdir=/usr/lib \
+                --datadir=/usr/share \
+                --includedir=/usr/include \
+                --with-udevdir=/lib/udev \
+                --libexecdir=/usr/lib/zfs-0.6.2 \
+                --with-config=kernel \
+                --with-linux=/usr/lib/modules/$LINUX_VERSION_X64-ARCH/build
+  fi
   make
 }
 
