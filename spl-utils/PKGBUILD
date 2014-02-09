@@ -20,7 +20,6 @@ source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.2.tar.gz
         spl-utils.hostid)
 groups=("archzfs")
 md5sums=('f00535bf89a7fde0e08f44a14a1f1e03'
-         '4d30dbda61995e77c5ca976abb80bad6'
          'a54f0041a9e15b050f25c463f1db7449')
 license=("GPL")
 
