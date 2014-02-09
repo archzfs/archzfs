@@ -33,7 +33,7 @@ source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.2.tar.gz
 groups=("archzfs")
 md5sums=('f00535bf89a7fde0e08f44a14a1f1e03'
          '4d30dbda61995e77c5ca976abb80bad6'
-         'ad9a409db6ee851c4ff381beaf4bd33a'
+         '98081399cdad56e84be109ba68ef9213'
          'ad9a409db6ee851c4ff381beaf4bd33a')
 license=("GPL")
 install=spl.install
