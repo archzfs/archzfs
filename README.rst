@@ -85,7 +85,7 @@ How to use this Repository
 #. Push the package sources to AUR.
 
    Pushing to AUR using ``push.sh`` requires burp_.  Simply use ``./push.sh``
-   to push the package source version (specified by ``AZB_LINUX_VERSION``) to
-   AUR.
+   to push the package sources by version (specified by ``AZB_LINUX_VERSION``)
+   to AUR.
 
 .. _burp: https://www.archlinux.org/packages/extra/x86_64/burp/
