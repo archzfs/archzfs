@@ -10,6 +10,7 @@
 # Defaults, don't edit these.
 AZB_PKG_LIST="spl-utils spl zfs-utils zfs"
 AZB_UPDATE_PKGBUILDS=""
+AZB_UPDATE_TEST_PKGBUILDS=""
 AZB_BUILD=0
 AZB_USE_TEST=0
 AZB_CHROOT_UPDATE=""
@@ -39,9 +40,11 @@ usage() {
     echo
     echo "Commands:"
     echo
-    echo "    make      Build all packages."
-    echo "    update    Update all PKGBUILDs using conf.sh variables."
-    echo "    sign      GPG detach sign all compiled packages (default)."
+    echo "    make          Build all packages."
+    echo "    test          Build test packages."
+    echo "    update        Update all PKGBUILDs using conf.sh variables."
+    echo "    update-test   Update all PKGBUILDs using the testing conf.sh variables."
+    echo "    sign          GPG detach sign all compiled packages (default)."
     echo
     echo "Command options:"
     echo
@@ -51,12 +54,11 @@ usage() {
     echo
 	echo "Examples:"
     echo
-    echo "    build.sh make -u  :: Update the chroot and build all of the packages"
-    echo "    build.sh -C  :: Remove all compiled packages"
-    echo "    build.sh update  :: Update PKGBUILDS only. Uses core repo linux versions from conf.sh"
-    echo "    build.sh update test  :: Update PKGBUILDS only. Uses testing repo linux versions from conf.sh"
-    echo "    build.sh update make -u  :: Update PKGBUILDs, update the chroot, and make all of the packages"
-    echo "    build.sh update test make -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
+    echo "    build.sh make -u              :: Update the chroot and build all of the packages"
+    echo "    build.sh -C                   :: Remove all compiled packages"
+    echo "    build.sh update               :: Update PKGBUILDS only"
+    echo "    build.sh update make -u       :: Update PKGBUILDs, update the chroot, and make all of the packages"
+    echo "    build.sh update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
 }
 
 sed_escape_input_string() {
@@ -73,9 +75,10 @@ build_sources() {
 }
 
 sign_packages() {
-    FILES=$(find $PWD -iname "*${AZB_ZOL_VERSION}_${AZB_LINUX_VERSION}-${AZB_PKGREL}*.pkg.tar.xz")
-    FILES="${FILES}"$(find $PWD -iname "*${AZB_ZOL_VERSION}_${AZB_LINUX_TEST_VERSION}-${AZB_PKGREL}*.pkg.tar.xz")
-    debug "$FILES"
+    FILES1=$(find $PWD -iname "*${AZB_LINUX_FULL_VERSION}*.pkg.tar.xz")
+    FILES2=$(find $PWD -iname "*${AZB_LINUX_TEST_FULL_VERSION}*.pkg.tar.xz")
+    FILES=$FILES1$FILES2
+    debug "Found FILES: ${FILES}"
     msg "Signing the packages with GPG"
     for F in $FILES; do
         msg2 "Signing $F"
@@ -84,9 +87,9 @@ sign_packages() {
 }
 
 update_pkgbuilds() {
-    AZB_CURRENT_PKGVER_LINUX=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2)
+    AZB_CURRENT_PKGVER=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_PKGREL=$(grep "pkgrel=" zfs/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_ZOL_VERSION=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2 | cut -d_ -f1)
+    AZB_CURRENT_ZOLVER=$(sed_escape_input_string $(echo $AZB_CURRENT_PKGVER | cut -d_ -f1))
     AZB_CURRENT_SPL_DEPVER=$(grep "spl=" zfs/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
     AZB_CURRENT_X32_LINUX_VERSION=$(grep "LINUX_VERSION_X32=" zfs/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X64_LINUX_VERSION=$(grep "LINUX_VERSION_X64=" zfs/PKGBUILD | cut -d\" -f2)
@@ -101,28 +104,10 @@ update_pkgbuilds() {
     # Change the top level AZB_PKGREL
     run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgrel=$AZB_CURRENT_PKGREL/pkgrel=$AZB_PKGREL/g\""
 
-    # Replace the ZFS version
-    # AZB_CURRENT_ZOL_VERSION=$(sed_escape_input_string $AZB_CURRENT_PKGVER_LINUX)
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/$AZB_CURRENT_ZOL_VERSION/$AZB_ZOL_VERSION/g\""
-
-    if [[ $AZB_USE_TEST -eq 1 ]]; then
+    if [[ $AZB_UPDATE_PKGBUILDS ]]; then
 
         # Change the spl version number in zfs/PKGBUILD
-        run_cmd "sed -i \"s/$AZB_CURRENT_SPL_DEPVER/$AZB_LINUX_TEST_FULL_VERSION/g\" zfs/PKGBUILD"
-
-        # Change LINUX_VERSION_XXX
-        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
-            \"s/LINUX_VERSION_X32=\\\"$AZB_CURRENT_X32_LINUX_VERSION\\\"/LINUX_VERSION_X32=\\\"$AZB_LINUX_TEST_X32_VERSION\\\"/g\""
-        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
-            \"s/LINUX_VERSION_X64=\\\"$AZB_CURRENT_X64_LINUX_VERSION\\\"/LINUX_VERSION_X64=\\\"$AZB_LINUX_TEST_X64_VERSION\\\"/g\""
-
-        # Replace the linux version in the top level PKGVER
-        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/$AZB_CURRENT_PKGVER_LINUX/$AZB_LINUX_TEST_PKG_VERSION/g\""
-
-    else
-
-        # Change the spl version number in zfs/PKGBUILD
-        run_cmd "sed -i \"s/$AZB_CURRENT_SPL_DEPVER/$AZB_LINUX_FULL_VERSION/g\" zfs/PKGBUILD"
+        run_cmd "sed -i \"s/spl=$AZB_CURRENT_SPL_DEPVER/spl=$AZB_LINUX_FULL_VERSION/g\" zfs/PKGBUILD"
 
         # Change LINUX_VERSION_XXX
         run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
@@ -130,8 +115,28 @@ update_pkgbuilds() {
         run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
             \"s/LINUX_VERSION_X64=\\\"$AZB_CURRENT_X64_LINUX_VERSION\\\"/LINUX_VERSION_X64=\\\"$AZB_LINUX_X64_VERSION\\\"/g\""
 
+        # Replace the ZFS version
+        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/$AZB_CURRENT_ZOLVER/$AZB_ZOL_VERSION/g\""
+
         # Replace the linux version in the top level PKGVER
-        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/_$AZB_CURRENT_PKGVER_LINUX/_$AZB_LINUX_PKG_VERSION/g\""
+        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgver=$AZB_CURRENT_PKGVER/pkgver=$AZB_LINUX_PKG_VERSION/g\""
+
+    elif [[ $AZB_UPDATE_TEST_PKGBUILDS ]]; then
+
+        # Change the spl version number in zfs/PKGBUILD
+        run_cmd "sed -i \"s/spl=$AZB_CURRENT_SPL_DEPVER/spl=$AZB_LINUX_TEST_FULL_VERSION/g\" zfs/PKGBUILD"
+
+        # Change LINUX_VERSION_XXX
+        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
+            \"s/LINUX_VERSION_X32=\\\"$AZB_CURRENT_X32_LINUX_VERSION\\\"/LINUX_VERSION_X32=\\\"$AZB_LINUX_TEST_X32_VERSION\\\"/g\""
+        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \
+            \"s/LINUX_VERSION_X64=\\\"$AZB_CURRENT_X64_LINUX_VERSION\\\"/LINUX_VERSION_X64=\\\"$AZB_LINUX_TEST_X64_VERSION\\\"/g\""
+
+        # Replace the ZFS version
+        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/$AZB_CURRENT_ZOLVER/$AZB_ZOL_VERSION/g\""
+
+        # Replace the linux version in the top level PKGVER
+        run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgver=$AZB_CURRENT_PKGVER/pkgver=$AZB_LINUX_TEST_PKG_VERSION/g\""
 
     fi
 
@@ -154,6 +159,8 @@ for (( a = 0; a < $#; a++ )); do
         AZB_USE_TEST=1
     elif [[ ${ARGS[$a]} == "update" ]]; then
         AZB_UPDATE_PKGBUILDS=1
+    elif [[ ${ARGS[$a]} == "update-test" ]]; then
+        AZB_UPDATE_TEST_PKGBUILDS=1
     elif [[ ${ARGS[$a]} == "sign" ]]; then
         AZB_SIGN=1
     elif [[ ${ARGS[$a]} == "-h" ]]; then
@@ -172,7 +179,7 @@ done
 
 msg "build.sh started..."
 
-if [[ $AZB_UPDATE_PKGBUILDS -eq 1 ]]; then
+if [[ $AZB_UPDATE_PKGBUILDS == 1 || $AZB_UPDATE_TEST_PKGBUILDS == 1 ]]; then
     update_pkgbuilds
 fi
 
@@ -180,7 +187,26 @@ if [[ $AZB_SIGN -eq 1 ]]; then
     sign_packages
 fi
 
-if [[ $AZB_BUILD -eq 1 ]]; then
+if [[ $AZB_BUILD_TEST == 1 ]]; then
+    if [ -n "$AZB_CHROOT_UPDATE" ]; then
+        msg "Updating the i686 and x86_64 clean chroots..."
+        run_cmd "sudo ccm32 u"
+        run_cmd "sudo ccm64 u"
+    fi
+    for PKG in $AZB_PKG_LIST; do
+        msg "Building $PKG..."
+        run_cmd "cd \"$PWD/$PKG\""
+        # run_cmd "sudo ccm32 t"
+        run_cmd "sudo ccm32 s"
+        # run_cmd "sudo ccm64 t"
+        run_cmd "sudo ccm64 s"
+        run_cmd "cd - > /dev/null"
+    done
+    build_sources
+    sign_packages
+fi
+
+if [[ $AZB_BUILD == 1 ]]; then
     if [ -n "$AZB_CHROOT_UPDATE" ]; then
         msg "Updating the i686 and x86_64 clean chroots..."
         run_cmd "sudo ccm32 u"
