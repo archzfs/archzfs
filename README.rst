@@ -59,7 +59,7 @@ How to use this Repository
    Use ``./build update`` to update the PKGBUILDS using the ``conf.sh``
    variables.
 
-   ``./build.sh update test`` uses the ``AZB_LINUX_TEST_*`` variables. Using
+   ``./build.sh update-test`` uses the ``AZB_LINUX_TEST_*`` variables. Using
    the test values are useful for test building the zfs packages against the
    Linux kernel version in the official testing repo. Mostly used on minor
    Linux kernel updates (3.12 -> 3.13).
