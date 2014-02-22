@@ -118,7 +118,7 @@ if [[ $AZB_REPO != "" ]]; then
         if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
                 REQUIRED_VERSION="$AZB_LINUX_ARCHISO_FULL_VERSION"
         elif [[ $AZB_REPO == "demz-repo-core" ]]; then
-                AZB_FULL_VERSION="$AZB_LINUX_FULL_VERSION"
+                REQUIRED_VERSION="$AZB_LINUX_FULL_VERSION"
         fi
 
         if [[ $vers != $REQUIRED_VERSION ]]; then
