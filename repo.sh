@@ -197,8 +197,10 @@ if [[ $AZB_REPO != "" ]]; then
 
     msg "Performing file operations..."
 
-    msg2 "Move old packages to backup directory"
-    run_cmd "mv ${pkg_mv_list[*]} $AZB_REPO_BASEPATH/backup/"
+    if [[ ${#pkg_mv_list[@]} -gt 0 ]]; then
+        msg2 "Move old packages to backup directory"
+        run_cmd "mv ${pkg_mv_list[*]} $AZB_REPO_BASEPATH/backup/"
+    fi
 
     for arch in "i686" "x86_64"; do
 
