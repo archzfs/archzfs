@@ -46,12 +46,6 @@ usage() {
     echo "    update-test   Update all PKGBUILDs using the testing conf.sh variables."
     echo "    sign          GPG detach sign all compiled packages (default)."
     echo
-    echo "Command options:"
-    echo
-    echo "    update"
-    echo
-    echo "        test  :: Use testing versions from conf.sh"
-    echo
 	echo "Examples:"
     echo
     echo "    build.sh make -u              :: Update the chroot and build all of the packages"

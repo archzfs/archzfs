@@ -11,8 +11,8 @@ pkgname="zfs-utils"
 # The build script can be found at
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
-pkgver=0.6.2_3.12.9
-pkgrel=2
+pkgver=0.6.2_3.13.3
+pkgrel=1
 pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=("spl")
 arch=("i686" "x86_64")
@@ -33,15 +33,29 @@ license=("CDDL")
 build() {
   cd "$srcdir/zfs-0.6.2"
   ./autogen.sh
-  ./configure --prefix=/usr \
-              --sysconfdir=/etc \
-              --sbindir=/usr/bin \
-              --libdir=/usr/lib \
-              --datadir=/usr/share \
-              --includedir=/usr/include \
-              --with-udevdir=/lib/udev \
-              --libexecdir=/usr/lib/zfs-0.6.2 \
-              --with-config=user
+  if [[ $CARCH == "i686" ]]; then
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --sbindir=/usr/bin \
+                --libdir=/usr/lib \
+                --datadir=/usr/share \
+                --includedir=/usr/include \
+                --with-udevdir=/lib/udev \
+                --libexecdir=/usr/lib/zfs-0.6.2 \
+                --with-config=user \
+                --with-linux=/usr/lib/modules/$LINUX_VERSION_X32-ARCH/build
+  else
+    ./configure --prefix=/usr \
+                --sysconfdir=/etc \
+                --sbindir=/usr/bin \
+                --libdir=/usr/lib \
+                --datadir=/usr/share \
+                --includedir=/usr/include \
+                --with-udevdir=/lib/udev \
+                --libexecdir=/usr/lib/zfs-0.6.2 \
+                --with-config=user \
+                --with-linux=/usr/lib/modules/$LINUX_VERSION_X64-ARCH/build
+  fi
   make
 }
 
