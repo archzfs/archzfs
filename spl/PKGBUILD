@@ -11,14 +11,14 @@ pkgname="spl"
 # The build script can be found at
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
-pkgver=0.6.2_3.13.3
+pkgver=0.6.2_3.13.4
 pkgrel=1
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
 # 3.12.9-1 and x86_64 was versioned at 3.12.9-2.
-LINUX_VERSION_X32="3.13.3-1"
-LINUX_VERSION_X64="3.13.3-1"
+LINUX_VERSION_X32="3.13.4-1"
+LINUX_VERSION_X64="3.13.4-1"
 [[ $CARCH == "i686" ]] && LINUX_VERSION=$LINUX_VERSION_X32 || LINUX_VERSION=$LINUX_VERSION_X64
 
 pkgdesc="Solaris Porting Layer kernel modules."
