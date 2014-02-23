@@ -19,6 +19,13 @@ The license of ZFS is CDDL.
 
 The license of SPL is LGPL.
 
+------------
+Dependencies
+------------
+
+``build.sh`` uses clean-chroot-manager_ to build packages in a systemd
+namespace container.
+
 --------------------------
 How to use this Repository
 --------------------------
@@ -89,3 +96,4 @@ How to use this Repository
    to AUR.
 
 .. _burp: https://www.archlinux.org/packages/extra/x86_64/burp/
+.. _clean-chroot-manager: https://aur.archlinux.org/packages/clean-chroot-manager
