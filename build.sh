@@ -69,14 +69,14 @@ build_sources() {
 }
 
 sign_packages() {
-    FILES1=$(find $PWD -iname "*${AZB_LINUX_FULL_VERSION}*.pkg.tar.xz")
-    FILES2=$(find $PWD -iname "*${AZB_LINUX_TEST_FULL_VERSION}*.pkg.tar.xz")
-    FILES=$FILES1$FILES2
+    FILES=$(find $PWD -iname "*.pkg.tar.xz")
     debug "Found FILES: ${FILES}"
     msg "Signing the packages with GPG"
     for F in $FILES; do
-        msg2 "Signing $F"
-        run_cmd "gpg --batch --yes --detach-sign --use-agent -u $AZB_GPG_SIGN_KEY \"$F\""
+        if [[ ! -f "${F}.sig" ]]; then
+            msg2 "Signing $F"
+            run_cmd "gpg --batch --yes --detach-sign --use-agent -u $AZB_GPG_SIGN_KEY \"$F\""
+        fi
     done
 }
 
