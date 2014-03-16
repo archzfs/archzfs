@@ -5,7 +5,7 @@ AZB_PKGREL="1"  # The pkgrel of all the archzfs packages
 AZB_ZOL_VERSION="0.6.2"
 
 # Core repo Linux version dependencies
-AZB_LINUX_VERSION="3.13.4"
+AZB_LINUX_VERSION="3.13.6"
 AZB_LINUX_X32_PKGREL="1"
 AZB_LINUX_X64_PKGREL="1"
 AZB_LINUX_X32_VERSION="$AZB_LINUX_VERSION-$AZB_LINUX_X32_PKGREL"
