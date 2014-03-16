@@ -116,9 +116,9 @@ if [[ $AZB_REPO != "" ]]; then
 
         # Use a specific version incase of archiso
         if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
-                REQUIRED_VERSION="$AZB_LINUX_ARCHISO_FULL_VERSION"
+            REQUIRED_VERSION="$AZB_LINUX_ARCHISO_FULL_VERSION"
         elif [[ $AZB_REPO == "demz-repo-core" ]]; then
-                REQUIRED_VERSION="$AZB_LINUX_FULL_VERSION"
+            REQUIRED_VERSION="$AZB_LINUX_FULL_VERSION"
         fi
 
         if [[ $vers != $REQUIRED_VERSION ]]; then
@@ -206,9 +206,9 @@ if [[ $AZB_REPO != "" ]]; then
 
         msg "Copying the new $arch packages and adding to repo..."
 
-        cp_list=""
-        ra_list=""
-        repo=""
+        cp_list=""  # The packages to copy in one string
+        ra_list=""  # The packages to add to the repo in one string
+        repo=""     # The destination repo
 
         # Create the command file lists from the arrays
         for pkg in "${pkg_cp_list[@]}"; do
@@ -221,6 +221,10 @@ if [[ $AZB_REPO != "" ]]; then
             fi
         done
 
+        if [[ $cp_list == "" ]]; then
+            warning "No packages to copy!"
+            continue
+        fi
         run_cmd "cp $cp_list $repo/"
 
         run_cmd "repo-add -k $AZB_GPG_SIGN_KEY -s -v -f $repo/${AZB_REPO}.db.tar.xz $ra_list"
