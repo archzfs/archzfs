@@ -111,7 +111,7 @@ fi
 msg "Checking zfsonlinux.org for new versions..."
 
 check_webpage "http://zfsonlinux.org/" \
-    "(?<=zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "$AZB_ZOL_VERSION"
+    "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "$AZB_ZOL_VERSION"
 
 
 if [[ $? != 0 ]]; then
