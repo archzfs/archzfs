@@ -12,7 +12,7 @@ pkgname="zfs-utils"
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
 pkgver=0.6.2_3.13.7
-pkgrel=1
+pkgrel=3
 pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=("spl")
 arch=("i686" "x86_64")
@@ -26,7 +26,7 @@ groups=("archzfs")
 md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
          '3e1c4a29c4f7d590e6a3041f2c61d6ff'
          'ebea2b1e593a9a19efa0f7ae7451bbc7'
-         '9a4083058ded206783c921e9ac7afdcf'
+         'b567a95a34759f196bf4be8061a895e5'
          '1f16ea8592509edb8efa4d7da25f8182')
 license=("CDDL")
 
