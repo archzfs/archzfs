@@ -1,9 +1,9 @@
 #!/bin/bash
 
-source ./lib.sh
-source ./conf.sh
+DIR="$( cd "$( dirname "$0"  )" && pwd  )"
 
-set -e
+source $DIR/lib.sh
+source $DIR/conf.sh
 
 trap 'trap_abort' INT QUIT TERM HUP
 trap 'trap_exit' EXIT
@@ -45,7 +45,7 @@ check_webpage() {
     debug "Checking webpage: $1"
     debug "Using regex: `printf "%q" "$2"`"
     debug "Expecting: $3"
-    SCRAPED_STRING=$(curl -s "$1" | grep -Po -m 1 "$2")
+    SCRAPED_STRING=$(curl -vs "$1" 2>&1 | \grep -Po -m 1 "$2")
     debug "Got \"$SCRAPED_STRING\" from webpage."
     if [[ $SCRAPED_STRING != "$3" ]]; then
         error "Checking \"$1\" expected \"$3\" got \"$SCRAPED_STRING\""
@@ -79,7 +79,7 @@ fi
 msg "Checking the online package database for i686 linux kernel version changes..."
 
 check_webpage "https://www.archlinux.org/packages/core/i686/linux/" \
-    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X32_VERSION_FULL"
+    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X32_VERSION"
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
@@ -95,7 +95,7 @@ fi
 msg "Checking the online package database for x86_64 linux kernel version changes..."
 
 check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" \
-    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X64_VERSION_FULL"
+    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X64_VERSION"
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
@@ -111,7 +111,7 @@ fi
 msg "Checking zfsonlinux.org for new versions..."
 
 check_webpage "http://zfsonlinux.org/" \
-    "(?<=zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "$AZB_ZOL_VERSION"
+    "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "$AZB_ZOL_VERSION"
 
 
 if [[ $? != 0 ]]; then
