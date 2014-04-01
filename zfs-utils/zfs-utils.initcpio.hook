@@ -32,10 +32,18 @@ zfs_mount_handler () {
     fi
 
     local pool="${ZFS_DATASET%%/*}"
-    if ! "/usr/bin/zpool" list -H $pool > /dev/null ; then
-        echo "ZFS: Importing pool $pool."
+    local zpool_import_flags=""
+    local rwopt_exp=${rwopt:-ro}
 
-        if ! "/usr/bin/zpool" import -N $pool $ZPOOL_FORCE ; then
+    if ! "/usr/bin/zpool" list -H $pool 2>&1 > /dev/null ; then
+        if [ "$rwopt_exp" != "rw" ]; then
+            msg "ZFS: Importing pool $pool readonly."
+            zpool_import_flags="-o readonly=on"
+        else
+            msg "ZFS: Importing pool $pool."
+        fi
+
+        if ! "/usr/bin/zpool" import $zpool_import_flags -N $pool $ZPOOL_FORCE ; then
             echo "ZFS: Unable to import pool $pool."
             return 1
         fi
@@ -43,9 +51,9 @@ zfs_mount_handler () {
 
     local mountpoint=$("/usr/bin/zfs" get -H -o value mountpoint $ZFS_DATASET)
     if [ "$mountpoint" = "legacy" ] ; then
-        mount -t zfs "$ZFS_DATASET" "$node"
+        mount -t zfs -o ${rwopt_exp} "$ZFS_DATASET" "$node"
     else
-        mount -o zfsutil -t zfs "$ZFS_DATASET" "$node"
+        mount -o zfsutil,${rwopt_exp} -t zfs "$ZFS_DATASET" "$node"
     fi
 }
 
