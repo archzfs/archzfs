@@ -45,7 +45,7 @@ check_webpage() {
     debug "Checking webpage: $1"
     debug "Using regex: `printf "%q" "$2"`"
     debug "Expecting: $3"
-    SCRAPED_STRING=$(curl -s "$1" | grep -Po -m 1 "$2")
+    SCRAPED_STRING=$(curl -vs "$1" 2>&1 | \grep -Po -m 1 "$2")
     debug "Got \"$SCRAPED_STRING\" from webpage."
     if [[ $SCRAPED_STRING != "$3" ]]; then
         error "Checking \"$1\" expected \"$3\" got \"$SCRAPED_STRING\""
