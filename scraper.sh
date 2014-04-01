@@ -1,9 +1,9 @@
 #!/bin/bash
 
-source ./lib.sh
-source ./conf.sh
+DIR="$( cd "$( dirname "$0"  )" && pwd  )"
 
-set -e
+source $DIR/lib.sh
+source $DIR/conf.sh
 
 trap 'trap_abort' INT QUIT TERM HUP
 trap 'trap_exit' EXIT
