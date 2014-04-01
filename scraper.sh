@@ -79,7 +79,7 @@ fi
 msg "Checking the online package database for i686 linux kernel version changes..."
 
 check_webpage "https://www.archlinux.org/packages/core/i686/linux/" \
-    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X32_VERSION_FULL"
+    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X32_VERSION"
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
@@ -95,7 +95,7 @@ fi
 msg "Checking the online package database for x86_64 linux kernel version changes..."
 
 check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" \
-    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X64_VERSION_FULL"
+    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X64_VERSION"
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
