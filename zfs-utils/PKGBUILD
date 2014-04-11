@@ -12,7 +12,7 @@ pkgname="zfs-utils"
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
 pkgver=0.6.2_3.14
-pkgrel=1
+pkgrel=2
 pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=("spl")
 arch=("i686" "x86_64")
@@ -22,7 +22,7 @@ source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz
         zfs-utils.initcpio.install
         zfs-utils.initcpio.hook
         zfs-utils.service
-        20140411-git-master.patch)
+        http://demizerone.com/patches/20140411-zfs-git-master.patch)
 groups=("archzfs")
 md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
          '3e1c4a29c4f7d590e6a3041f2c61d6ff'
@@ -34,7 +34,7 @@ license=("CDDL")
 
 prepare() {
     cd "$srcdir/zfs-0.6.2"
-    patch -Np1 < ../20140411-git-master.patch
+    patch -Np1 < ../20140411-zfs-git-master.patch
 }
 
 build() {
