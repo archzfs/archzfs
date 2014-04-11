@@ -11,14 +11,14 @@ pkgname="zfs"
 # The build script can be found at
 # https://github.com/demizer/archzfs/blob/master/build.sh
 #
-pkgver=0.6.2_3.13.8
+pkgver=0.6.2_3.14
 pkgrel=1
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
 # 3.12.9-1 and x86_64 was versioned at 3.12.9-2.
-LINUX_VERSION_X32="3.13.8-1"
-LINUX_VERSION_X64="3.13.8-1"
+LINUX_VERSION_X32="3.14-4"
+LINUX_VERSION_X64="3.14-4"
 [[ $CARCH == "i686" ]] && LINUX_VERSION=$LINUX_VERSION_X32 || LINUX_VERSION=$LINUX_VERSION_X64
 
 # If LINUX_VERSION does not have a minor version, we need to add "0" as the
@@ -35,15 +35,22 @@ else
 fi
 
 pkgdesc="Kernel modules for the Zettabyte File System."
-depends=("spl=0.6.2_3.13.8-1" "zfs-utils" "linux=$LINUX_VERSION")
+depends=("spl=0.6.2_3.14-1" "zfs-utils" "linux=$LINUX_VERSION")
 makedepends=("linux-headers=$LINUX_VERSION")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
-source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz)
+source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz
+        20140411-git-master.patch)
 groups=("archzfs")
-md5sums=('0b183b0abdd5be287046ad9ce4f899fd')
+md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
+         'b7632a5a80d474272d1de046b6da5f81')
 license=("CDDL")
 install=zfs.install
+
+prepare() {
+    cd "$srcdir/zfs-0.6.2"
+    patch -Np1 < ../20140411-git-master.patch
+}
 
 build() {
   cd "$srcdir/zfs-0.6.2"

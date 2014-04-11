@@ -1,0 +1,1797 @@
+diff --git a/config/spl-build.m4 b/config/spl-build.m4
+index f54c5b1..8426780 100644
+--- a/config/spl-build.m4
++++ b/config/spl-build.m4
+@@ -29,4 +29,3 @@ AC_DEFUN([SPL_AC_CONFIG_KERNEL], [
+ 	SPL_AC_2ARGS_REGISTER_SYSCTL
+-	SPL_AC_SET_SHRINKER
+-	SPL_AC_3ARGS_SHRINKER_CALLBACK
++	SPL_AC_SHRINKER_CALLBACK
+ 	SPL_AC_PATH_IN_NAMEIDATA
+@@ -95,2 +94,3 @@ AC_DEFUN([SPL_AC_CONFIG_KERNEL], [
+ 	SPL_AC_2ARGS_VFS_GETATTR
++	SPL_AC_USLEEP_RANGE
+ ])
+@@ -886,29 +886,10 @@ AC_DEFUN([SPL_AC_2ARGS_REGISTER_SYSCTL],
+ 
+-dnl #
+-dnl # 2.6.23 API change
+-dnl # Old set_shrinker API replaced with register_shrinker
+-dnl #
+-AC_DEFUN([SPL_AC_SET_SHRINKER], [
+-	AC_MSG_CHECKING([whether set_shrinker() available])
+-	SPL_LINUX_TRY_COMPILE([
+-		#include <linux/mm.h>
+-	],[
+-		return set_shrinker(DEFAULT_SEEKS, NULL);
+-	],[
+-		AC_MSG_RESULT([yes])
+-		AC_DEFINE(HAVE_SET_SHRINKER, 1,
+-		          [set_shrinker() available])
+-	],[
+-		AC_MSG_RESULT([no])
+-	])
+-])
+-
+-dnl #
+-dnl # 2.6.35 API change,
+-dnl # Add context to shrinker callback
+-dnl #
+-AC_DEFUN([SPL_AC_3ARGS_SHRINKER_CALLBACK],
+-	[AC_MSG_CHECKING([whether shrinker callback wants 3 args])
++AC_DEFUN([SPL_AC_SHRINKER_CALLBACK],[
+ 	tmp_flags="$EXTRA_KCFLAGS"
+ 	EXTRA_KCFLAGS="-Werror"
++	dnl #
++	dnl # 2.6.23 to 2.6.34 API change
++	dnl # ->shrink(int nr_to_scan, gfp_t gfp_mask)
++	dnl #
++	AC_MSG_CHECKING([whether old 2-argument shrinker exists])
+ 	SPL_LINUX_TRY_COMPILE([
+@@ -916,3 +897,3 @@ AC_DEFUN([SPL_AC_3ARGS_SHRINKER_CALLBACK],
+ 
+-		int shrinker_cb(struct shrinker *, int, unsigned int);
++		int shrinker_cb(int nr_to_scan, gfp_t gfp_mask);
+ 	],[
+@@ -925,6 +906,82 @@ AC_DEFUN([SPL_AC_3ARGS_SHRINKER_CALLBACK],
+ 		AC_MSG_RESULT(yes)
+-		AC_DEFINE(HAVE_3ARGS_SHRINKER_CALLBACK, 1,
+-		          [shrinker callback wants 3 args])
++		AC_DEFINE(HAVE_2ARGS_OLD_SHRINKER_CALLBACK, 1,
++			[old shrinker callback wants 2 args])
+ 	],[
+ 		AC_MSG_RESULT(no)
++		dnl #
++		dnl # 2.6.35 - 2.6.39 API change
++		dnl # ->shrink(struct shrinker *,
++		dnl #          int nr_to_scan, gfp_t gfp_mask)
++		dnl #
++		AC_MSG_CHECKING([whether old 3-argument shrinker exists])
++		SPL_LINUX_TRY_COMPILE([
++			#include <linux/mm.h>
++
++			int shrinker_cb(struct shrinker *, int nr_to_scan,
++					gfp_t gfp_mask);
++		],[
++			struct shrinker cache_shrinker = {
++				.shrink = shrinker_cb,
++				.seeks = DEFAULT_SEEKS,
++			};
++			register_shrinker(&cache_shrinker);
++		],[
++			AC_MSG_RESULT(yes)
++			AC_DEFINE(HAVE_3ARGS_SHRINKER_CALLBACK, 1,
++				[old shrinker callback wants 3 args])
++		],[
++			AC_MSG_RESULT(no)
++			dnl #
++			dnl # 3.0 - 3.11 API change
++			dnl # ->shrink(struct shrinker *,
++			dnl #          struct shrink_control *sc)
++			dnl #
++			AC_MSG_CHECKING(
++				[whether new 2-argument shrinker exists])
++			SPL_LINUX_TRY_COMPILE([
++				#include <linux/mm.h>
++
++				int shrinker_cb(struct shrinker *,
++						struct shrink_control *sc);
++			],[
++				struct shrinker cache_shrinker = {
++					.shrink = shrinker_cb,
++					.seeks = DEFAULT_SEEKS,
++				};
++				register_shrinker(&cache_shrinker);
++			],[
++				AC_MSG_RESULT(yes)
++				AC_DEFINE(HAVE_2ARGS_NEW_SHRINKER_CALLBACK, 1,
++					[new shrinker callback wants 2 args])
++			],[
++				AC_MSG_RESULT(no)
++				dnl #
++				dnl # 3.12 API change,
++				dnl # ->shrink() is logically split in to
++				dnl # ->count_objects() and ->scan_objects()
++				dnl #
++				AC_MSG_CHECKING(
++				    [whether ->count_objects callback exists])
++				SPL_LINUX_TRY_COMPILE([
++					#include <linux/mm.h>
++
++					unsigned long shrinker_cb(
++						struct shrinker *,
++						struct shrink_control *sc);
++				],[
++					struct shrinker cache_shrinker = {
++						.count_objects = shrinker_cb,
++						.scan_objects = shrinker_cb,
++						.seeks = DEFAULT_SEEKS,
++					};
++					register_shrinker(&cache_shrinker);
++				],[
++					AC_MSG_RESULT(yes)
++					AC_DEFINE(HAVE_SPLIT_SHRINKER_CALLBACK,
++						1, [->count_objects exists])
++				],[
++					AC_MSG_ERROR(error)
++				])
++			])
++		])
+ 	])
+@@ -1787,6 +1844,2 @@ AC_DEFUN([SPL_AC_SET_FS_PWD_WITH_CONST],
+ 
+-dnl #
+-dnl # SLES API change, never adopted in mainline,
+-dnl # Third 'struct vfsmount *' argument removed.
+-dnl #
+ AC_DEFUN([SPL_AC_2ARGS_VFS_UNLINK],
+@@ -1796,3 +1849,3 @@ AC_DEFUN([SPL_AC_2ARGS_VFS_UNLINK],
+ 	],[
+-		vfs_unlink(NULL, NULL);
++		vfs_unlink((struct inode *) NULL, (struct dentry *) NULL);
+ 	],[
+@@ -1803,2 +1856,21 @@ AC_DEFUN([SPL_AC_2ARGS_VFS_UNLINK],
+ 		AC_MSG_RESULT(no)
++		dnl #
++		dnl # Linux 3.13 API change
++		dnl # Added delegated inode
++		dnl #
++		AC_MSG_CHECKING([whether vfs_unlink() wants 3 args])
++		SPL_LINUX_TRY_COMPILE([
++			#include <linux/fs.h>
++		],[
++			vfs_unlink((struct inode *) NULL,
++				(struct dentry *) NULL,
++				(struct inode **) NULL);
++		],[
++			AC_MSG_RESULT(yes)
++			AC_DEFINE(HAVE_3ARGS_VFS_UNLINK, 1,
++				  [vfs_unlink() wants 3 args])
++		],[
++			AC_MSG_ERROR(no)
++		])
++
+ 	])
+@@ -1806,6 +1878,2 @@ AC_DEFUN([SPL_AC_2ARGS_VFS_UNLINK],
+ 
+-dnl #
+-dnl # SLES API change, never adopted in mainline,
+-dnl # Third and sixth 'struct vfsmount *' argument removed.
+-dnl #
+ AC_DEFUN([SPL_AC_4ARGS_VFS_RENAME],
+@@ -1815,3 +1883,4 @@ AC_DEFUN([SPL_AC_4ARGS_VFS_RENAME],
+ 	],[
+-		vfs_rename(NULL, NULL, NULL, NULL);
++		vfs_rename((struct inode *) NULL, (struct dentry *) NULL,
++			(struct inode *) NULL, (struct dentry *) NULL);
+ 	],[
+@@ -1822,2 +1891,22 @@ AC_DEFUN([SPL_AC_4ARGS_VFS_RENAME],
+ 		AC_MSG_RESULT(no)
++		dnl #
++		dnl # Linux 3.13 API change
++		dnl # Added delegated inode
++		dnl #
++		AC_MSG_CHECKING([whether vfs_rename() wants 5 args])
++		SPL_LINUX_TRY_COMPILE([
++			#include <linux/fs.h>
++		],[
++			vfs_rename((struct inode *) NULL,
++				(struct dentry *) NULL,
++				(struct inode *) NULL,
++				(struct dentry *) NULL,
++				(struct inode **) NULL);
++		],[
++			AC_MSG_RESULT(yes)
++			AC_DEFINE(HAVE_5ARGS_VFS_RENAME, 1,
++				  [vfs_rename() wants 5 args])
++		],[
++			AC_MSG_ERROR(no)
++		])
+ 	])
+@@ -2402 +2491,23 @@ AC_DEFUN([SPL_AC_2ARGS_VFS_GETATTR], [
+ ])
++
++dnl #
++dnl # 2.6.36 API compatibility.
++dnl # Added usleep_range timer.
++dnl # usleep_range is a finer precision implementation of msleep
++dnl # designed to be a drop-in replacement for udelay where a precise
++dnl # sleep / busy-wait is unnecessary.
++dnl #
++AC_DEFUN([SPL_AC_USLEEP_RANGE], [
++	AC_MSG_CHECKING([whether usleep_range() is available])
++	SPL_LINUX_TRY_COMPILE([
++		#include <linux/delay.h>
++	],[
++		usleep_range(0, 0);
++	],[
++		AC_MSG_RESULT(yes)
++		AC_DEFINE(HAVE_USLEEP_RANGE, 1,
++		          [usleep_range is available])
++	],[
++		AC_MSG_RESULT(no)
++	])
++])
+diff --git a/configure.ac b/configure.ac
+index 4772298..e81ddfb 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -52,2 +52,3 @@ AC_CONFIG_FILES([
+ 	man/man1/Makefile
++	man/man5/Makefile
+ 	lib/Makefile
+diff --git a/include/linux/Makefile.am b/include/linux/Makefile.am
+index 730f769..59f2ec5 100644
+--- a/include/linux/Makefile.am
++++ b/include/linux/Makefile.am
+@@ -5,2 +5,3 @@ KERNEL_H = \
+ 	$(top_srcdir)/include/linux/compiler_compat.h \
++	$(top_srcdir)/include/linux/delay_compat.h \
+ 	$(top_srcdir)/include/linux/file_compat.h \
+diff --git a/include/linux/delay_compat.h b/include/linux/delay_compat.h
+new file mode 100644
+index 0000000..fc9ff66
+--- /dev/null
++++ b/include/linux/delay_compat.h
+@@ -0,0 +1,47 @@
++/*****************************************************************************\
++ *  Copyright (C) 2007-2013 Lawrence Livermore National Security, LLC.
++ *  Copyright (C) 2007 The Regents of the University of California.
++ *  Produced at Lawrence Livermore National Laboratory (cf, DISCLAIMER).
++ *  Written by Brian Behlendorf <behlendorf1@llnl.gov>.
++ *  UCRL-CODE-235197
++ *
++ *  This file is part of the SPL, Solaris Porting Layer.
++ *  For details, see <http://zfsonlinux.org/>.
++ *
++ *  The SPL is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License as published by the
++ *  Free Software Foundation; either version 2 of the License, or (at your
++ *  option) any later version.
++ *
++ *  The SPL is distributed in the hope that it will be useful, but WITHOUT
++ *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ *  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++ *  for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with the SPL.  If not, see <http://www.gnu.org/licenses/>.
++\*****************************************************************************/
++
++#ifndef _SPL_DELAY_COMPAT_H
++#define _SPL_DELAY_COMPAT_H
++
++#include <linux/delay.h>
++#include <linux/time.h>
++
++/* usleep_range() introduced in 2.6.36 */
++#ifndef HAVE_USLEEP_RANGE
++
++static inline void
++usleep_range(unsigned long min, unsigned long max)
++{
++	unsigned int min_ms = min / USEC_PER_MSEC;
++
++	if (min >= MAX_UDELAY_MS)
++		msleep(min_ms);
++	else
++		udelay(min);
++}
++
++#endif /* HAVE_USLEEP_RANGE */
++
++#endif /* _SPL_DELAY_COMPAT_H */
+diff --git a/include/linux/mm_compat.h b/include/linux/mm_compat.h
+index cb1bef9..37c9b08 100644
+--- a/include/linux/mm_compat.h
++++ b/include/linux/mm_compat.h
+@@ -150,64 +150,98 @@ extern shrink_icache_memory_t shrink_icache_memory_fn;
+ /*
+- * Linux 2.6. - 2.6. Shrinker API Compatibility.
++ * Due to frequent changes in the shrinker API the following
++ * compatibility wrappers should be used.  They are as follows:
++ *
++ * SPL_SHRINKER_DECLARE is used to declare the shrinker which is
++ * passed to spl_register_shrinker()/spl_unregister_shrinker().  Use
++ * shrinker_name to set the shrinker variable name, shrinker_callback
++ * to set the callback function, and seek_cost to define the cost of
++ * reclaiming an object.
++ *
++ *   SPL_SHRINKER_DECLARE(shrinker_name, shrinker_callback, seek_cost);
++ *
++ * SPL_SHRINKER_CALLBACK_FWD_DECLARE is used when a forward declaration
++ * of the shrinker callback function is required.  Only the callback
++ * function needs to be passed.
++ *
++ *   SPL_SHRINKER_CALLBACK_FWD_DECLARE(shrinker_callback);
++ *
++ * SPL_SHRINKER_CALLBACK_WRAPPER is used to declare the callback function
++ * which is registered with the shrinker.  This function will call your
++ * custom shrinker which must use the following prototype.  Notice the
++ * leading __'s, these must be appended to the callback_function name.
++ *
++ *   int  __shrinker_callback(struct shrinker *, struct shrink_control *)
++ *   SPL_SHRINKER_CALLBACK_WRAPPER(shrinker_callback);a
++ *
++ *
++ * Example:
++ *
++ * SPL_SHRINKER_CALLBACK_FWD_DECLARE(my_shrinker_fn);
++ * SPL_SHRINKER_DECLARE(my_shrinker, my_shrinker_fn, 1);
++ *
++ * static int
++ * __my_shrinker_fn(struct shrinker *shrink, struct shrink_control *sc)
++ * {
++ *	if (sc->nr_to_scan) {
++ *		...scan objects in the cache and reclaim them...
++ *	}
++ *
++ *	...calculate number of objects in the cache...
++ *
++ *	return (number of objects in the cache);
++ * }
++ * SPL_SHRINKER_CALLBACK_WRAPPER(my_shrinker_fn);
+  */
+-#ifdef HAVE_SET_SHRINKER
+-typedef struct spl_shrinker {
+-	struct shrinker *shrinker;
+-	shrinker_t fn;
+-	int seeks;
+-} spl_shrinker_t;
+-
+-static inline void
+-spl_register_shrinker(spl_shrinker_t *ss)
+-{
+-	ss->shrinker = set_shrinker(ss->seeks, ss->fn);
+-}
+ 
+-static inline void
+-spl_unregister_shrinker(spl_shrinker_t *ss)
+-{
+-	remove_shrinker(ss->shrinker);
+-}
++#define	spl_register_shrinker(x)	register_shrinker(x)
++#define	spl_unregister_shrinker(x)	unregister_shrinker(x)
+ 
+-# define SPL_SHRINKER_DECLARE(s, x, y)                                 \
+-	static spl_shrinker_t s = {                                    \
+-		.shrinker = NULL,                                      \
+-		.fn = x,                                               \
+-		.seeks = y                                             \
+-	}
+-
+-# define SPL_SHRINKER_CALLBACK_FWD_DECLARE(fn)                         \
+-	static int fn(int, unsigned int)
+-# define SPL_SHRINKER_CALLBACK_WRAPPER(fn)                             \
+-static int                                                             \
+-fn(int nr_to_scan, unsigned int gfp_mask)                              \
+-{                                                                      \
+-	struct shrink_control sc;                                      \
+-                                                                       \
+-        sc.nr_to_scan = nr_to_scan;                                    \
+-        sc.gfp_mask = gfp_mask;                                        \
+-                                                                       \
+-	return __ ## fn(NULL, &sc);                                    \
++/*
++ * Linux 2.6.23 - 2.6.34 Shrinker API Compatibility.
++ */
++#if defined(HAVE_2ARGS_OLD_SHRINKER_CALLBACK)
++#define	SPL_SHRINKER_DECLARE(s, x, y)					\
++static struct shrinker s = {						\
++	.shrink = x,							\
++	.seeks = y							\
+ }
+ 
+-#else
++#define	SPL_SHRINKER_CALLBACK_FWD_DECLARE(fn)				\
++static int fn(int nr_to_scan, unsigned int gfp_mask)
+ 
+-# define spl_register_shrinker(x)	register_shrinker(x)
+-# define spl_unregister_shrinker(x)	unregister_shrinker(x)
+-# define SPL_SHRINKER_DECLARE(s, x, y)                                 \
+-	static struct shrinker s = {                                   \
+-		.shrink = x,                                           \
+-		.seeks = y                                             \
+-	}
++#define	SPL_SHRINKER_CALLBACK_WRAPPER(fn)				\
++static int								\
++fn(int nr_to_scan, unsigned int gfp_mask)				\
++{									\
++	struct shrink_control sc;					\
++									\
++	sc.nr_to_scan = nr_to_scan;					\
++	sc.gfp_mask = gfp_mask;						\
++									\
++	return (__ ## fn(NULL, &sc));					\
++}
+ 
+ /*
+- * Linux 2.6. - 2.6. Shrinker API Compatibility.
++ * Linux 2.6.35 to 2.6.39 Shrinker API Compatibility.
+  */
+-# if defined(HAVE_SHRINK_CONTROL_STRUCT)
+-#  define SPL_SHRINKER_CALLBACK_FWD_DECLARE(fn)                        \
+-	static int fn(struct shrinker *, struct shrink_control *)
+-#  define SPL_SHRINKER_CALLBACK_WRAPPER(fn)                            \
+-static int                                                             \
+-fn(struct shrinker *shrink, struct shrink_control *sc) {               \
+-	return __ ## fn(shrink, sc);                                   \
++#elif defined(HAVE_3ARGS_SHRINKER_CALLBACK)
++#define	SPL_SHRINKER_DECLARE(s, x, y)					\
++static struct shrinker s = {						\
++	.shrink = x,							\
++	.seeks = y							\
++}
++
++#define	SPL_SHRINKER_CALLBACK_FWD_DECLARE(fn)				\
++static int fn(struct shrinker *, int, unsigned int)
++
++#define	SPL_SHRINKER_CALLBACK_WRAPPER(fn)				\
++static int								\
++fn(struct shrinker *shrink, int nr_to_scan, unsigned int gfp_mask)	\
++{									\
++	struct shrink_control sc;					\
++									\
++	sc.nr_to_scan = nr_to_scan;					\
++	sc.gfp_mask = gfp_mask;						\
++									\
++	return (__ ## fn(shrink, &sc));					\
+ }
+@@ -215,17 +249,19 @@ fn(struct shrinker *shrink, struct shrink_control *sc) {               \
+ /*
+- * Linux 2.6. - 2.6. Shrinker API Compatibility.
++ * Linux 3.0 to 3.11 Shrinker API Compatibility.
+  */
+-# elif defined(HAVE_3ARGS_SHRINKER_CALLBACK)
+-#  define SPL_SHRINKER_CALLBACK_FWD_DECLARE(fn)                       \
+-	static int fn(struct shrinker *, int, unsigned int)
+-#  define SPL_SHRINKER_CALLBACK_WRAPPER(fn)                           \
+-static int                                                            \
+-fn(struct shrinker *shrink, int nr_to_scan, unsigned int gfp_mask)    \
+-{                                                                     \
+-	struct shrink_control sc;                                     \
+-                                                                      \
+-        sc.nr_to_scan = nr_to_scan;                                   \
+-        sc.gfp_mask = gfp_mask;                                       \
+-                                                                      \
+-	return __ ## fn(shrink, &sc);                                 \
++#elif defined(HAVE_2ARGS_NEW_SHRINKER_CALLBACK)
++#define	SPL_SHRINKER_DECLARE(s, x, y)					\
++static struct shrinker s = {						\
++	.shrink = x,							\
++	.seeks = y							\
++}
++
++#define	SPL_SHRINKER_CALLBACK_FWD_DECLARE(fn)				\
++static int fn(struct shrinker *, struct shrink_control *)
++
++#define	SPL_SHRINKER_CALLBACK_WRAPPER(fn)				\
++static int								\
++fn(struct shrinker *shrink, struct shrink_control *sc)			\
++{									\
++	return (__ ## fn(shrink, sc));					\
+ }
+@@ -233,21 +269,45 @@ fn(struct shrinker *shrink, int nr_to_scan, unsigned int gfp_mask)    \
+ /*
+- * Linux 2.6. - 2.6. Shrinker API Compatibility.
++ * Linux 3.12 and later Shrinker API Compatibility.
+  */
+-# else
+-#  define SPL_SHRINKER_CALLBACK_FWD_DECLARE(fn)                       \
+-	static int fn(int, unsigned int)
+-#  define SPL_SHRINKER_CALLBACK_WRAPPER(fn)                           \
+-static int                                                            \
+-fn(int nr_to_scan, unsigned int gfp_mask)                             \
+-{                                                                     \
+-	struct shrink_control sc;                                     \
+-                                                                      \
+-        sc.nr_to_scan = nr_to_scan;                                   \
+-        sc.gfp_mask = gfp_mask;                                       \
+-                                                                      \
+-	return __ ## fn(NULL, &sc);                                   \
++#elif defined(HAVE_SPLIT_SHRINKER_CALLBACK)
++#define	SPL_SHRINKER_DECLARE(s, x, y)					\
++static struct shrinker s = {						\
++	.count_objects = x ## _count_objects,				\
++	.scan_objects = x ## _scan_objects,				\
++	.seeks = y							\
+ }
+ 
+-# endif
+-#endif /* HAVE_SET_SHRINKER */
++#define	SPL_SHRINKER_CALLBACK_FWD_DECLARE(fn)				\
++static unsigned long fn ## _count_objects(struct shrinker *,		\
++    struct shrink_control *);						\
++static unsigned long fn ## _scan_objects(struct shrinker *,		\
++    struct shrink_control *)
++
++#define	SPL_SHRINKER_CALLBACK_WRAPPER(fn)				\
++static unsigned long							\
++fn ## _count_objects(struct shrinker *shrink, struct shrink_control *sc)\
++{									\
++	int __ret__;							\
++									\
++	sc->nr_to_scan = 0;						\
++	__ret__ = __ ## fn(NULL, sc);					\
++									\
++	/* Errors may not be returned and must be converted to zeros */	\
++	return ((__ret__ < 0) ? 0 : __ret__);				\
++}									\
++									\
++static unsigned long							\
++fn ## _scan_objects(struct shrinker *shrink, struct shrink_control *sc)	\
++{									\
++	int __ret__;							\
++									\
++	__ret__ = __ ## fn(NULL, sc);					\
++	return ((__ret__ < 0) ? SHRINK_STOP : __ret__);			\
++}
++#else
++/*
++ * Linux 2.x to 2.6.22, or a newer shrinker API has been introduced.
++ */
++#error "Unknown shrinker callback"
++#endif
+ 
+diff --git a/include/sys/Makefile.am b/include/sys/Makefile.am
+index 0e86a28..9d82636 100644
+--- a/include/sys/Makefile.am
++++ b/include/sys/Makefile.am
+@@ -15,2 +15,3 @@ KERNEL_H = \
+ 	$(top_srcdir)/include/sys/callb.h \
++	$(top_srcdir)/include/sys/callo.h \
+ 	$(top_srcdir)/include/sys/cmn_err.h \
+diff --git a/include/sys/callo.h b/include/sys/callo.h
+new file mode 100644
+index 0000000..0d9fbcb
+--- /dev/null
++++ b/include/sys/callo.h
+@@ -0,0 +1,52 @@
++/*****************************************************************************\
++ *  Copyright (C) 2007-2013 Lawrence Livermore National Security, LLC.
++ *  Produced at Lawrence Livermore National Laboratory (cf, DISCLAIMER).
++ *  Written by Brian Behlendorf <behlendorf1@llnl.gov>.
++ *  UCRL-CODE-235197
++ *
++ *  This file is part of the SPL, Solaris Porting Layer.
++ *  For details, see <http://zfsonlinux.org/>.
++ *
++ *  The SPL is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License as published by the
++ *  Free Software Foundation; either version 2 of the License, or (at your
++ *  option) any later version.
++ *
++ *  The SPL is distributed in the hope that it will be useful, but WITHOUT
++ *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ *  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++ *  for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with the SPL.  If not, see <http://www.gnu.org/licenses/>.
++\*****************************************************************************/
++
++#ifndef _SPL_CALLO_H
++#define _SPL_CALLO_H
++
++/*
++ * Callout flags:
++ *
++ * CALLOUT_FLAG_ROUNDUP
++ *      Roundup the expiration time to the next resolution boundary.
++ *      If this flag is not specified, the expiration time is rounded down.
++ * CALLOUT_FLAG_ABSOLUTE
++ *      Normally, the expiration passed to the timeout API functions is an
++ *      expiration interval. If this flag is specified, then it is
++ *      interpreted as the expiration time itself.
++ * CALLOUT_FLAG_HRESTIME
++ *      Normally, callouts are not affected by changes to system time
++ *      (hrestime). This flag is used to create a callout that is affected
++ *      by system time. If system time changes, these timers must be
++ *      handled in a special way (see callout.c). These are used by condition
++ *      variables and LWP timers that need this behavior.
++ * CALLOUT_FLAG_32BIT
++ *      Legacy interfaces timeout() and realtime_timeout() pass this flag
++ *      to timeout_generic() to indicate that a 32-bit ID should be allocated.
++ */
++#define CALLOUT_FLAG_ROUNDUP            0x1
++#define CALLOUT_FLAG_ABSOLUTE           0x2
++#define CALLOUT_FLAG_HRESTIME           0x4
++#define CALLOUT_FLAG_32BIT              0x8
++
++#endif  /* _SPL_CALLB_H */
+diff --git a/include/sys/condvar.h b/include/sys/condvar.h
+index c825bd2..c9f2bea 100644
+--- a/include/sys/condvar.h
++++ b/include/sys/condvar.h
+@@ -29,4 +29,6 @@
+ #include <linux/wait.h>
++#include <linux/delay_compat.h>
+ #include <sys/kmem.h>
+ #include <sys/mutex.h>
++#include <sys/callo.h>
+ 
+@@ -58,2 +60,4 @@ extern clock_t __cv_timedwait_interruptible(kcondvar_t *cvp, kmutex_t *mp,
+ 	clock_t exp_time);
++extern	clock_t	cv_timedwait_hires(kcondvar_t *cvp, kmutex_t *mp,
++	hrtime_t tim, hrtime_t res, int flag);
+ extern void __cv_signal(kcondvar_t *cvp);
+diff --git a/include/sys/disp.h b/include/sys/disp.h
+index 9614a47..c3077a7 100644
+--- a/include/sys/disp.h
++++ b/include/sys/disp.h
+@@ -29,2 +29,3 @@
+ 
++#define	kpreempt(unused)	schedule()
+ #define	kpreempt_disable()	preempt_disable()
+diff --git a/include/sys/isa_defs.h b/include/sys/isa_defs.h
+index 35aee61..cc59a3a 100644
+--- a/include/sys/isa_defs.h
++++ b/include/sys/isa_defs.h
+@@ -93,3 +93,31 @@
+ 
+-#else /* Currently only x86_64, i386, arm, and powerpc arches supported */
++/* sparc arch specific defines */
++#elif defined(__sparc) || defined(__sparc__)
++
++#if !defined(__sparc)
++#define __sparc
++#endif
++
++#if !defined(__sparc__)
++#define __sparc__
++#endif
++
++#define _BIG_ENDIAN
++#define _SUNOS_VTOC_16
++
++/* sparc64 arch specific defines */
++#elif defined(__sparc64) || defined(__sparc64__)
++
++#if !defined(__sparc64)
++#define __sparc64
++#endif
++
++#if !defined(__sparc64__)
++#define __sparc64__
++#endif
++
++#define _BIG_ENDIAN
++#define _SUNOS_VTOC_16
++
++#else /* Currently x86_64, i386, arm, powerpc, and sparc are supported */
+ #error "Unsupported ISA type"
+diff --git a/include/sys/kstat.h b/include/sys/kstat.h
+index da3c589..faf6b81 100644
+--- a/include/sys/kstat.h
++++ b/include/sys/kstat.h
+@@ -35,2 +35,3 @@
+ #define KSTAT_STRLEN            31
++#define KSTAT_RAW_MAX		(128*1024)
+ 
+@@ -45,4 +46,3 @@
+ #define KSTAT_TYPE_TIMER        4       /* event timer; ks_ndata >= 1 */
+-#define KSTAT_TYPE_TXG          5       /* txg sync; ks_ndata >= 1 */
+-#define KSTAT_NUM_TYPES         6
++#define KSTAT_NUM_TYPES         5
+ 
+@@ -81,2 +81,3 @@
+ struct kstat_s;
++typedef struct kstat_s kstat_t;
+ 
+@@ -92,3 +93,9 @@ typedef struct kstat_module {
+ 
+-typedef struct kstat_s {
++typedef struct kstat_raw_ops {
++	int (*headers)(char *buf, size_t size);
++	int (*data)(char *buf, size_t size, void *data);
++	void *(*addr)(kstat_t *ksp, loff_t index);
++} kstat_raw_ops_t;
++
++struct kstat_s {
+ 	int              ks_magic;                  /* magic value */
+@@ -109,6 +116,10 @@ typedef struct kstat_s {
+         void             *ks_private;               /* private data */
+-        kmutex_t         ks_lock;                   /* kstat data lock */
++	kmutex_t         ks_private_lock;           /* kstat private data lock */
++	kmutex_t         *ks_lock;                  /* kstat data lock */
+         struct list_head ks_list;                   /* kstat linkage */
+ 	kstat_module_t   *ks_owner;                 /* kstat module linkage */
+-} kstat_t;
++	kstat_raw_ops_t  ks_raw_ops;                /* ops table for raw type */
++	char             *ks_raw_buf;               /* buf used for raw ops */
++	size_t           ks_raw_bufsize;            /* size of raw ops buffer */
++};
+ 
+@@ -167,22 +178,2 @@ typedef struct kstat_timer {
+ 
+-typedef enum kstat_txg_state {
+-        TXG_STATE_OPEN      = 1,
+-        TXG_STATE_QUIESCING = 2,
+-        TXG_STATE_SYNCING   = 3,
+-        TXG_STATE_COMMITTED = 4,
+-} kstat_txg_state_t;
+-
+-typedef struct kstat_txg {
+-        u_longlong_t       txg;         /* txg id */
+-        kstat_txg_state_t  state;       /* txg state */
+-        hrtime_t           birth;       /* birth time stamp */
+-        u_longlong_t       nread;       /* number of bytes read */
+-        u_longlong_t       nwritten;    /* number of bytes written */
+-        uint_t             reads;       /* number of read operations */
+-        uint_t             writes;      /* number of write operations */
+-        hrtime_t           open_time;   /* open time */
+-        hrtime_t           quiesce_time;/* quiesce time */
+-        hrtime_t           sync_time;   /* sync time */
+-} kstat_txg_t;
+-
+ int spl_kstat_init(void);
+@@ -190,2 +181,6 @@ void spl_kstat_fini(void);
+ 
++extern void __kstat_set_raw_ops(kstat_t *ksp,
++		    int (*headers)(char *buf, size_t size),
++		    int (*data)(char *buf, size_t size, void *data),
++		    void* (*addr)(kstat_t *ksp, loff_t index));
+ extern kstat_t *__kstat_create(const char *ks_module, int ks_instance,
+@@ -196,3 +191,8 @@ extern void __kstat_install(kstat_t *ksp);
+ extern void __kstat_delete(kstat_t *ksp);
++extern void kstat_waitq_enter(kstat_io_t *);
++extern void kstat_waitq_exit(kstat_io_t *);
++extern void kstat_runq_enter(kstat_io_t *);
++extern void kstat_runq_exit(kstat_io_t *);
+ 
++#define kstat_set_raw_ops(k,h,d,a)	__kstat_set_raw_ops(k,h,d,a)
+ #define kstat_create(m,i,n,c,t,s,f)	__kstat_create(m,i,n,c,t,s,f)
+diff --git a/include/sys/sdt.h b/include/sys/sdt.h
+index 6c8395f..287bfaa 100644
+--- a/include/sys/sdt.h
++++ b/include/sys/sdt.h
+@@ -27,2 +27,4 @@
+ 
++#define SET_ERROR(x) (x)
++
+ #endif /* SPL_SDT_H */
+diff --git a/include/sys/thread.h b/include/sys/thread.h
+index 369b306..433a076 100644
+--- a/include/sys/thread.h
++++ b/include/sys/thread.h
+@@ -53,2 +53,4 @@ typedef void (*thread_func_t)(void *);
+ #define curthread			current
++#define getcomm()			current->comm
++#define getpid()			current->pid
+ 
+@@ -59,2 +61,4 @@ extern kthread_t *__thread_create(caddr_t stk, size_t  stksize,
+ extern void __thread_exit(void);
++extern struct task_struct *spl_kthread_create(int (*func)(void *),
++			void *data, const char namefmt[], ...);
+ 
+diff --git a/include/sys/time.h b/include/sys/time.h
+index f8d78d1..d8e81c9 100644
+--- a/include/sys/time.h
++++ b/include/sys/time.h
+@@ -49,2 +49,5 @@
+ 
++#define	MSEC2NSEC(m)	((hrtime_t)(m) * (NANOSEC / MILLISEC))
++#define	NSEC2MSEC(n)	((n) / (NANOSEC / MILLISEC))
++
+ /* Already defined in include/linux/time.h */
+diff --git a/include/sys/vmsystm.h b/include/sys/vmsystm.h
+index 9097491..adff774 100644
+--- a/include/sys/vmsystm.h
++++ b/include/sys/vmsystm.h
+@@ -31,2 +31,3 @@
+ #include <linux/highmem.h>
++#include <linux/vmalloc.h>
+ #include <sys/types.h>
+diff --git a/man/Makefile.am b/man/Makefile.am
+index 7dc2a57..7791945 100644
+--- a/man/Makefile.am
++++ b/man/Makefile.am
+@@ -1 +1 @@
+-SUBDIRS = man1
++SUBDIRS = man1 man5
+diff --git a/man/man1/Makefile.am b/man/man1/Makefile.am
+index c91f638..d6becca 100644
+--- a/man/man1/Makefile.am
++++ b/man/man1/Makefile.am
+@@ -1,3 +1,2 @@
+-man_MANS = splat.1
+-EXTRA_DIST = $(man_MANS)
++dist_man_MANS = splat.1
+ 
+diff --git a/man/man5/Makefile.am b/man/man5/Makefile.am
+new file mode 100644
+index 0000000..fb22beb
+--- /dev/null
++++ b/man/man5/Makefile.am
+@@ -0,0 +1,4 @@
++dist_man_MANS = spl-module-parameters.5
++
++install-data-local:
++	$(INSTALL) -d -m 0755 "$(DESTDIR)$(mandir)/man5"
+diff --git a/man/man5/spl-module-parameters.5 b/man/man5/spl-module-parameters.5
+new file mode 100644
+index 0000000..3c134f7
+--- /dev/null
++++ b/man/man5/spl-module-parameters.5
+@@ -0,0 +1,126 @@
++'\" te
++.\"
++.\" Copyright 2013 Turbo Fredriksson <turbo@bayour.com>. All rights reserved.
++.\"
++.TH SPL-MODULE-PARAMETERS 5 "Nov 18, 2013"
++.SH NAME
++spl\-module\-parameters \- SPL module parameters
++.SH DESCRIPTION
++.sp
++.LP
++Description of the different parameters to the SPL module.
++
++.SS "Module parameters"
++.sp
++.LP
++
++.sp
++.ne 2
++.na
++\fBspl_debug_subsys\fR (ulong)
++.ad
++.RS 12n
++Subsystem debugging level mask.
++.sp
++Default value: \fB~0\fR.
++.RE
++
++.sp
++.ne 2
++.na
++\fBspl_debug_mask\fR (ulong)
++.ad
++.RS 12n
++Debugging level mask.
++.sp
++Default value: \fB8 | 10 | 4 | 20\fR (SD_ERROR | SD_EMERG | SD_WARNING | SD_CONSOLE).
++.RE
++
++.sp
++.ne 2
++.na
++\fBspl_debug_printk\fR (ulong)
++.ad
++.RS 12n
++Console printk level mask.
++.sp
++Default value: \fB8 | 10 | 4 | 20\fR (SD_ERROR | SD_EMERG | SD_WARNING | SD_CONSOLE).
++.RE
++
++.sp
++.ne 2
++.na
++\fBspl_debug_mb\fR (int)
++.ad
++.RS 12n
++Total debug buffer size.
++.sp
++Default value: \fB-1\fR.
++.RE
++
++.sp
++.ne 2
++.na
++\fBspl_debug_panic_on_bug\fR (int)
++.ad
++.RS 12n
++Panic on BUG
++.sp
++Use \fB1\fR for yes and \fB0\fR for no (default).
++.RE
++
++.sp
++.ne 2
++.na
++\fBspl_kmem_cache_expire\fR (uint)
++.ad
++.RS 12n
++By age (0x1) or low memory (0x2)
++.sp
++Default value: \fB0\fR.
++.RE
++
++.sp
++.ne 2
++.na
++\fBspl_hostid\fR (ulong)
++.ad
++.RS 12n
++The system hostid.
++.sp
++Default value: \fB0xFFFFFFFF\fR (an invalid hostid!)
++.RE
++
++.sp
++.ne 2
++.na
++\fBspl_hostid_path\fR (charp)
++.ad
++.RS 12n
++The system hostid file
++.sp
++Default value: \fB/etc/hostid\fR.
++.RE
++
++.sp
++.ne 2
++.na
++\fBmutex_spin_max\fR (int)
++.ad
++.RS 12n
++Spin a maximum of N times to acquire lock
++.sp
++.ne 2
++.na
++\fBPossible values:\fR
++.sp
++.RS 12n
++ \fB0\fR		Never spin when trying to acquire lock
++.sp
++\fB-1\fR		Spin until acquired or holder yields without dropping lock
++.sp
++\fB1-MAX_INT\fR	Spin for N attempts before sleeping for lock
++.RE
++.sp
++.ne -4
++Default value: \fB0\fR.
+diff --git a/module/spl/spl-condvar.c b/module/spl/spl-condvar.c
+index 60cf726..8236412 100644
+--- a/module/spl/spl-condvar.c
++++ b/module/spl/spl-condvar.c
+@@ -38,4 +38,2 @@ __cv_init(kcondvar_t *cvp, char *name, kcv_type_t type, void *arg)
+ {
+-	int flags = KM_SLEEP;
+-
+ 	SENTRY;
+@@ -53,8 +51,2 @@ __cv_init(kcondvar_t *cvp, char *name, kcv_type_t type, void *arg)
+ 
+-        /* We may be called when there is a non-zero preempt_count or
+-	 * interrupts are disabled is which case we must not sleep.
+-	 */
+-        if (current_thread_info()->preempt_count || irqs_disabled())
+-		flags = KM_NOSLEEP;
+-
+ 	SEXIT;
+@@ -228,2 +220,83 @@ EXPORT_SYMBOL(__cv_timedwait_interruptible);
+ 
++/*
++ *'expire_time' argument is an absolute clock time in nanoseconds.
++ * Return value is time left (expire_time - now) or -1 if timeout occurred.
++ */
++static clock_t
++__cv_timedwait_hires(kcondvar_t *cvp, kmutex_t *mp,
++		     hrtime_t expire_time, int state)
++{
++	DEFINE_WAIT(wait);
++	hrtime_t time_left, now;
++	unsigned long time_left_us;
++	SENTRY;
++
++	ASSERT(cvp);
++	ASSERT(mp);
++	ASSERT(cvp->cv_magic == CV_MAGIC);
++	ASSERT(mutex_owned(mp));
++	atomic_inc(&cvp->cv_refs);
++
++	if (cvp->cv_mutex == NULL)
++		cvp->cv_mutex = mp;
++
++	/* Ensure the same mutex is used by all callers */
++	ASSERT(cvp->cv_mutex == mp);
++
++	now = gethrtime();
++	time_left = expire_time - now;
++	if (time_left <= 0) {
++		atomic_dec(&cvp->cv_refs);
++		SRETURN(-1);
++	}
++	time_left_us = time_left / NSEC_PER_USEC;
++
++	prepare_to_wait_exclusive(&cvp->cv_event, &wait, state);
++	atomic_inc(&cvp->cv_waiters);
++
++	/* Mutex should be dropped after prepare_to_wait() this
++	 * ensures we're linked in to the waiters list and avoids the
++	 * race where 'cvp->cv_waiters > 0' but the list is empty. */
++	mutex_exit(mp);
++	/* Allow a 100 us range to give kernel an opportunity to coalesce
++	 * interrupts */
++	usleep_range(time_left_us, time_left_us + 100);
++	mutex_enter(mp);
++
++	/* No more waiters a different mutex could be used */
++	if (atomic_dec_and_test(&cvp->cv_waiters)) {
++		cvp->cv_mutex = NULL;
++		wake_up(&cvp->cv_destroy);
++	}
++
++	finish_wait(&cvp->cv_event, &wait);
++	atomic_dec(&cvp->cv_refs);
++
++	time_left = expire_time - gethrtime();
++	SRETURN(time_left > 0 ? time_left : -1);
++}
++
++/*
++ * Compatibility wrapper for the cv_timedwait_hires() Illumos interface.
++ */
++clock_t
++cv_timedwait_hires(kcondvar_t *cvp, kmutex_t *mp, hrtime_t tim,
++		   hrtime_t res, int flag)
++{
++	if (res > 1) {
++		/*
++		 * Align expiration to the specified resolution.
++		 */
++		if (flag & CALLOUT_FLAG_ROUNDUP)
++			tim += res - 1;
++		tim = (tim / res) * res;
++	}
++
++	if (!(flag & CALLOUT_FLAG_ABSOLUTE))
++		tim += gethrtime();
++
++	return __cv_timedwait_hires(cvp, mp, tim, TASK_UNINTERRUPTIBLE);
++}
++EXPORT_SYMBOL(cv_timedwait_hires);
++
+ void
+diff --git a/module/spl/spl-cred.c b/module/spl/spl-cred.c
+index 0ed6572..602bd74 100644
+--- a/module/spl/spl-cred.c
++++ b/module/spl/spl-cred.c
+@@ -46,3 +46,4 @@ cr_groups_search(const struct group_info *group_info, gid_t grp)
+ {
+-	unsigned int left, right;
++	unsigned int left, right, mid;
++	int cmp;
+ 
+@@ -54,4 +55,6 @@ cr_groups_search(const struct group_info *group_info, gid_t grp)
+ 	while (left < right) {
+-		unsigned int mid = (left+right)/2;
+-		int cmp = KGID_TO_SGID(grp) - KGID_TO_SGID(GROUP_AT(group_info, mid));
++		mid = (left + right) / 2;
++		cmp = KGID_TO_SGID(grp) -
++		    KGID_TO_SGID(GROUP_AT(group_info, mid));
++
+ 		if (cmp > 0)
+@@ -122,3 +125,3 @@ crgetgroups(const cred_t *cr)
+ 
+-/* Check if the passed gid is available is in supplied credential. */
++/* Check if the passed gid is available in supplied credential. */
+ int
+@@ -130,3 +133,3 @@ groupmember(gid_t gid, const cred_t *cr)
+ 	gi = get_group_info(cr->group_info);
+-	rc = cr_groups_search(cr->group_info, SGID_TO_KGID(gid));
++	rc = cr_groups_search(gi, SGID_TO_KGID(gid));
+ 	put_group_info(gi);
+diff --git a/module/spl/spl-debug.c b/module/spl/spl-debug.c
+index d450368..93c3f31 100644
+--- a/module/spl/spl-debug.c
++++ b/module/spl/spl-debug.c
+@@ -40,2 +40,3 @@
+ #include <sys/sysmacros.h>
++#include <sys/thread.h>
+ #include <spl-debug.h>
+@@ -417,3 +418,3 @@ spl_debug_dumplog(int flags)
+ 
+-                tsk = kthread_create(spl_debug_dumplog_thread,(void *)&dp,"spl_debug");
++                tsk = spl_kthread_create(spl_debug_dumplog_thread,(void *)&dp,"spl_debug");
+                 if (tsk == NULL)
+diff --git a/module/spl/spl-generic.c b/module/spl/spl-generic.c
+index 3cef489..351f536 100644
+--- a/module/spl/spl-generic.c
++++ b/module/spl/spl-generic.c
+@@ -761 +761,2 @@ MODULE_DESCRIPTION("Solaris Porting Layer");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(SPL_META_VERSION "-" SPL_META_RELEASE);
+diff --git a/module/spl/spl-kmem.c b/module/spl/spl-kmem.c
+index a2dcea0..23e4780 100644
+--- a/module/spl/spl-kmem.c
++++ b/module/spl/spl-kmem.c
+@@ -1997,3 +1997,2 @@ spl_kmem_cache_alloc(spl_kmem_cache_t *skc, int flags)
+ 	spl_kmem_magazine_t *skm;
+-	unsigned long irq_flags;
+ 	void *obj = NULL;
+@@ -2005,3 +2004,3 @@ spl_kmem_cache_alloc(spl_kmem_cache_t *skc, int flags)
+ 	atomic_inc(&skc->skc_ref);
+-	local_irq_save(irq_flags);
++	local_irq_disable();
+ 
+@@ -2027,3 +2026,3 @@ restart:
+ 
+-	local_irq_restore(irq_flags);
++	local_irq_enable();
+ 	ASSERT(obj);
+diff --git a/module/spl/spl-kstat.c b/module/spl/spl-kstat.c
+index 4e900c0..c604a32 100644
+--- a/module/spl/spl-kstat.c
++++ b/module/spl/spl-kstat.c
+@@ -43,3 +43,82 @@ static kid_t kstat_id;
+ 
+-static void
++static int
++kstat_resize_raw(kstat_t *ksp)
++{
++	if (ksp->ks_raw_bufsize == KSTAT_RAW_MAX)
++		return ENOMEM;
++
++	vmem_free(ksp->ks_raw_buf, ksp->ks_raw_bufsize);
++	ksp->ks_raw_bufsize = MIN(ksp->ks_raw_bufsize * 2, KSTAT_RAW_MAX);
++	ksp->ks_raw_buf = vmem_alloc(ksp->ks_raw_bufsize, KM_SLEEP);
++
++	return 0;
++}
++
++void
++kstat_waitq_enter(kstat_io_t *kiop)
++{
++	hrtime_t new, delta;
++	ulong_t wcnt;
++
++	new = gethrtime();
++	delta = new - kiop->wlastupdate;
++	kiop->wlastupdate = new;
++	wcnt = kiop->wcnt++;
++	if (wcnt != 0) {
++		kiop->wlentime += delta * wcnt;
++		kiop->wtime += delta;
++	}
++}
++EXPORT_SYMBOL(kstat_waitq_enter);
++
++void
++kstat_waitq_exit(kstat_io_t *kiop)
++{
++	hrtime_t new, delta;
++	ulong_t wcnt;
++
++	new = gethrtime();
++	delta = new - kiop->wlastupdate;
++	kiop->wlastupdate = new;
++	wcnt = kiop->wcnt--;
++	ASSERT((int)wcnt > 0);
++	kiop->wlentime += delta * wcnt;
++	kiop->wtime += delta;
++}
++EXPORT_SYMBOL(kstat_waitq_exit);
++
++void
++kstat_runq_enter(kstat_io_t *kiop)
++{
++	hrtime_t new, delta;
++	ulong_t rcnt;
++
++	new = gethrtime();
++	delta = new - kiop->rlastupdate;
++	kiop->rlastupdate = new;
++	rcnt = kiop->rcnt++;
++	if (rcnt != 0) {
++		kiop->rlentime += delta * rcnt;
++		kiop->rtime += delta;
++	}
++}
++EXPORT_SYMBOL(kstat_runq_enter);
++
++void
++kstat_runq_exit(kstat_io_t *kiop)
++{
++	hrtime_t new, delta;
++	ulong_t rcnt;
++
++	new = gethrtime();
++	delta = new - kiop->rlastupdate;
++	kiop->rlastupdate = new;
++	rcnt = kiop->rcnt--;
++	ASSERT((int)rcnt > 0);
++	kiop->rlentime += delta * rcnt;
++	kiop->rtime += delta;
++}
++EXPORT_SYMBOL(kstat_runq_exit);
++
++static int
+ kstat_seq_show_headers(struct seq_file *f)
+@@ -47,2 +126,4 @@ kstat_seq_show_headers(struct seq_file *f)
+         kstat_t *ksp = (kstat_t *)f->private;
++	int rc = 0;
++
+         ASSERT(ksp->ks_magic == KS_MAGIC);
+@@ -56,3 +137,13 @@ kstat_seq_show_headers(struct seq_file *f)
+                 case KSTAT_TYPE_RAW:
+-                        seq_printf(f, "raw data");
++restart:
++                        if (ksp->ks_raw_ops.headers) {
++                                rc = ksp->ks_raw_ops.headers(
++                                    ksp->ks_raw_buf, ksp->ks_raw_bufsize);
++				if (rc == ENOMEM && !kstat_resize_raw(ksp))
++					goto restart;
++				if (!rc)
++	                                seq_puts(f, ksp->ks_raw_buf);
++                        } else {
++                                seq_printf(f, "raw data\n");
++                        }
+                         break;
+@@ -83,10 +174,2 @@ kstat_seq_show_headers(struct seq_file *f)
+                         break;
+-                case KSTAT_TYPE_TXG:
+-                        seq_printf(f,
+-                                   "%-8s %-5s %-13s %-12s %-12s %-8s %-8s "
+-                                   "%-12s %-12s %-12s\n",
+-                                   "txg", "state", "birth",
+-                                   "nread", "nwritten", "reads", "writes",
+-                                   "otime", "qtime", "stime");
+-                        break;
+                 default:
+@@ -94,2 +177,4 @@ kstat_seq_show_headers(struct seq_file *f)
+         }
++
++	return -rc;
+ }
+@@ -204,23 +289,2 @@ kstat_seq_show_timer(struct seq_file *f, kstat_timer_t *ktp)
+ static int
+-kstat_seq_show_txg(struct seq_file *f, kstat_txg_t *ktp)
+-{
+-	char state;
+-
+-	switch (ktp->state) {
+-		case TXG_STATE_OPEN:		state = 'O';	break;
+-		case TXG_STATE_QUIESCING:	state = 'Q';	break;
+-		case TXG_STATE_SYNCING:		state = 'S';	break;
+-		case TXG_STATE_COMMITTED:	state = 'C';	break;
+-		default:			state = '?';	break;
+-	}
+-
+-        seq_printf(f,
+-                   "%-8llu %-5c %-13llu %-12llu %-12llu %-8u %-8u "
+-                   "%12lld %12lld %12lld\n", ktp->txg, state, ktp->birth,
+-                    ktp->nread, ktp->nwritten, ktp->reads, ktp->writes,
+-                    ktp->open_time, ktp->quiesce_time, ktp->sync_time);
+-	return 0;
+-}
+-
+-static int
+ kstat_seq_show(struct seq_file *f, void *p)
+@@ -234,5 +298,15 @@ kstat_seq_show(struct seq_file *f, void *p)
+                 case KSTAT_TYPE_RAW:
+-                        ASSERT(ksp->ks_ndata == 1);
+-                        rc = kstat_seq_show_raw(f, ksp->ks_data,
+-                                                ksp->ks_data_size);
++restart:
++                        if (ksp->ks_raw_ops.data) {
++                                rc = ksp->ks_raw_ops.data(
++				    ksp->ks_raw_buf, ksp->ks_raw_bufsize, p);
++				if (rc == ENOMEM && !kstat_resize_raw(ksp))
++					goto restart;
++				if (!rc)
++	                                seq_puts(f, ksp->ks_raw_buf);
++                        } else {
++                                ASSERT(ksp->ks_ndata == 1);
++                                rc = kstat_seq_show_raw(f, ksp->ks_data,
++                                                        ksp->ks_data_size);
++                        }
+                         break;
+@@ -250,5 +324,2 @@ kstat_seq_show(struct seq_file *f, void *p)
+                         break;
+-                case KSTAT_TYPE_TXG:
+-                        rc = kstat_seq_show_txg(f, (kstat_txg_t *)p);
+-                        break;
+                 default:
+@@ -257,3 +328,3 @@ kstat_seq_show(struct seq_file *f, void *p)
+ 
+-        return rc;
++        return -rc;
+ }
+@@ -264,2 +335,6 @@ kstat_default_update(kstat_t *ksp, int rw)
+ 	ASSERT(ksp != NULL);
++
++	if (rw == KSTAT_WRITE)
++		return (EACCES);
++
+ 	return 0;
+@@ -275,3 +350,6 @@ kstat_seq_data_addr(kstat_t *ksp, loff_t n)
+                 case KSTAT_TYPE_RAW:
+-	                rc = ksp->ks_data;
++                        if (ksp->ks_raw_ops.addr)
++                                rc = ksp->ks_raw_ops.addr(ksp, n);
++                        else
++                                rc = ksp->ks_data;
+                         break;
+@@ -289,5 +367,2 @@ kstat_seq_data_addr(kstat_t *ksp, loff_t n)
+                         break;
+-                case KSTAT_TYPE_TXG:
+-                        rc = ksp->ks_data + n * sizeof(kstat_txg_t);
+-                        break;
+                 default:
+@@ -307,3 +382,8 @@ kstat_seq_start(struct seq_file *f, loff_t *pos)
+ 
+-        mutex_enter(&ksp->ks_lock);
++	mutex_enter(ksp->ks_lock);
++
++        if (ksp->ks_type == KSTAT_TYPE_RAW) {
++                ksp->ks_raw_bufsize = PAGE_SIZE;
++                ksp->ks_raw_buf = vmem_alloc(ksp->ks_raw_bufsize, KM_SLEEP);
++        }
+ 
+@@ -314,4 +394,4 @@ kstat_seq_start(struct seq_file *f, loff_t *pos)
+ 
+-        if (!n)
+-                kstat_seq_show_headers(f);
++        if (!n && kstat_seq_show_headers(f))
++		SRETURN(NULL);
+ 
+@@ -340,6 +420,9 @@ kstat_seq_stop(struct seq_file *f, void *v)
+ {
+-        kstat_t *ksp = (kstat_t *)f->private;
+-        ASSERT(ksp->ks_magic == KS_MAGIC);
++	kstat_t *ksp = (kstat_t *)f->private;
++	ASSERT(ksp->ks_magic == KS_MAGIC);
++
++	if (ksp->ks_type == KSTAT_TYPE_RAW)
++		vmem_free(ksp->ks_raw_buf, ksp->ks_raw_bufsize);
+ 
+-        mutex_exit(&ksp->ks_lock);
++	mutex_exit(ksp->ks_lock);
+ }
+@@ -410,9 +493,43 @@ proc_kstat_open(struct inode *inode, struct file *filp)
+ 
++static ssize_t
++proc_kstat_write(struct file *filp, const char __user *buf,
++		 size_t len, loff_t *ppos)
++{
++	struct seq_file *f = filp->private_data;
++	kstat_t *ksp = f->private;
++	int rc;
++
++	ASSERT(ksp->ks_magic == KS_MAGIC);
++
++	mutex_enter(ksp->ks_lock);
++	rc = ksp->ks_update(ksp, KSTAT_WRITE);
++	mutex_exit(ksp->ks_lock);
++
++	if (rc)
++		return (-rc);
++
++	*ppos += len;
++	return (len);
++}
++
+ static struct file_operations proc_kstat_operations = {
+-        .open           = proc_kstat_open,
+-        .read           = seq_read,
+-        .llseek         = seq_lseek,
+-        .release        = seq_release,
++	.open		= proc_kstat_open,
++	.write		= proc_kstat_write,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
+ };
+ 
++void
++__kstat_set_raw_ops(kstat_t *ksp,
++		    int (*headers)(char *buf, size_t size),
++		    int (*data)(char *buf, size_t size, void *data),
++		    void *(*addr)(kstat_t *ksp, loff_t index))
++{
++	ksp->ks_raw_ops.headers = headers;
++	ksp->ks_raw_ops.data    = data;
++	ksp->ks_raw_ops.addr    = addr;
++}
++EXPORT_SYMBOL(__kstat_set_raw_ops);
++
+ kstat_t *
+@@ -442,3 +559,4 @@ __kstat_create(const char *ks_module, int ks_instance, const char *ks_name,
+         ksp->ks_magic = KS_MAGIC;
+-	mutex_init(&ksp->ks_lock, NULL, MUTEX_DEFAULT, NULL);
++	mutex_init(&ksp->ks_private_lock, NULL, MUTEX_DEFAULT, NULL);
++	ksp->ks_lock = &ksp->ks_private_lock;
+ 	INIT_LIST_HEAD(&ksp->ks_list);
+@@ -455,2 +573,7 @@ __kstat_create(const char *ks_module, int ks_instance, const char *ks_name,
+ 	ksp->ks_private = NULL;
++	ksp->ks_raw_ops.headers = NULL;
++	ksp->ks_raw_ops.data = NULL;
++	ksp->ks_raw_ops.addr = NULL;
++	ksp->ks_raw_buf = NULL;
++	ksp->ks_raw_bufsize = 0;
+ 
+@@ -477,6 +600,2 @@ __kstat_create(const char *ks_module, int ks_instance, const char *ks_name,
+                         break;
+-		case KSTAT_TYPE_TXG:
+-			ksp->ks_ndata = ks_ndata;
+-			ksp->ks_data_size = ks_ndata * sizeof(kstat_timer_t);
+-			break;
+                 default:
+@@ -488,3 +607,3 @@ __kstat_create(const char *ks_module, int ks_instance, const char *ks_name,
+         } else {
+-                ksp->ks_data = kmem_alloc(ksp->ks_data_size, KM_SLEEP);
++                ksp->ks_data = kmem_zalloc(ksp->ks_data_size, KM_SLEEP);
+                 if (ksp->ks_data == NULL) {
+@@ -526,5 +645,5 @@ __kstat_install(kstat_t *ksp)
+ 
+-	mutex_enter(&ksp->ks_lock);
++	mutex_enter(ksp->ks_lock);
+ 	ksp->ks_owner = module;
+-	ksp->ks_proc = proc_create_data(ksp->ks_name, 0444,
++	ksp->ks_proc = proc_create_data(ksp->ks_name, 0644,
+ 	    module->ksm_proc, &proc_kstat_operations, (void *)ksp);
+@@ -535,3 +654,3 @@ __kstat_install(kstat_t *ksp)
+ 	}
+-	mutex_exit(&ksp->ks_lock);
++	mutex_exit(ksp->ks_lock);
+ out:
+@@ -561,3 +680,4 @@ __kstat_delete(kstat_t *ksp)
+ 
+-	mutex_destroy(&ksp->ks_lock);
++	ksp->ks_lock = NULL;
++	mutex_destroy(&ksp->ks_private_lock);
+ 	kmem_free(ksp, sizeof(*ksp));
+diff --git a/module/spl/spl-taskq.c b/module/spl/spl-taskq.c
+index bcdc98f..48feb1d 100644
+--- a/module/spl/spl-taskq.c
++++ b/module/spl/spl-taskq.c
+@@ -841,3 +841,3 @@ taskq_create(const char *name, int nthreads, pri_t pri,
+ 
+-		tqt->tqt_thread = kthread_create(taskq_thread, tqt,
++		tqt->tqt_thread = spl_kthread_create(taskq_thread, tqt,
+ 		    "%s/%d", name, i);
+@@ -845,3 +845,2 @@ taskq_create(const char *name, int nthreads, pri_t pri,
+ 			list_add(&tqt->tqt_thread_list, &tq->tq_thread_list);
+-			kthread_bind(tqt->tqt_thread, i % num_online_cpus());
+ 			set_user_nice(tqt->tqt_thread, PRIO_TO_NICE(pri));
+diff --git a/module/spl/spl-thread.c b/module/spl/spl-thread.c
+index 6b3bec5..5c85140 100644
+--- a/module/spl/spl-thread.c
++++ b/module/spl/spl-thread.c
+@@ -128,3 +128,3 @@ __thread_create(caddr_t stk, size_t  stksize, thread_func_t func,
+ 
+-	tsk = kthread_create(thread_generic_wrapper, (void *)tp,
++	tsk = spl_kthread_create(thread_generic_wrapper, (void *)tp,
+ 			     "%s", tp->tp_name);
+@@ -139 +139,32 @@ __thread_create(caddr_t stk, size_t  stksize, thread_func_t func,
+ EXPORT_SYMBOL(__thread_create);
++
++/*
++ * spl_kthread_create - Wrapper providing pre-3.13 semantics for
++ * kthread_create() in which it is not killable and less likely
++ * to return -ENOMEM.
++ */
++struct task_struct *
++spl_kthread_create(int (*func)(void *), void *data, const char namefmt[], ...)
++{
++	struct task_struct *tsk;
++	va_list args;
++	char name[TASK_COMM_LEN];
++
++	va_start(args, namefmt);
++	vsnprintf(name, sizeof(name), namefmt, args);
++	va_end(args);
++	do {
++		tsk = kthread_create(func, data, "%s", name);
++		if (IS_ERR(tsk)) {
++			if (signal_pending(current)) {
++				clear_thread_flag(TIF_SIGPENDING);
++				continue;
++			}
++			if (PTR_ERR(tsk) == -ENOMEM)
++				continue;
++			return (NULL);
++		} else
++			return (tsk);
++	} while (1);
++}
++EXPORT_SYMBOL(spl_kthread_create);
+diff --git a/module/spl/spl-time.c b/module/spl/spl-time.c
+index 20fd0e3..0ed49cc 100644
+--- a/module/spl/spl-time.c
++++ b/module/spl/spl-time.c
+@@ -42,3 +42,5 @@ __gethrestime(timestruc_t *ts)
+ {
+-	struct timespec tspec = current_kernel_time();
++	struct timespec tspec;
++
++	getnstimeofday(&tspec);
+ 
+diff --git a/module/spl/spl-vnode.c b/module/spl/spl-vnode.c
+index 0784ff2..5496067 100644
+--- a/module/spl/spl-vnode.c
++++ b/module/spl/spl-vnode.c
+@@ -336,3 +336,7 @@ vn_remove(const char *path, uio_seg_t seg, int flags)
+ 
++#ifdef HAVE_2ARGS_VFS_UNLINK
+ 		rc = vfs_unlink(parent.dentry->d_inode, dentry);
++#else
++		rc = vfs_unlink(parent.dentry->d_inode, dentry, NULL);
++#endif /* HAVE_2ARGS_VFS_UNLINK */
+ exit1:
+@@ -414,6 +418,6 @@ vn_rename(const char *oldname, const char *newname, int x1)
+ 	rc = vfs_rename(old_dir->d_inode, old_dentry,
+-			new_dir->d_inode, new_dentry);
++	    new_dir->d_inode, new_dentry);
+ #else
+-	rc = vfs_rename(old_dir->d_inode, old_dentry, oldnd.nd_mnt,
+-			new_dir->d_inode, new_dentry, newnd.nd_mnt);
++	rc = vfs_rename(old_dir->d_inode, old_dentry,
++	    new_dir->d_inode, new_dentry, NULL);
+ #endif /* HAVE_4ARGS_VFS_RENAME */
+@@ -480,5 +484,5 @@ vn_remove(const char *path, uio_seg_t seg, int flags)
+ #ifdef HAVE_2ARGS_VFS_UNLINK
+-                rc = vfs_unlink(nd.nd_dentry->d_inode, dentry);
++		rc = vfs_unlink(nd.nd_dentry->d_inode, dentry);
+ #else
+-                rc = vfs_unlink(nd.nd_dentry->d_inode, dentry, nd.nd_mnt);
++		rc = vfs_unlink(nd.nd_dentry->d_inode, dentry, NULL);
+ #endif /* HAVE_2ARGS_VFS_UNLINK */
+@@ -573,7 +577,7 @@ vn_rename(const char *oldname, const char *newname, int x1)
+ #ifdef HAVE_4ARGS_VFS_RENAME
+-        rc = vfs_rename(old_dir->d_inode, old_dentry,
+-                        new_dir->d_inode, new_dentry);
++	rc = vfs_rename(old_dir->d_inode, old_dentry,
++	    new_dir->d_inode, new_dentry);
+ #else
+-        rc = vfs_rename(old_dir->d_inode, old_dentry, oldnd.nd_mnt,
+-                        new_dir->d_inode, new_dentry, newnd.nd_mnt);
++	rc = vfs_rename(old_dir->d_inode, old_dentry,
++	    new_dir->d_inode, new_dentry, NULL);
+ #endif /* HAVE_4ARGS_VFS_RENAME */
+diff --git a/module/splat/splat-condvar.c b/module/splat/splat-condvar.c
+index 1ddde39..3ee2ffc 100644
+--- a/module/splat/splat-condvar.c
++++ b/module/splat/splat-condvar.c
+@@ -110,3 +110,3 @@ splat_condvar_test1(struct file *file, void *arg)
+ 		ct[i].ct_rc = 0;
+-		ct[i].ct_thread = kthread_create(splat_condvar_test12_thread,
++		ct[i].ct_thread = spl_kthread_create(splat_condvar_test12_thread,
+ 		    &ct[i], "%s/%d", SPLAT_CONDVAR_TEST_NAME, i);
+@@ -175,3 +175,3 @@ splat_condvar_test2(struct file *file, void *arg)
+ 		ct[i].ct_rc = 0;
+-		ct[i].ct_thread = kthread_create(splat_condvar_test12_thread,
++		ct[i].ct_thread = spl_kthread_create(splat_condvar_test12_thread,
+ 		    &ct[i], "%s/%d", SPLAT_CONDVAR_TEST_NAME, i);
+@@ -256,3 +256,3 @@ splat_condvar_test3(struct file *file, void *arg)
+ 		ct[i].ct_rc = 0;
+-		ct[i].ct_thread = kthread_create(splat_condvar_test34_thread,
++		ct[i].ct_thread = spl_kthread_create(splat_condvar_test34_thread,
+ 		    &ct[i], "%s/%d", SPLAT_CONDVAR_TEST_NAME, i);
+@@ -326,3 +326,3 @@ splat_condvar_test4(struct file *file, void *arg)
+ 		ct[i].ct_rc = 0;
+-		ct[i].ct_thread = kthread_create(splat_condvar_test34_thread,
++		ct[i].ct_thread = spl_kthread_create(splat_condvar_test34_thread,
+ 		    &ct[i], "%s/%d", SPLAT_CONDVAR_TEST_NAME, i);
+diff --git a/module/splat/splat-cred.c b/module/splat/splat-cred.c
+index 47dfa02..fadf9bc 100644
+--- a/module/splat/splat-cred.c
++++ b/module/splat/splat-cred.c
+@@ -27,2 +27,3 @@
+ #include <sys/cred.h>
++#include <sys/random.h>
+ #include "splat-internal.h"
+@@ -168,8 +169,4 @@ splat_cred_test2(struct file *file, void *arg)
+ /*
+- * On most/all systems it can be expected that a task with root
+- * permissions also is a member of the root group,  Since the
+- * test suite is always run as root we check first that CRED() is
+- * a member of the root group, and secondly that it is not a member
+- * of our fake group.  This test will break is someone happens to
+- * create group number NGROUPS_MAX-1 and then added root to it.
++ * Verify the groupmember() works correctly by constructing an interesting
++ * CRED() and checking that the expected gids are part of it.
+  */
+@@ -178,28 +175,79 @@ splat_cred_test3(struct file *file, void *arg)
+ {
+-	gid_t root_gid, fake_gid;
+-	int rc;
++	gid_t known_gid, missing_gid, tmp_gid;
++	unsigned char rnd;
++	struct group_info *gi;
++	int i, rc;
++
++	get_random_bytes((void *)&rnd, 1);
++	known_gid = (rnd > 0) ? rnd : 1;
++	missing_gid = 0;
++
++	/*
++	 * Create an interesting known set of gids for test purposes. The
++	 * gids are pseudo randomly selected are will be in the range of
++	 * 1:(NGROUPS_MAX-1).  Gid 0 is explicitly avoided so we can reliably
++	 * test for its absence in the test cases.
++	 */
++	gi = groups_alloc(NGROUPS_SMALL);
++	if (gi == NULL) {
++		splat_vprint(file, SPLAT_CRED_TEST3_NAME, "Failed create "
++		    "group_info for known gids: %d\n", -ENOMEM);
++		rc = -ENOMEM;
++		goto show_groups;
++	}
++
++	for (i = 0, tmp_gid = known_gid; i < NGROUPS_SMALL; i++) {
++		splat_vprint(file, SPLAT_CRED_TEST3_NAME, "Adding gid %d "
++		    "to current CRED() (%d/%d)\n", tmp_gid, i, gi->ngroups);
++#ifdef HAVE_KUIDGID_T
++		GROUP_AT(gi, i) = make_kgid(current_user_ns(), tmp_gid);
++#else
++		GROUP_AT(gi, i) = tmp_gid;
++#endif /* HAVE_KUIDGID_T */
++		tmp_gid = ((tmp_gid * 17) % (NGROUPS_MAX - 1)) + 1;
++	}
+ 
+-	root_gid = 0;
+-	fake_gid = NGROUPS_MAX-1;
++	/* Set the new groups in the CRED() and release our reference. */
++	rc = set_current_groups(gi);
++	put_group_info(gi);
+ 
+-	rc = groupmember(root_gid, CRED());
++	if (rc) {
++		splat_vprint(file, SPLAT_CRED_TEST3_NAME, "Failed to add "
++		    "gid %d to current group: %d\n", known_gid, rc);
++		goto show_groups;
++	}
++
++	/* Verify groupmember() finds the known_gid in the CRED() */
++	rc = groupmember(known_gid, CRED());
+ 	if (!rc) {
+-		splat_vprint(file, SPLAT_CRED_TEST3_NAME,
+-			     "Failed root git %d expected to be member "
+-			     "of CRED() groups: %d\n", root_gid, rc);
+-		return -EIDRM;
++		splat_vprint(file, SPLAT_CRED_TEST3_NAME, "Failed to find "
++		    "known gid %d in CRED()'s groups.\n", known_gid);
++		rc = -EIDRM;
++		goto show_groups;
+ 	}
+ 
+-	rc = groupmember(fake_gid, CRED());
++	/* Verify groupmember() does NOT finds the missing gid in the CRED() */
++	rc = groupmember(missing_gid, CRED());
+ 	if (rc) {
+-		splat_vprint(file, SPLAT_CRED_TEST3_NAME,
+-			     "Failed fake git %d expected not to be member "
+-			     "of CRED() groups: %d\n", fake_gid, rc);
+-		return -EIDRM;
++		splat_vprint(file, SPLAT_CRED_TEST3_NAME, "Failed missing "
++		    "gid %d was found in CRED()'s groups.\n", missing_gid);
++		rc = -EIDRM;
++		goto show_groups;
++	}
++
++	splat_vprint(file, SPLAT_CRED_TEST3_NAME, "Success groupmember() "
++	    "correctly detects expected gids in CRED(): %d\n", rc);
++
++show_groups:
++	if (rc) {
++		int i, grps = crgetngroups(CRED());
++
++		splat_vprint(file, SPLAT_CRED_TEST3_NAME, "%d groups: ", grps);
++		for (i = 0; i < grps; i++)
++			splat_print(file, "%d ", crgetgroups(CRED())[i]);
++		splat_print(file, "%s", "\n");
+ 	}
+ 
+-	splat_vprint(file, SPLAT_CRED_TEST3_NAME, "Success root gid "
+-		     "is a member of the expected groups: %d\n", rc);
+ 
+-	return rc;
++	return (rc);
+ } /* splat_cred_test3() */
+diff --git a/module/splat/splat-ctl.c b/module/splat/splat-ctl.c
+index 54b2ff4..6bbe0ab 100644
+--- a/module/splat/splat-ctl.c
++++ b/module/splat/splat-ctl.c
+@@ -723 +723,2 @@ MODULE_DESCRIPTION("Solaris Porting LAyer Tests");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION(SPL_META_VERSION "-" SPL_META_RELEASE);
+diff --git a/module/splat/splat-kmem.c b/module/splat/splat-kmem.c
+index c7f36ca..25a52b4 100644
+--- a/module/splat/splat-kmem.c
++++ b/module/splat/splat-kmem.c
+@@ -246,3 +246,3 @@ splat_kmem_test4(struct file *file, void *arg)
+ #define SPLAT_KMEM_OBJ_COUNT		1024
+-#define SPLAT_KMEM_OBJ_RECLAIM		1000 /* objects */
++#define SPLAT_KMEM_OBJ_RECLAIM		32 /* objects */
+ #define SPLAT_KMEM_THREADS		32
+@@ -684,3 +684,3 @@ splat_kmem_cache_thread_test(struct file *file, void *arg, char *name,
+ 
+-	start = current_kernel_time();
++	getnstimeofday(&start);
+ 
+@@ -709,3 +709,3 @@ splat_kmem_cache_thread_test(struct file *file, void *arg, char *name,
+ 
+-	stop = current_kernel_time();
++	getnstimeofday(&stop);
+ 	delta = timespec_sub(stop, start);
+@@ -897,3 +897,4 @@ splat_kmem_test8(struct file *file, void *arg)
+ 
+-	for (i = 0; i < 60; i++) {
++	/* Force reclaim every 1/10 a second for 60 seconds. */
++	for (i = 0; i < 600; i++) {
+ 		kmem_cache_reap_now(kcp->kcp_cache);
+@@ -905,3 +906,3 @@ splat_kmem_test8(struct file *file, void *arg)
+ 		set_current_state(TASK_INTERRUPTIBLE);
+-		schedule_timeout(HZ);
++		schedule_timeout(HZ / 10);
+ 	}
+@@ -1205,3 +1206,3 @@ splat_kmem_test13(struct file *file, void *arg)
+ 	struct list_head list;
+-	struct timespec start, delta = { 0, 0 };
++	struct timespec start, stop, delta = { 0, 0 };
+ 	int size, count, slabs, fails = 0;
+@@ -1252,3 +1253,3 @@ splat_kmem_test13(struct file *file, void *arg)
+ 	INIT_LIST_HEAD(&list);
+-	start = current_kernel_time();
++	getnstimeofday(&start);
+ 
+@@ -1261,3 +1262,4 @@ splat_kmem_test13(struct file *file, void *arg)
+ 
+-		delta = timespec_sub(current_kernel_time(), start);
++		getnstimeofday(&stop);
++		delta = timespec_sub(stop, start);
+ 		if (delta.tv_sec >= max_time) {
+@@ -1272,3 +1274,3 @@ splat_kmem_test13(struct file *file, void *arg)
+ 
+-		dp = (dummy_page_t *)__get_free_page(GFP_KERNEL | __GFP_NORETRY);
++		dp = (dummy_page_t *)__get_free_page(GFP_KERNEL);
+ 		if (!dp) {
+diff --git a/module/splat/splat-rwlock.c b/module/splat/splat-rwlock.c
+index a865fb3..6faf7d2 100644
+--- a/module/splat/splat-rwlock.c
++++ b/module/splat/splat-rwlock.c
+@@ -217,6 +217,6 @@ splat_rwlock_test1(struct file *file, void *arg)
+ 		if (i == 0)
+-			rwt[i].rwt_thread = kthread_create(splat_rwlock_wr_thr,
++			rwt[i].rwt_thread = spl_kthread_create(splat_rwlock_wr_thr,
+ 			    &rwt[i], "%s/%d", SPLAT_RWLOCK_TEST_NAME, i);
+ 		else
+-			rwt[i].rwt_thread = kthread_create(splat_rwlock_rd_thr,
++			rwt[i].rwt_thread = spl_kthread_create(splat_rwlock_rd_thr,
+ 			    &rwt[i], "%s/%d", SPLAT_RWLOCK_TEST_NAME, i);
+diff --git a/rpm/generic/spl-kmod.spec.in b/rpm/generic/spl-kmod.spec.in
+index e8d88c1..50947c0 100644
+--- a/rpm/generic/spl-kmod.spec.in
++++ b/rpm/generic/spl-kmod.spec.in
+@@ -164,3 +164,3 @@ rm -rf $RPM_BUILD_ROOT
+ - Released 0.6.2-1
+-* Tue Mar 22 2013 Brian Behlendorf <behlendorf1@llnl.gov> - 0.6.1-1
++* Fri Mar 22 2013 Brian Behlendorf <behlendorf1@llnl.gov> - 0.6.1-1
+ - First official stable release.
+diff --git a/rpm/generic/spl.spec.in b/rpm/generic/spl.spec.in
+index 804584a..a0fe298 100644
+--- a/rpm/generic/spl.spec.in
++++ b/rpm/generic/spl.spec.in
+@@ -15,3 +15,3 @@ ExcludeArch:    ppc ppc64
+ 
+-Requires:       %{name}-kmod >= %{version}
++Requires:       %{name}-kmod = %{version}
+ Provides:       %{name}-kmod-common = %{version}
+@@ -37,2 +37,3 @@ make install DESTDIR=%{?buildroot}
+ %{_mandir}/man1/*
++%{_mandir}/man5/*
+ 
+-- 
+1.9.2
+
