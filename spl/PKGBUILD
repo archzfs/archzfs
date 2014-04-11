@@ -21,6 +21,19 @@ LINUX_VERSION_X32="3.13.8-1"
 LINUX_VERSION_X64="3.13.8-1"
 [[ $CARCH == "i686" ]] && LINUX_VERSION=$LINUX_VERSION_X32 || LINUX_VERSION=$LINUX_VERSION_X64
 
+# If LINUX_VERSION does not have a minor version, we need to add "0" as the
+# minor version for the kernel module path. Kernel modules for linux versions
+# with no minor version (i.e. 3.14) are kept in /usr/lib/modules/3.14.0-4-ARCH
+[[ $LINUX_VERSION =~ ^[:digit:]+\.[:digit:]+\.([:digit:]+)\-[:digit:]+ ]]
+if [[ ${BASH_REMATCH[1]} == "" ]]; then
+    [[ $LINUX_VERSION =~ ^([[:digit:]\.]+)\-([[:digit:]]+)  ]] &&
+        MOD_LINUX_VERSION=${BASH_REMATCH[1]};
+        MOD_LINUX_PKGREL=${BASH_REMATCH[2]}
+    MOD_BASENAME=${MOD_LINUX_VERSION}.0-$MOD_LINUX_PKGREL-ARCH
+else
+    MOD_BASENAME=$LINUX_VERSION-ARCH
+fi
+
 pkgdesc="Solaris Porting Layer kernel modules."
 depends=("spl-utils" "linux=$LINUX_VERSION")
 makedepends=("linux-headers=$LINUX_VERSION")
@@ -50,11 +63,11 @@ build() {
   ./autogen.sh
   if [[ $CARCH == "i686" ]]; then
     ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \
-                --with-linux=/usr/lib/modules/$LINUX_VERSION_X32-ARCH/build \
+                --with-linux=/usr/lib/modules/$MOD_BASENAME/build \
                 --with-config=kernel --enable-atomic-spinlocks
   else
     ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \
-                --with-linux=/usr/lib/modules/$LINUX_VERSION_X64-ARCH/build \
+                --with-linux=/usr/lib/modules/$MOD_BASENAME/build \
                 --with-config=kernel
   fi
   make
