@@ -21,6 +21,13 @@ LINUX_VERSION_X32="3.13.8-1"
 LINUX_VERSION_X64="3.13.8-1"
 [[ $CARCH == "i686" ]] && LINUX_VERSION=$LINUX_VERSION_X32 || LINUX_VERSION=$LINUX_VERSION_X64
 
+# Build the kernel module path string
+[[ $AZB_LINUX_VERSION =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+)\-[[:digit:]]+]] ]] &&
+        MOD_PATH=${BASH_REMATCH[1]}
+
+echo $MOD_PATH
+exit 1
+
 pkgdesc="Kernel modules for the Zettabyte File System."
 depends=("spl=0.6.2_3.13.8-1" "zfs-utils" "linux=$LINUX_VERSION")
 makedepends=("linux-headers=$LINUX_VERSION")
