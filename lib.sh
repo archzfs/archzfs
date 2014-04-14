@@ -51,9 +51,9 @@ send_email() {
     # $2 = Subject
     # $3 = attachment
     if [[ $3 == "" ]]; then
-        echo -e "${1}" | mutt -s "${2}" "${EMAIL}" &> /dev/null;
+        echo -e "${1}" | mutt -s "${2}" "${AZB_EMAIL}"
     else
-        echo -e "${1}" | mutt -s "${2}" "${EMAIL}" -a "${3}" &> /dev/null;
+        echo -e "${1}" | mutt -s "${2}" "${AZB_EMAIL}" -a "${3}"
     fi
 }
 
