@@ -8,7 +8,7 @@
 # This script requires clean-chroot-manager (https://github.com/graysky2/clean-chroot-manager)
 
 # Defaults, don't edit these.
-AZB_PKG_LIST="spl-utils spl zfs-utils zfs"
+AZB_PKG_LIST="spl-utils-git spl-git zfs-utils-git zfs-git"
 AZB_UPDATE_PKGBUILDS=""
 AZB_UPDATE_TEST_PKGBUILDS=""
 AZB_BUILD=0
