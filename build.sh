@@ -77,7 +77,7 @@ sign_packages() {
     done
 }
 
-update_pkgbuilds() {
+update_git_pkgbuilds() {
     AZB_CURRENT_PKGVER=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_PKGREL=$(grep "pkgrel=" zfs/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_ZOLVER=$(sed_escape_input_string $(echo $AZB_CURRENT_PKGVER | cut -d_ -f1))
@@ -171,7 +171,7 @@ done
 msg "build.sh started..."
 
 if [[ $AZB_UPDATE_PKGBUILDS == 1 || $AZB_UPDATE_TEST_PKGBUILDS == 1 ]]; then
-    update_pkgbuilds
+    update_git_pkgbuilds
 fi
 
 if [[ $AZB_SIGN -eq 1 ]]; then
