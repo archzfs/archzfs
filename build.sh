@@ -78,22 +78,19 @@ sign_packages() {
 }
 
 full_kernel_version() {
-    # $1 = Arch
     # Determine if the kernel version has the format 3.14 or 3.14.1
-    [[ ${AZB_LINUX_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
+    [[ ${AZB_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
     if [[ ${BASH_REMATCH[1]} != "" ]]; then
-        if [[ $1 == "i686" ]]; then
-            AZB_KERNEL_FULL_VERSION=${AZB_LINUX_X32_VERSION}
-        else
-            AZB_KERNEL_FULL_VERSION=${AZB_LINUX_X64_VERSION}
-        fi
+        AZB_KERNEL_X32_VERSION_FULL=${AZB_KERNEL_X32_VERSION}
+        AZB_KERNEL_X32_VERSION_CLEAN=$(echo ${AZB_KERNEL_X32_VERSION} | sed s/-/_/g)
+        AZB_KERNEL_X64_VERSION_FULL=${AZB_KERNEL_X64_VERSION}
+        AZB_KERNEL_X64_VERSION_CLEAN=$(echo ${AZB_KERNEL_X64_VERSION} | sed s/-/_/g)
     else
         # Kernel version has the format 3.14, so add a 0.
-        if [[ $1 == "i686" ]]; then
-            AZB_KERNEL_FULL_VERSION=${AZB_LINUX_VERSION}.0-${AZB_LINUX_X32_PKGREL}
-        else
-            AZB_KERNEL_FULL_VERSION=${AZB_LINUX_VERSION}.0-${AZB_LINUX_X64_PKGREL}
-        fi
+        AZB_KERNEL_X32_VERSION_FULL=${AZB_KERNEL_VERSION}.0-${AZB_KERNEL_X32_PKGREL}
+        AZB_KERNEL_X32_VERSION_CLEAN=${AZB_KERNEL_VERSION}.0_${AZB_KERNEL_X32_PKGREL}
+        AZB_KERNEL_X64_VERSION_FULL=${AZB_KERNEL_VERSION}.0-${AZB_KERNEL_X64_PKGREL}
+        AZB_KERNEL_X64_VERSION_CLEAN=${AZB_KERNEL_VERSION}.0_${AZB_KERNEL_X64_PKGREL}
     fi
 }
 
