@@ -27,7 +27,9 @@ else
 fi
 
 pkgdesc="Kernel modules for the Zettabyte File System."
-depends=("spl=0.6.2_3.14-2" "zfs-utils" "linux=${_kernel_version}")
+depends=("spl-git=0.6.2_r33_g89aa970_3.14.1_1"
+         "zfs-utils-git=0.6.2_r254_g0b75bdb_3.14.1_1"
+         "linux=${_kernel_version}")
 makedepends=("git" "linux-headers=${_kernel_version}")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
