@@ -14,7 +14,7 @@ _kernel_version_x32_clean="3.14.0_4"
 _kernel_version_x32_full="3.14.0-4"
 _kernel_version_x64="3.14-4"
 _kernel_version_x64_clean="3.14.0_4"
-_kernel_version_x32_full="3.14.0-4"
+_kernel_version_x64_full="3.14.0-4"
 
 if [[ $CARCH == "i686" ]]; then
     _kernel_version=${_kernel_version_x32}
