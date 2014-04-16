@@ -6,13 +6,16 @@
 #
 # Defaults, don't edit these.
 AZB_GIT_PKG_LIST="spl-utils-git spl-git zfs-utils-git zfs-git"
-AZB_UPDATE_GIT_PKGBUILDS=""
-AZB_UPDATE_GIT_TEST_PKGBUILDS=""
-AZB_BUILD_GIT=0
+AZB_LTS_PKG_LIST="spl-utils-lts spl-lts zfs-utils-lts zfs-lts"
+AZB_UPDATE_PKGBUILDS=""
+AZB_UPDATE_TEST_PKGBUILDS=""
+AZB_BUILD=0
 AZB_USE_TEST=0
 AZB_CHROOT_UPDATE=""
 AZB_SIGN=""
 AZB_CLEANUP=0
+AZB_MODE_GIT=0
+AZB_MODE_LTS=0
 
 source ./lib.sh
 source ./conf.sh
@@ -25,7 +28,7 @@ trap 'trap_exit' EXIT
 usage() {
 	echo "build.sh - A build script for archzfs"
     echo
-	echo "Usage: build.sh [options] [command [command option] [...]"
+	echo "Usage: build.sh [options] [mode] [command [command option] [...]"
     echo
     echo "Options:"
     echo
@@ -35,21 +38,26 @@ usage() {
     echo "    -u:    Perform an update in the clean chroot."
     echo "    -C:    Remove all files that are not package sources."
     echo
+    echo "Modes:"
+    echo
+    echo "    git    Use the git packages."
+    echo "    lts    Use the lts packages."
+    echo
     echo "Commands:"
     echo
-    echo "    make              Build all packages."
-    echo "    test              Build test packages."
-    echo "    update-git        Update all git PKGBUILDs using conf.sh variables."
-    echo "    update-git-test   Update all PKGBUILDs using the testing conf.sh variables."
-    echo "    sign              GPG detach sign all compiled packages (default)."
+    echo "    make          Build all packages."
+    echo "    test          Build test packages."
+    echo "    update        Update all git PKGBUILDs using conf.sh variables."
+    echo "    update-test   Update all git PKGBUILDs using the testing conf.sh variables."
+    echo "    sign          GPG detach sign all compiled packages (default)."
     echo
 	echo "Examples:"
     echo
-    echo "    build.sh make -u                  :: Update the chroot and build all of the packages"
     echo "    build.sh -C                       :: Remove all compiled packages"
-    echo "    build.sh update                   :: Update PKGBUILDS only"
-    echo "    build.sh update make -u           :: Update PKGBUILDs, update the chroot, and make all of the packages"
-    echo "    build.sh update-git-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
+    echo "    build.sh git make -u              :: Update the chroot and build all of the packages"
+    echo "    build.sh lts update               :: Update PKGBUILDS only"
+    echo "    build.sh git update make -u       :: Update PKGBUILDs, update the chroot, and make all of the packages"
+    echo "    build.sh lts update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
 }
 
 sed_escape_input_string() {
@@ -185,7 +193,7 @@ update_git_pkgbuilds() {
     # Change the spl version number in zfs/PKGBUILD
     run_cmd "sed -i \"s/spl=$AZB_CURRENT_SPL_DEPVER/spl=$AZB_NEW_SPL_X64_PKGVER/g\" zfs-git/PKGBUILD"
 
-    if [[ $AZB_UPDATE_GIT_PKGBUILDS ]]; then
+    if [[ $AZB_UPDATE_PKGBUILDS ]]; then
 
         # Change _kernel_version_*
         run_cmd "find *-git -iname \"PKGBUILD\" -print | xargs sed -i \
@@ -237,14 +245,18 @@ fi
 
 ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "make-git" ]]; then
-        AZB_BUILD_GIT=1
+    if [[ ${ARGS[$a]} == "git" ]]; then
+        AZB_MODE_GIT=1
+    elif [[ ${ARGS[$a]} == "lts" ]]; then
+        AZB_MODE_LTS=1
+    elif [[ ${ARGS[$a]} == "make" ]]; then
+        AZB_BUILD=1
     elif [[ ${ARGS[$a]} == "test" ]]; then
         AZB_USE_TEST=1
-    elif [[ ${ARGS[$a]} == "update-git" ]]; then
-        AZB_UPDATE_GIT_PKGBUILDS=1
-    # elif [[ ${ARGS[$a]} == "update-test" ]]; then
-        # AZB_UPDATE_GIT_TEST_PKGBUILDS=1
+    elif [[ ${ARGS[$a]} == "update" ]]; then
+        AZB_UPDATE_PKGBUILDS=1
+    elif [[ ${ARGS[$a]} == "update-test" ]]; then
+        AZB_UPDATE_TEST_PKGBUILDS=1
     elif [[ ${ARGS[$a]} == "sign" ]]; then
         AZB_SIGN=1
     elif [[ ${ARGS[$a]} == "-h" ]]; then
@@ -269,15 +281,21 @@ if [[ $AZB_CLEANUP == 1 && $# -gt 1 ]]; then
     exit 0;
 fi
 
-if [[ $AZB_UPDATE_GIT_PKGBUILDS == 1 || $AZB_UPDATE_GIT_TEST_PKGBUILDS == 1 ]]; then
+if [[ $AZB_MODE_GIT == 0 && $AZB_MODE_LTS == 0 && $AZB_CLEANUP == 0 ]]; then
+    echo -e "\n"
+    error "A build mode must be selected!"
+    echo -e "\n"
+    usage;
+    exit 0;
+fi
+
+msg "build.sh started..."
+
+if [[ $AZB_UPDATE_PKGBUILDS == 1 && $AZB_MODE_GIT == 1 ]]; then
     update_git_pkgbuilds
 fi
 
-if [[ $AZB_SIGN -eq 1 ]]; then
-    sign_packages
-fi
-
-if [[ $AZB_BUILD_TEST == 1 ]]; then
+if [[ $AZB_BUILD_TEST == 1 && $AZB_MODE_GIT == 1 ]]; then
     if [ -n "$AZB_CHROOT_UPDATE" ]; then
         msg "Updating the i686 and x86_64 clean chroots..."
         run_cmd "sudo ccm32 u"
@@ -296,7 +314,7 @@ if [[ $AZB_BUILD_TEST == 1 ]]; then
     sign_packages
 fi
 
-if [[ $AZB_BUILD_GIT == 1 ]]; then
+if [[ $AZB_BUILD == 1 && $AZB_MODE_GIT == 1 ]]; then
     if [ -n "$AZB_CHROOT_UPDATE" ]; then
         msg "Updating the i686 and x86_64 clean chroots..."
         run_cmd "sudo ccm32 u"
@@ -310,6 +328,10 @@ if [[ $AZB_BUILD_GIT == 1 ]]; then
         run_cmd "cd - > /dev/null"
     done
     build_sources
+    sign_packages
+fi
+
+if [[ $AZB_SIGN -eq 1 ]]; then
     sign_packages
 fi
 
