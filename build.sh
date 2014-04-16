@@ -162,7 +162,8 @@ update_git_pkgbuilds() {
     AZB_CURRENT_SPL_PKGVER=$(grep "pkgver=" spl-git/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_ZFS_PKGVER=$(grep "pkgver=" zfs-utils-git/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_PKGREL=$(grep "pkgrel=" spl-git/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_SPL_DEPVER=$(grep "spl=" zfs-git/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
+    AZB_CURRENT_SPL_DEPVER=$(grep "spl-git=" zfs-git/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
+    AZB_CURRENT_ZFS_UTILS_DEPVER=$(grep "zfs-utils-git=" zfs-git/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
     AZB_CURRENT_X32_KERNEL_VERSION=$(grep -m1 "_kernel_version_x32=" spl-git/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X64_KERNEL_VERSION=$(grep -m1 "_kernel_version_x64=" spl-git/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X32_KERNEL_VERSION_CLEAN=$(grep -m1 "_kernel_version_x32_clean=" spl-git/PKGBUILD | cut -d\" -f2)
@@ -180,6 +181,7 @@ update_git_pkgbuilds() {
     debug "AZB_CURRENT_ZFS_PKGVER: $AZB_CURRENT_ZFS_PKGVER"
     debug "AZB_CURRENT_PKGREL: $AZB_CURRENT_PKGREL"
     debug "AZB_CURRENT_SPL_DEPVER: $AZB_CURRENT_SPL_DEPVER"
+    debug "AZB_CURRENT_ZFS_UTILS_DEPVER: $AZB_CURRENT_ZFS_UTILS_DEPVER"
     debug "AZB_CURRENT_X32_KERNEL_VERSION: $AZB_CURRENT_X32_KERNEL_VERSION"
     debug "AZB_CURRENT_X64_KERNEL_VERSION: $AZB_CURRENT_X64_KERNEL_VERSION"
     debug "AZB_CURRENT_X32_KERNEL_VERSION_CLEAN: $AZB_CURRENT_X32_KERNEL_VERSION_CLEAN"
@@ -188,10 +190,12 @@ update_git_pkgbuilds() {
     debug "AZB_CURRENT_X64_KERNEL_VERSION_FULL: $AZB_CURRENT_X64_KERNEL_VERSION_FULL"
 
     # Change the top level AZB_PKGREL
-    run_cmd "find . -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgrel=$AZB_CURRENT_PKGREL/pkgrel=$AZB_PKGREL/g\""
+    run_cmd "find *-git -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgrel=$AZB_CURRENT_PKGREL/pkgrel=$AZB_PKGREL/g\""
 
-    # Change the spl version number in zfs/PKGBUILD
-    run_cmd "sed -i \"s/spl=$AZB_CURRENT_SPL_DEPVER/spl=$AZB_NEW_SPL_X64_PKGVER/g\" zfs-git/PKGBUILD"
+    # Change the version numbers for the dependencies
+    run_cmd "sed -i \"s/spl-git=$AZB_CURRENT_SPL_DEPVER/spl-git=$AZB_NEW_SPL_X64_PKGVER/g\" zfs-utils-git/PKGBUILD"
+    run_cmd "sed -i \"s/spl-git=$AZB_CURRENT_SPL_DEPVER/spl-git=$AZB_NEW_SPL_X64_PKGVER/g\" zfs-git/PKGBUILD"
+    run_cmd "sed -i \"s/zfs-utils-git=$AZB_CURRENT_ZFS_UTILS_DEPVER/zfs-utils-git=$AZB_NEW_ZFS_X64_PKGVER/g\" zfs-git/PKGBUILD"
 
     if [[ $AZB_UPDATE_PKGBUILDS ]]; then
 
