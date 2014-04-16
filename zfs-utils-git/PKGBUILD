@@ -17,6 +17,7 @@ _kernel_version_x64_clean="3.14.0_4"
 
 pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=("spl")
+makedepends=("git")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=(git+https://github.com/zfsonlinux/zfs.git
