@@ -5,7 +5,7 @@
 # This script requires clean-chroot-manager (https://github.com/graysky2/clean-chroot-manager)
 #
 # Defaults, don't edit these.
-AZB_PKG_LIST="spl-utils-git spl-git zfs-utils-git zfs-git"
+AZB_GIT_PKG_LIST="spl-utils-git spl-git zfs-utils-git zfs-git"
 AZB_UPDATE_PKGBUILDS=""
 AZB_UPDATE_TEST_PKGBUILDS=""
 AZB_BUILD=0
@@ -57,7 +57,7 @@ sed_escape_input_string() {
 }
 
 build_sources() {
-    for PKG in $AZB_PKG_LIST; do
+    for PKG in $AZB_GIT_PKG_LIST; do
         msg "Building source for $PKG";
         run_cmd "cd \"$PWD/$PKG\""
         run_cmd "makepkg -Sfc"
@@ -174,7 +174,7 @@ update_git_pkgbuilds() {
     fi
 
     # Update the sums of the files
-    for PKG in $AZB_PKG_LIST; do
+    for PKG in $AZB_GIT_PKG_LIST; do
         run_cmd "updpkgsums $PKG/PKGBUILD"
     done
 }
@@ -226,7 +226,7 @@ if [[ $AZB_BUILD_TEST == 1 ]]; then
         run_cmd "sudo ccm32 u"
         run_cmd "sudo ccm64 u"
     fi
-    for PKG in $AZB_PKG_LIST; do
+    for PKG in $AZB_GIT_PKG_LIST; do
         msg "Building $PKG..."
         run_cmd "cd \"$PWD/$PKG\""
         # run_cmd "sudo ccm32 t"
@@ -245,7 +245,7 @@ if [[ $AZB_BUILD == 1 ]]; then
         run_cmd "sudo ccm32 u"
         run_cmd "sudo ccm64 u"
     fi
-    for PKG in $AZB_PKG_LIST; do
+    for PKG in $AZB_GIT_PKG_LIST; do
         msg "Building $PKG..."
         run_cmd "cd \"$PWD/$PKG\""
         run_cmd "sudo ccm32 s"
