@@ -48,5 +48,5 @@ package() {
     cd "${srcdir}/spl"
     make DESTDIR="${pkgdir}" install
 
-    # install -D -m644 "${srcdir}"/spl-utils.hostid "${pkgdir}"/etc/hostid
+    install -D -m644 "${srcdir}"/spl-utils.hostid "${pkgdir}"/etc/hostid
 }
