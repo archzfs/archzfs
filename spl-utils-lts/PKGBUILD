@@ -1,0 +1,45 @@
+# Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
+# Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
+
+pkgname="spl-utils-git"
+#
+# This script doesn't use bash variables for the version number because AUR
+# doesn't properly parse bash variables. We use a custom build script to
+# automatically change the appropriate variables before building in a clean
+# chroot environment (using systemd-ndspawn).
+#
+# The build script can be found at
+# https://github.com/demizer/archzfs/blob/master/build.sh
+#
+pkgver=
+pkgrel=1
+pkgdesc="Solaris Porting Layer kernel module support files."
+arch=("i686" "x86_64")
+url="http://zfsonlinux.org/"
+source=("git+https://github.com/zfsonlinux/zfs.git"
+        "spl-utils.hostid")
+groups=("archzfs")
+md5sums=()
+license=("GPL")
+provides=("spl-utils")
+conflicts=("spl-utils")
+
+build() {
+  cd "$srcdir/spl"
+  ./autogen.sh
+  if [[ $CARCH == "i686" ]]; then
+    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \
+                --with-config=user
+  else
+    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \
+                --with-config=user
+  fi
+  make
+}
+
+package() {
+  cd "$srcdir/spl"
+  make DESTDIR="$pkgdir" install
+
+  install -D -m644 "$srcdir"/spl-utils.hostid "$pkgdir"/etc/hostid
+}

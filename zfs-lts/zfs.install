@@ -1,0 +1,35 @@
+post_install() {
+    check_initramfs
+}
+
+post_remove() {
+    check_initramfs 'remove'
+}
+
+post_upgrade() {
+    check_initramfs
+}
+
+check_initramfs() {
+    echo ">>> Updating module dependencies. Please wait ..."
+    # `uname -r` returns the current running kernel version, we need the
+    # currently installed kernel version.
+    KERNEL_VERSION=$(pacman -Qi linux | sed -n 2p | cut -d: -f2)
+    # For cases when the kernel version is 3.8, 3.9
+    LINUX_VER=$(echo $KERNEL_VERSION | cut -d- -f1)
+    if [ $(grep -o "\." <<<"$LINUX_VER" | wc -l) -eq 1 ]; then
+        KERNEL_VERSION="${LINUX_VER}.0-${KERNEL_VERSION:(-1)}"
+    fi
+    depmod $(basename $(find /usr/lib/modules -type d -iname $KERNEL_VERSION\*))
+    MK_CONF=$(grep -v '#' /etc/mkinitcpio.conf | grep zfs >/dev/null; echo $?);
+    if [[ $MK_CONF == '0' ]]; then
+        if [[ $1 == 'remove' ]]; then
+            echo '>>> The ZFS packages have been removed, but "zfs" remains in the "hooks"'
+            echo '>>> list in mkinitcpio.conf! You will need to remove "zfs" from the '
+            echo '>>> "hooks" list and then regenerate the initial ramdisk.'
+        else
+            echo ">>> Generating initial ramdisk, using mkinitcpio. Please wait..."
+            mkinitcpio -p linux
+        fi
+    fi
+}
