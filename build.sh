@@ -77,6 +77,26 @@ sign_packages() {
     done
 }
 
+full_kernel_version() {
+    # $1 = Arch
+    # Determine if the kernel version has the format 3.14 or 3.14.1
+    [[ ${AZB_LINUX_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
+    if [[ ${BASH_REMATCH[1]} != "" ]]; then
+        if [[ $1 == "i686" ]]; then
+            AZB_KERNEL_FULL_VERSION=${AZB_LINUX_X32_VERSION}
+        else
+            AZB_KERNEL_FULL_VERSION=${AZB_LINUX_X64_VERSION}
+        fi
+    else
+        # Kernel version has the format 3.14, so add a 0.
+        if [[ $1 == "i686" ]]; then
+            AZB_KERNEL_FULL_VERSION=${AZB_LINUX_VERSION}.0-${AZB_LINUX_X32_PKGREL}
+        else
+            AZB_KERNEL_FULL_VERSION=${AZB_LINUX_VERSION}.0-${AZB_LINUX_X64_PKGREL}
+        fi
+    fi
+}
+
 update_git_pkgbuilds() {
     AZB_CURRENT_PKGVER=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_PKGREL=$(grep "pkgrel=" zfs/PKGBUILD | cut -d= -f2)
