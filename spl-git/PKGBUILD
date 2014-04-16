@@ -26,29 +26,6 @@ else
     _kernel_version_full=${_kernel_version_x64_full}
 fi
 
-# # Used incase the i686 and x86_64 linux packages get out of sync with the
-# # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
-# # 3.12.9-1 and x86_64 was versioned at 3.12.9-2.
-# _kernel_version_x32="3.14-4"
-# _kernel_version_x64="3.14-4"
-
-# [[ $CARCH == "i686" ]] && _kernel_version=$_kernel_version_x32 ||
-    # _kernel_version=$_kernel_version_x64
-
-# # If _kernel_version does not have a minor version, we need to add "0" as the
-# # minor version for the kernel module path. Kernel modules for linux versions
-# # with no minor version (i.e. 3.14) are kept in /usr/lib/modules/3.14.0-4-ARCH
-# [[ $_kernel_version =~ ^[:digit:]+\.[:digit:]+\.([:digit:]+)\-[:digit:]+ ]]
-# if [[ ${BASH_REMATCH[1]} == "" ]]; then
-    # [[ $_kernel_version =~ ^([[:digit:]\.]+)\-([[:digit:]]+)  ]] &&
-        # _kernel_version_base=${BASH_REMATCH[1]};
-    # _kernel_version_pkgrel=${BASH_REMATCH[2]}
-    # _kernel_version=${_kernel_version_base}.0-${_kernel_version_pkgrel}
-# fi
-
-# # PKGREL varable cannot contain "-"
-# _kernel_version_clean=$(echo ${_kernel_version} | sed "s/\-/_/g")
-
 pkgdesc="Solaris Porting Layer kernel modules."
 depends=("spl-utils-git" "linux=${_kernel_version}")
 makedepends=("git", "linux-headers=${_kernel_version}")
