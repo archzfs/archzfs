@@ -97,6 +97,28 @@ full_kernel_version() {
     fi
 }
 
+get_new_pkgver() {
+    # Sets NEW_{SPL,ZFS}_PKGVER with an updated PKGVER pulled from the git repo
+
+    full_kernel_version i686
+
+    # Update the spl-utils-git repo
+    cd spl-utils-git/spl
+    msg2 "Updating spl-utils-git repo..."
+    git fetch --all -p
+    AZB_NEW_SPL_PKGVER=$(echo $(git describe --long | \
+        sed -r 's/^spl-//;s/([^-]*-g)/r\1/;s/-/./g')_${AZB_KERNEL_FULL_VERSION})
+    cd ../
+
+    # Update the zfs-utils-git repo
+    cd zfs-utils-git/zfs
+    msg2 "Updating zfs-utils-git repo..."
+    git fetch --all -p
+    AZB_NEW_ZFS_PKGVER=$(echo $(git describe --long | \
+        sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/./g')_${AZB_KERNEL_FULL_VERSION})
+    cd ../
+}
+
 update_git_pkgbuilds() {
     AZB_CURRENT_PKGVER=$(grep "pkgver=" zfs/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_PKGREL=$(grep "pkgrel=" zfs/PKGBUILD | cut -d= -f2)
