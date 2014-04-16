@@ -218,7 +218,17 @@ update_git_pkgbuilds() {
         run_cmd "find ./zfs*git -iname \"PKGBUILD\" -print | xargs sed -i \
             \"s/pkgver=$AZB_CURRENT_ZFS_PKGVER/pkgver=$AZB_NEW_ZFS_X64_PKGVER/g\""
 
-    # elif [[ $AZB_UPDATE_GIT_TEST_PKGBUILDS ]]; then
+    fi
+
+    # Update the sums of the files
+    for PKG in $AZB_GIT_PKG_LIST; do
+        run_cmd "updpkgsums $PKG/PKGBUILD"
+    done
+}
+
+update_git_test_pkgbuilds() {
+
+    # elif [[ $AZB_UPDATE_TEST_PKGBUILDS ]]; then
 
         # # Change LINUX_VERSION_XXX
         # run_cmd "find ./*-git -iname \"PKGBUILD\" -print | xargs sed -i \
@@ -229,13 +239,11 @@ update_git_pkgbuilds() {
         # # Replace the linux version in the top level PKGVER
         # run_cmd "find ./*-git -iname \"PKGBUILD\" -print | xargs sed -i
         # \"s/pkgver=$AZB_CURRENT_SPL_PKGVER/pkgver=$AZB_KERNEL_TEST_PKG_VERSION/g\""
+    return 0
+}
 
-    fi
-
-    # Update the sums of the files
-    for PKG in $AZB_GIT_PKG_LIST; do
-        run_cmd "updpkgsums $PKG/PKGBUILD"
-    done
+update_lts_pkgbuilds() {
+    return 0
 }
 
 if [[ $# -lt 1 ]]; then
