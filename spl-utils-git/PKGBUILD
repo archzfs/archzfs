@@ -1,51 +1,60 @@
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
 # Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
+# See http://github.com/demizer/archzfs for build scripts.
 
 pkgname="spl-utils-git"
-#
-# This script doesn't use bash variables for the version number because AUR
-# doesn't properly parse bash variables. We use a custom build script to
-# automatically change the appropriate variables before building in a clean
-# chroot environment (using systemd-ndspawn).
-#
-# The build script can be found at
-# https://github.com/demizer/archzfs/blob/master/build.sh
-#
-pkgver=0.6.2_3.14
-pkgrel=2
+pkgver=0.6.2.r28.g3ceb71e_3.14.0_4
+pkgrel=1
+
+# Used incase the i686 and x86_64 linux packages get out of sync with the
+# PKGREL. This occurred on January 31, 2014 where i686 was versioned at
+# 3.12.9-1 and x86_64 was versioned at 3.12.9-2.
+_kernel_version_x32_clean="3.14.0_4"
+_kernel_version_x64_clean="3.14.0_4"
+
+[[ $CARCH == "i686" ]] && _kernel_version_clean=${_kernel_version_x32_clean} | \
+    _kernel_version_clean=${_kernel_version_x64_clean}
+
 pkgdesc="Solaris Porting Layer kernel module support files."
+makedepends=("git")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
-source=(http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.2.tar.gz
-        20140411-git-master.patch
-        spl-utils.hostid)
-groups=("archzfs")
-md5sums=('f00535bf89a7fde0e08f44a14a1f1e03'
-         '5393794838f95061ccd10dca2553bbf5'
+source=("git+https://github.com/zfsonlinux/spl.git"
+        "spl-utils.hostid")
+groups=("archzfs-git")
+md5sums=('SKIP'
          'a54f0041a9e15b050f25c463f1db7449')
 license=("GPL")
+provides=("spl-utils")
+conflicts=("spl-utils")
 
-prepare() {
-    cd "$srcdir/spl-0.6.2"
-    patch -Np1 < ../20140411-git-master.patch
+pkgver() {
+    cd "${srcdir}/spl"
+
+    # cutting off 'spl-' prefix that presents in the git tag
+    echo $(git describe --long | \
+        sed -r 's/^spl-//;s/([^-]*-g)/r\1/;s/-/./g')_${_kernel_version_clean}
 }
 
 build() {
-  cd "$srcdir/spl-0.6.2"
-  ./autogen.sh
-  if [[ $CARCH == "i686" ]]; then
-    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \
-                --with-config=user
-  else
-    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \
-                --with-config=user
-  fi
-  make
+    cd "${srcdir}/spl"
+    ./autogen.sh
+
+    _at_enable=""
+    [ "${CARCH}" == "i686"  ] && _at_enable="--enable-atomic-spinlocks"
+
+    ./configure --prefix=/usr \
+                --libdir=/usr/lib \
+                --sbindir=/usr/bin \
+                --with-config=user \
+                ${_at_enable}
+
+    make
 }
 
 package() {
-  cd "$srcdir/spl-0.6.2"
-  make DESTDIR="$pkgdir" install
+    cd "${srcdir}/spl"
+    make DESTDIR="${pkgdir}" install
 
-  install -D -m644 "$srcdir"/spl-utils.hostid "$pkgdir"/etc/hostid
+    # install -D -m644 "${srcdir}"/spl-utils.hostid "${pkgdir}"/etc/hostid
 }
