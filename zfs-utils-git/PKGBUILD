@@ -21,7 +21,7 @@ _kernel_version_x64_clean="3.14.1_1"
     _kernel_version_clean=${_kernel_version_x64_clean}
 
 pkgdesc="Kernel module support files for the Zettabyte File System."
-depends=("spl-git=0.6.2_r33_g89aa970_3.14.1_1")
+depends=("spl-git")
 makedepends=("git")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
@@ -35,6 +35,13 @@ md5sums=('SKIP'
          'ebea2b1e593a9a19efa0f7ae7451bbc7'
          'b567a95a34759f196bf4be8061a895e5')
 license=("CDDL")
+
+pkgver() {
+    cd "${srcdir}/zfs"
+    # cutting off 'spl-' prefix that presents in the git tag
+    echo $(git describe --long | \
+        sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/_/g')_${_kernel_version_clean}
+}
 
 build() {
     cd "${srcdir}/zfs"
