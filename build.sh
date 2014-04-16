@@ -230,7 +230,7 @@ update_git_pkgbuilds() {
     done
 }
 
-if [ $# -lt 1 ]; then
+if [[ $# -lt 1 ]]; then
     usage;
     exit 0;
 fi
@@ -261,7 +261,13 @@ for (( a = 0; a < $#; a++ )); do
     fi
 done
 
-msg "build.sh started..."
+if [[ $AZB_CLEANUP == 1 && $# -gt 1 ]]; then
+    echo -e "\n"
+    error "-C should be used by itself!"
+    echo -e "\n"
+    usage;
+    exit 0;
+fi
 
 if [[ $AZB_UPDATE_GIT_PKGBUILDS == 1 || $AZB_UPDATE_GIT_TEST_PKGBUILDS == 1 ]]; then
     update_git_pkgbuilds
