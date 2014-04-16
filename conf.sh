@@ -29,13 +29,13 @@ AZB_LINUX_ARCHISO_PKG_VERSION="${AZB_ZOL_VERSION}_${AZB_LINUX_ARCHISO_VERSION}"
 AZB_LINUX_ARCHISO_FULL_VERSION="${AZB_LINUX_ARCHISO_PKG_VERSION}-${AZB_LINUX_ARCHISO_PKGREL}"
 
 # Notification address
-AZB_EMAIL="graysky@archlinux.us"
+AZB_EMAIL="jeezusjr@gmail.com"
 
 # Repository path and name
-AZB_REPO_BASEPATH="/scratch/archzfs/repo"
+AZB_REPO_BASEPATH="/data/pacman/repo"
 
 # SSH login address
-AZB_REMOTE_LOGIN="graysky@web200.webfactional.com"
+AZB_REMOTE_LOGIN="jalvarez@web200.webfactional.com"
 
 # The signing key to use to sign packages
-AZB_GPG_SIGN_KEY='5EE46C4C'
+AZB_GPG_SIGN_KEY='0EE7A126'
