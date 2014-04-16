@@ -28,14 +28,6 @@ license=("GPL")
 provides=("spl-utils")
 conflicts=("spl-utils")
 
-pkgver() {
-    cd "${srcdir}/spl"
-
-    # cutting off 'spl-' prefix that presents in the git tag
-    echo $(git describe --long | \
-        sed -r 's/^spl-//;s/([^-]*-g)/r\1/;s/-/./g')_${_kernel_version_clean}
-}
-
 build() {
     cd "${srcdir}/spl"
     ./autogen.sh

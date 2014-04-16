@@ -37,14 +37,6 @@ md5sums=('SKIP')
 license=("CDDL")
 install=zfs.install
 
-pkgver() {
-    cd "${srcdir}/zfs"
-
-    # cutting off 'spl-' prefix that presents in the git tag
-    echo $(git describe --long | \
-        sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/./g')_${_kernel_version_clean}
-}
-
 build() {
     cd "${srcdir}/zfs"
     ./autogen.sh
