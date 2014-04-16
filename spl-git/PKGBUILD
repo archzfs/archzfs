@@ -28,12 +28,12 @@ fi
 
 pkgdesc="Solaris Porting Layer kernel modules."
 depends=("spl-utils-git" "linux=${_kernel_version}")
-makedepends=("git", "linux-headers=${_kernel_version}")
+makedepends=("git" "linux-headers=${_kernel_version}")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=("git+https://github.com/zfsonlinux/spl.git")
 groups=("archzfs-git")
-md5sums=('SKIP')
+md5sums=("SKIP")
 license=("GPL")
 install=spl.install
 provides=("spl")
