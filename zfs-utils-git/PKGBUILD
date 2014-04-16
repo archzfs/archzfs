@@ -23,15 +23,12 @@ url="http://zfsonlinux.org/"
 source=(git+https://github.com/zfsonlinux/zfs.git
         zfs-utils.bash-completion-r1
         zfs-utils.initcpio.install
-        zfs-utils.initcpio.hook
-        zfs-utils.service)
+        zfs-utils.initcpio.hook)
 groups=("archzfs")
 md5sums=('SKIP'
-         '3e1c4a29c4f7d590e6a3041f2c61d6ff'
+         '9ddb0c8a94861f929d0fa741fdc49950'
          'ebea2b1e593a9a19efa0f7ae7451bbc7'
-         'b567a95a34759f196bf4be8061a895e5'
-         '1f16ea8592509edb8efa4d7da25f8182'
-         'b7632a5a80d474272d1de046b6da5f81')
+         'b567a95a34759f196bf4be8061a895e5')
 license=("CDDL")
 
 build() {
