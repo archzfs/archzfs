@@ -60,7 +60,9 @@ build() {
 package() {
     cd "${srcdir}/zfs"
     make DESTDIR="${pkgdir}" install
-    # move module tree /lib -> /usr/lib
-    # cp -r "$pkgdir"/{lib,usr}
-    # rm -r "$pkgdir"/lib
+
+    cp -r "$pkgdir"/{lib,usr}
+    rm -r "$pkgdir"/lib
+
+    sed -i "s+${srcdir}++" ${pkgdir}/usr/src/zfs-*/${_kernel_version_full}-ARCH/Module.symvers
 }
