@@ -2,11 +2,8 @@
 #
 # This script builds the archzfs packages in a clean clean chroot environment.
 #
-# For debug output, use DEBUG=1
-# To show command output, but not do anything, use DRY_RUN=1
-#
 # This script requires clean-chroot-manager (https://github.com/graysky2/clean-chroot-manager)
-
+#
 # Defaults, don't edit these.
 AZB_PKG_LIST="spl-utils-git spl-git zfs-utils-git zfs-git"
 AZB_UPDATE_PKGBUILDS=""
