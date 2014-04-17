@@ -8,7 +8,7 @@
 # The build script generates and updates the pkgver and _kernel* variables.
 #
 pkgname="spl-utils-git"
-pkgver=0.6.2_r33_g89aa970_3.14.1_10.6.2.r28.g3ceb71e_3.14.0_4
+pkgver=0.6.2_r33_g89aa970_3.14.1_1
 pkgrel=1
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
