@@ -106,22 +106,29 @@ if [[ $AZB_REPO != "" ]]; then
     # "name;pkg.tar.xz;repo_path". There must be no spaces.
     pkg_list=()
 
+    # Set the AZB_KERNEL_*_VERSION variables
+    full_kernel_version
+    full_kernel_archiso_version
+
     # Add packages to the pkg_list
     for pkg in ${pkgs[@]}; do
 
         arch=$(package_arch_from_path $pkg)
         name=$(package_name_from_path $pkg)
         vers=$(package_version_from_path $pkg)
+
         debug "Found package: $name, $arch, $vers"
+
+        version_match=0
 
         # Use a specific version incase of archiso
         if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
-            REQUIRED_VERSION="$AZB_LINUX_ARCHISO_FULL_VERSION"
+            [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_KERNEL_ARCHISO_VERSION_CLEAN}-${AZB_ARCHISO_PKGREL} ]] && version_match=1
         elif [[ $AZB_REPO == "demz-repo-core" ]]; then
-            REQUIRED_VERSION="$AZB_LINUX_FULL_VERSION"
+            [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_KERNEL_X64_VERSION_CLEAN}-${AZB_PKGREL} ]] && version_match=1
         fi
 
-        if [[ $vers != $REQUIRED_VERSION ]]; then
+        if [[ $version_match -eq 0 ]]; then
             debug "$vers not equal to $REQUIRED_VERSION"
             continue
         fi
