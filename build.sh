@@ -90,27 +90,21 @@ get_new_pkgver() {
 
     full_kernel_version
 
-    # Update the spl-utils-git repo
-    cd spl-utils-git
-    msg2 "Updating spl-utils-git repo..."
-    check_git_repo
-    cd spl
+    # Get SPL version
+    cd $AZB_SPL_GIT_PATH
     AZB_NEW_SPL_X32_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^spl-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_KERNEL_X32_VERSION_CLEAN})
     AZB_NEW_SPL_X64_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^spl-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_KERNEL_X64_VERSION_CLEAN})
-    cd ../../
+    cd - > /dev/null
 
-    # Update the zfs-utils-git repo
-    cd zfs-utils-git
-    msg2 "Updating zfs-utils-git repo..."
-    check_git_repo
-    cd zfs
+    # Get ZFS version
+    cd $AZB_ZFS_GIT_PATH
     AZB_NEW_ZFS_X32_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_KERNEL_X32_VERSION_CLEAN})
     AZB_NEW_ZFS_X64_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_KERNEL_X64_VERSION_CLEAN})
-    cd ../../
+    cd - > /dev/null
 }
 
 update_git_pkgbuilds() {
