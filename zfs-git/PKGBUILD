@@ -8,7 +8,7 @@
 # The build script generates and updates the pkgver and _kernel* variables.
 #
 pkgname="zfs-git"
-pkgver=0.6.2_r256_gb066274_3.14.1_1
+pkgver=0.6.2_r258_g4fd762f_3.14.1_1
 pkgrel=1
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
@@ -33,24 +33,29 @@ fi
 
 pkgdesc="Kernel modules for the Zettabyte File System."
 depends=("spl-git" "zfs-utils-git" "linux=${_kernel_version}")
-makedepends=("git" "linux-headers=${_kernel_version}")
+makedepends=("linux-headers=${_kernel_version}")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
-source=(git+https://github.com/zfsonlinux/zfs.git)
+source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz"
+        "http://demizerone.com/patches/zfs-0.6.2-r258-g4fd762f.patch.tar.xz")
 groups=("archzfs")
-md5sums=('SKIP')
+md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
+         '577cc119618ad580d87b470463c1ef55')
 license=("CDDL")
 install=zfs.install
+replaces=("zfs")
+provides=("zfs")
+conflicts=("zfs")
 
-pkgver() {
-    cd "${srcdir}/zfs"
-    # cutting off 'spl-' prefix that presents in the git tag
-    echo $(git describe --long | \
-        sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/_/g')_${_kernel_version_clean}
+prepare() {
+    cd "${srcdir}"
+    tar --xz -xf zfs-0.6.2-r258-g4fd762f.patch.tar.xz
+    cd "${srcdir}/zfs-0.6.2"
+    patch -Np1 < ../zfs-0.6.2-r258-g4fd762f.patch
 }
 
 build() {
-    cd "${srcdir}/zfs"
+    cd "${srcdir}/zfs-0.6.2"
     ./autogen.sh
 
     ./configure --prefix=/usr \
@@ -68,7 +73,7 @@ build() {
 }
 
 package() {
-    cd "${srcdir}/zfs"
+    cd "${srcdir}/zfs-0.6.2"
     make DESTDIR="${pkgdir}" install
 
     cp -r "$pkgdir"/{lib,usr}
