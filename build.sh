@@ -85,32 +85,6 @@ sign_packages() {
     done
 }
 
-check_git_repo() {
-    # Checks the current path for a git repo
-    [[ `cat PKGBUILD` =~ git\+([[:alpha:]\/:\.]+)\/([[:alpha:]]+)\.git ]] && local \
-        urlbase=${BASH_REMATCH[1]}; local reponame=${BASH_REMATCH[2]}
-    local url=${urlbase}/${reponame}.git
-    debug "BASH_REMATCH[1]: ${BASH_REMATCH[1]}"
-    debug "BASH_REMATCH[2]: ${BASH_REMATCH[2]}"
-    debug "GIT URL: $url"
-    debug "GIT REPO: $reponame"
-    if [[ ! -d "$reponame" ]]; then
-        msg2 "Cloning repo..."
-        if ! git clone --mirror "$url" "$reponame"; then
-			error "Failure while cloning $url repo"
-			plain "Aborting..."
-            exit 1
-        fi
-    else
-        msg2 "Updating repo..."
-        if ! git fetch --all -p; then
-			error "Failure while fetching $url repo"
-			plain "Aborting..."
-            exit 1
-        fi
-    fi
-}
-
 get_new_pkgver() {
     # Sets NEW_{SPL,ZFS}_PKGVER with an updated PKGVER pulled from the git repo
 
