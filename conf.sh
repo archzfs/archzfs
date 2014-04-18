@@ -9,11 +9,16 @@ AZB_KERNEL_X32_VERSION="${AZB_KERNEL_VERSION}-${AZB_KERNEL_X32_PKGREL}"
 AZB_KERNEL_X64_VERSION="${AZB_KERNEL_VERSION}-${AZB_KERNEL_X64_PKGREL}"
 
 # Archiso Configuration
+AZB_ARCHISO_PKGREL="1"
 AZB_KERNEL_ARCHISO_VERSION="3.13.7"
 AZB_KERNEL_ARCHISO_PKGREL="1"
 
 # ZFSonLinux stable version (LTS packages)
-# AZB_ZOL_VERSION="0.6.2"
+AZB_ZOL_VERSION="0.6.2"
+
+# The paths to the ZOL git repos
+AZB_ZFS_GIT_PATH="/home/demizer/src/c/zfs"
+AZB_SPL_GIT_PATH="/home/demizer/src/c/spl"
 
 # Testing repo Linux version dependencies
 # AZB_KERNEL_TEST_VERSION="3.13.8"
