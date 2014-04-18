@@ -115,8 +115,8 @@ update_git_pkgbuilds() {
     AZB_CURRENT_ZFS_PKGVER=$(grep "pkgver=" zfs-git/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_ZFS_UTILS_PKGVER=$(grep "pkgver=" zfs-utils-git/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_PKGREL=$(grep "pkgrel=" spl-git/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_SPL_DEPVER=$(grep "spl-git=" zfs-git/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
-    AZB_CURRENT_ZFS_UTILS_DEPVER=$(grep "zfs-utils-git=" zfs-git/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
+    # AZB_CURRENT_SPL_DEPVER=$(grep "spl-git=" zfs-git/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
+    # AZB_CURRENT_ZFS_UTILS_DEPVER=$(grep "zfs-utils-git=" zfs-git/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
     AZB_CURRENT_X32_KERNEL_VERSION=$(grep -m1 "_kernel_version_x32=" spl-git/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X64_KERNEL_VERSION=$(grep -m1 "_kernel_version_x64=" spl-git/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X32_KERNEL_VERSION_CLEAN=$(grep -m1 "_kernel_version_x32_clean=" spl-git/PKGBUILD | cut -d\" -f2)
@@ -127,16 +127,15 @@ update_git_pkgbuilds() {
     # Calculate what the new pkgver would be for the git packages
     get_new_pkgver
 
-    echo -e "\n\n"
-    debug "AZB_NEW_SPL_PKGVER: $AZB_NEW_SPL_PKGVER"
-    debug "AZB_NEW_ZFS_PKGVER: $AZB_NEW_ZFS_PKGVER"
+    debug "AZB_NEW_SPL_PKGVER: $AZB_NEW_SPL_X64_PKGVER"
+    debug "AZB_NEW_ZFS_PKGVER: $AZB_NEW_ZFS_X64_PKGVER"
     debug "AZB_CURRENT_SPL_PKGVER: $AZB_CURRENT_SPL_PKGVER"
     debug "AZB_CURRENT_SPL_UTILS_PKGVER: $AZB_CURRENT_SPL_UTILS_PKGVER"
     debug "AZB_CURRENT_ZFS_PKGVER: $AZB_CURRENT_ZFS_PKGVER"
     debug "AZB_CURRENT_ZFS_UTILS_PKGVER: $AZB_CURRENT_ZFS_UTILS_PKGVER"
     debug "AZB_CURRENT_PKGREL: $AZB_CURRENT_PKGREL"
-    debug "AZB_CURRENT_SPL_DEPVER: $AZB_CURRENT_SPL_DEPVER"
-    debug "AZB_CURRENT_ZFS_UTILS_DEPVER: $AZB_CURRENT_ZFS_UTILS_DEPVER"
+    # debug "AZB_CURRENT_SPL_DEPVER: $AZB_CURRENT_SPL_DEPVER"
+    # debug "AZB_CURRENT_ZFS_UTILS_DEPVER: $AZB_CURRENT_ZFS_UTILS_DEPVER"
     debug "AZB_CURRENT_X32_KERNEL_VERSION: $AZB_CURRENT_X32_KERNEL_VERSION"
     debug "AZB_CURRENT_X64_KERNEL_VERSION: $AZB_CURRENT_X64_KERNEL_VERSION"
     debug "AZB_CURRENT_X32_KERNEL_VERSION_CLEAN: $AZB_CURRENT_X32_KERNEL_VERSION_CLEAN"
