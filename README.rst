@@ -95,5 +95,21 @@ How to use this Repository
    to push the package sources by version (specified by ``AZB_LINUX_VERSION``)
    to AUR.
 
+#. Creating a GIT patch
+
+   * Clone the ZFS and SPL sources
+   * Set the paths to the sources in conf.sh
+   * cd to ZFS git repo and create a new branch "patch_br"
+   * Use: git rebase -i <hash> to squash all of the commits until the last
+     release (tagged 0.6.2 currently). Use fixup to discard the commit log
+     messages.
+   * git format-patch -1
+   * Edit the patch and remove uneeded messages or changes
+   * git co master
+   * mv 0001* $(git describe --long).patch
+   * rename the patch adding a "r": zfs-0.6.2-r*
+   * tar --xz -cvvf zfs.patch.tar.xz zfs.patch
+   * Copy the patches to the PKGBUILD directories
+
 .. _burp: https://www.archlinux.org/packages/extra/x86_64/burp/
 .. _clean-chroot-manager: https://aur.archlinux.org/packages/clean-chroot-manager
