@@ -123,3 +123,33 @@ package_version_from_syncdb() {
     pacman -Si "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
     return $?
 }
+
+full_kernel_version() {
+    # Determine if the kernel version has the format 3.14 or 3.14.1
+    [[ ${AZB_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
+    if [[ ${BASH_REMATCH[1]} != "" ]]; then
+        AZB_KERNEL_X32_VERSION_FULL=${AZB_KERNEL_X32_VERSION}
+        AZB_KERNEL_X32_VERSION_CLEAN=$(echo ${AZB_KERNEL_X32_VERSION} | sed s/-/_/g)
+        AZB_KERNEL_X64_VERSION_FULL=${AZB_KERNEL_X64_VERSION}
+        AZB_KERNEL_X64_VERSION_CLEAN=$(echo ${AZB_KERNEL_X64_VERSION} | sed s/-/_/g)
+    else
+        # Kernel version has the format 3.14, so add a 0.
+        AZB_KERNEL_X32_VERSION_FULL=${AZB_KERNEL_VERSION}.0-${AZB_KERNEL_X32_PKGREL}
+        AZB_KERNEL_X32_VERSION_CLEAN=${AZB_KERNEL_VERSION}.0_${AZB_KERNEL_X32_PKGREL}
+        AZB_KERNEL_X64_VERSION_FULL=${AZB_KERNEL_VERSION}.0-${AZB_KERNEL_X64_PKGREL}
+        AZB_KERNEL_X64_VERSION_CLEAN=${AZB_KERNEL_VERSION}.0_${AZB_KERNEL_X64_PKGREL}
+    fi
+}
+
+full_kernel_archiso_version() {
+    # Determine if the archiso kernel version has the format 3.14 or 3.14.1
+    [[ ${AZB_KERNEL_ARCHISO_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
+    if [[ ${BASH_REMATCH[1]} != "" ]]; then
+        AZB_KERNEL_ARCHISO_VERSION_FULL=${AZB_KERNEL_ARCHISO_VERSION}
+        AZB_KERNEL_ARCHISO_VERSION_CLEAN=$(echo ${AZB_KERNEL_ARCHISO_VERSION} | sed s/-/_/g)
+    else
+        # Kernel version has the format 3.14, so add a 0.
+        AZB_KERNEL_ARCHISO_VERSION_FULL=${AZB_KERNEL_ARCHISO_VERSION}.0-${AZB_KERNEL_ARCHISO_PKGREL}
+        AZB_KERNEL_ARCHISO_VERSION_CLEAN=${AZB_KERNEL_ARCHISO_VERSION}.0_${AZB_KERNEL_ARCHISO_PKGREL}
+    fi
+}
