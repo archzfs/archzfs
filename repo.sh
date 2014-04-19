@@ -107,7 +107,7 @@ if [[ $AZB_REPO != "" ]]; then
     pkg_list=()
 
     # Set the AZB_KERNEL_*_VERSION variables
-    full_kernel_version
+    full_kernel_git_version
     full_kernel_archiso_version
 
     # Add packages to the pkg_list
@@ -125,7 +125,7 @@ if [[ $AZB_REPO != "" ]]; then
         if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
             [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_KERNEL_ARCHISO_VERSION_CLEAN}-${AZB_ARCHISO_PKGREL} ]] && version_match=1
         elif [[ $AZB_REPO == "demz-repo-core" ]]; then
-            [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_KERNEL_X64_VERSION_CLEAN}-${AZB_PKGREL} ]] && version_match=1
+            [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_GIT_KERNEL_X64_VERSION_CLEAN}-${AZB_GIT_PKGREL} ]] && version_match=1
         fi
 
         if [[ $version_match -eq 0 ]]; then
