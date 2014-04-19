@@ -10,7 +10,9 @@ source ./conf.sh
 
 msg "Pushing the package sources to AUR..."
 
-FILES=$(find . -iname "*${AZB_ZOL_VERSION}_${AZB_LINUX_VERSION}-$AZB_PKGREL*.src.tar.gz")
+full_kernel_version
+
+FILES=$(find . -iname "*${AZB_ZOL_VERSION}*${AZB_KERNEL_X64_VERSION_CLEAN}-${AZB_PKGREL}*.src.tar.gz")
 
 burp -c modules $FILES -v
 
