@@ -129,15 +129,24 @@ full_kernel_git_version() {
     [[ ${AZB_GIT_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
     if [[ ${BASH_REMATCH[1]} != "" ]]; then
         AZB_GIT_KERNEL_X32_VERSION_FULL=${AZB_GIT_KERNEL_X32_VERSION}
-        AZB_GIT_KERNEL_X32_VERSION_CLEAN=$(echo ${AZB_GIT_KERNEL_X32_VERSION} | sed s/-/_/g)
         AZB_GIT_KERNEL_X64_VERSION_FULL=${AZB_GIT_KERNEL_X64_VERSION}
-        AZB_GIT_KERNEL_X64_VERSION_CLEAN=$(echo ${AZB_GIT_KERNEL_X64_VERSION} | sed s/-/_/g)
     else
         # Kernel version has the format 3.14, so add a 0.
         AZB_GIT_KERNEL_X32_VERSION_FULL=${AZB_GIT_KERNEL_VERSION}.0-${AZB_GIT_KERNEL_X32_PKGREL}
-        AZB_GIT_KERNEL_X32_VERSION_CLEAN=${AZB_GIT_KERNEL_VERSION}.0_${AZB_GIT_KERNEL_X32_PKGREL}
         AZB_GIT_KERNEL_X64_VERSION_FULL=${AZB_GIT_KERNEL_VERSION}.0-${AZB_GIT_KERNEL_X64_PKGREL}
-        AZB_GIT_KERNEL_X64_VERSION_CLEAN=${AZB_GIT_KERNEL_VERSION}.0_${AZB_GIT_KERNEL_X64_PKGREL}
+    fi
+}
+
+full_kernel_lts_version() {
+    # Determine if the kernel version has the format 3.14 or 3.14.1
+    [[ ${AZB_LTS_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
+    if [[ ${BASH_REMATCH[1]} != "" ]]; then
+        AZB_LTS_KERNEL_X32_VERSION_FULL=${AZB_LTS_KERNEL_X32_VERSION}
+        AZB_LTS_KERNEL_X64_VERSION_FULL=${AZB_LTS_KERNEL_X64_VERSION}
+    else
+        # Kernel version has the format 3.14, so add a 0.
+        AZB_LTS_KERNEL_X32_VERSION_FULL=${AZB_LTS_KERNEL_VERSION}.0-${AZB_LTS_KERNEL_X32_PKGREL}
+        AZB_LTS_KERNEL_X64_VERSION_FULL=${AZB_LTS_KERNEL_VERSION}.0-${AZB_LTS_KERNEL_X64_PKGREL}
     fi
 }
 
