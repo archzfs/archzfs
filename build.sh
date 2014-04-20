@@ -64,8 +64,17 @@ sed_escape_input_string() {
     echo "$1" | sed -e 's/[]\/$*.^|[]/\\&/g'
 }
 
-build_sources() {
+build_git_sources() {
     for PKG in $AZB_GIT_PKG_LIST; do
+        msg "Building source for $PKG";
+        run_cmd "cd \"$PWD/$PKG\""
+        run_cmd "makepkg -Sfc"
+        run_cmd "cd - > /dev/null"
+    done
+}
+
+build_lts_sources() {
+    for PKG in $AZB_LTS_PKG_LIST; do
         msg "Building source for $PKG";
         run_cmd "cd \"$PWD/$PKG\""
         run_cmd "makepkg -Sfc"
@@ -173,7 +182,6 @@ update_git_pkgbuilds() {
         run_cmd "updpkgsums $PKG/PKGBUILD"
     done
 }
-
 
 update_lts_pkgbuilds() {
 
@@ -285,31 +293,13 @@ elif [[ $AZB_UPDATE_PKGBUILDS == 1 && $AZB_MODE_LTS == 1 ]]; then
     update_lts_pkgbuilds
 fi
 
-if [[ $AZB_BUILD_TEST == 1 && $AZB_MODE_GIT == 1 ]]; then
-    if [ -n "$AZB_CHROOT_UPDATE" ]; then
-        msg "Updating the i686 and x86_64 clean chroots..."
-        run_cmd "sudo ccm32 u"
-        run_cmd "sudo ccm64 u"
-    fi
-    for PKG in $AZB_GIT_PKG_LIST; do
-        msg "Building $PKG..."
-        run_cmd "cd \"$PWD/$PKG\""
-        # run_cmd "sudo ccm32 t"
-        run_cmd "sudo ccm32 s"
-        # run_cmd "sudo ccm64 t"
-        run_cmd "sudo ccm64 s"
-        run_cmd "cd - > /dev/null"
-    done
-    build_sources
-    sign_packages
+if [ -n "$AZB_CHROOT_UPDATE" ]; then
+    msg "Updating the i686 and x86_64 clean chroots..."
+    run_cmd "sudo ccm32 u"
+    run_cmd "sudo ccm64 u"
 fi
 
 if [[ $AZB_BUILD == 1 && $AZB_MODE_GIT == 1 ]]; then
-    if [ -n "$AZB_CHROOT_UPDATE" ]; then
-        msg "Updating the i686 and x86_64 clean chroots..."
-        run_cmd "sudo ccm32 u"
-        run_cmd "sudo ccm64 u"
-    fi
     for PKG in $AZB_GIT_PKG_LIST; do
         msg "Building $PKG..."
         run_cmd "cd \"$PWD/$PKG\""
@@ -317,7 +307,17 @@ if [[ $AZB_BUILD == 1 && $AZB_MODE_GIT == 1 ]]; then
         run_cmd "sudo ccm64 s"
         run_cmd "cd - > /dev/null"
     done
-    build_sources
+    build_git_sources
+    sign_packages
+elif [[ $AZB_BUILD == 1 && $AZB_MODE_LTS == 1 ]]; then
+    for PKG in $AZB_LTS_PKG_LIST; do
+        msg "Building $PKG..."
+        run_cmd "cd \"$PWD/$PKG\""
+        run_cmd "sudo ccm32 s"
+        run_cmd "sudo ccm64 s"
+        run_cmd "cd - > /dev/null"
+    done
+    build_lts_sources
     sign_packages
 fi
 
