@@ -61,7 +61,7 @@ build() {
                 --datadir=/usr/share \
                 --includedir=/usr/include \
                 --with-udevdir=/lib/udev \
-                --libexecdir=/usr/lib/zfs \
+                --libexecdir=/usr/lib/zfs-0.6.2 \
                 --with-config=kernel \
                 --with-linux=/usr/lib/modules/${_kernel_version_full}-ARCH/build
 
