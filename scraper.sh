@@ -45,7 +45,11 @@ check_webpage() {
     debug "Checking webpage: $1"
     debug "Using regex: `printf "%q" "$2"`"
     debug "Expecting: $3"
-    SCRAPED_STRING=$(curl -vs "$1" 2>&1 | \grep -Po -m 1 "$2")
+    if [[ $DEBUG == 1 ]]; then
+        SCRAPED_STRING=$(curl -vsL "${1}" | \grep -Po -m 1 "${2}")
+    else
+        SCRAPED_STRING=$(curl -sL "${1}" | \grep -Po -m 1 "${2}")
+    fi
     debug "Got \"$SCRAPED_STRING\" from webpage."
     if [[ $SCRAPED_STRING != "$3" ]]; then
         error "Checking \"$1\" expected \"$3\" got \"$SCRAPED_STRING\""
@@ -61,14 +65,12 @@ msg "scraper.sh started..."
 #
 msg "Checking archiso download page for linux kernel version changes..."
 
-check_webpage "https://www.archlinux.org/download/" \
-    "(?<=Included Kernel:</strong> )[\d\.]+" "$AZB_LINUX_ARCHISO_VERSION"
+check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" "$AZB_KERNEL_ARCHISO_VERSION"
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
     run_cmd send_email \
-        "Push the required packages to the archiso repo!" \
-        "The archiso has been changed!"
+        "Push the required packages to the archiso repo!" "The archiso has been changed!"
 else
     msg2 "The archiso kernel version is current."
 fi
@@ -78,13 +80,11 @@ fi
 #
 msg "Checking the online package database for i686 linux kernel version changes..."
 
-check_webpage "https://www.archlinux.org/packages/core/i686/linux/" \
-    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X32_VERSION"
+check_webpage "https://www.archlinux.org/packages/core/i686/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_GIT_KERNEL_X32_VERSION"
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
-    send_email "Update the archzfs repository!" \
-        "The i686 linux package has been changed!"
+    send_email "Update the archzfs repository!" "The i686 linux package has been changed!"
 else
     msg2 "The i686 linux kernel package is current."
 fi
@@ -94,15 +94,41 @@ fi
 #
 msg "Checking the online package database for x86_64 linux kernel version changes..."
 
-check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" \
-    "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_LINUX_X64_VERSION"
+check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_GIT_KERNEL_X64_VERSION"
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
-    send_email "Update the archzfs repository!" \
-        "The x86_64 linux package has been changed!"
+    send_email "Update the archzfs repository!" "The x86_64 linux package has been changed!"
 else
     msg2 "The x86_64 linux kernel package is current."
+fi
+
+#
+# Check i686 linux-lts kernel version
+#
+msg "Checking the online package database for i686 linux-lts kernel version changes..."
+
+check_webpage "https://www.archlinux.org/packages/core/i686/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "$AZB_LTS_KERNEL_X32_VERSION"
+
+if [[ $? != 0 ]]; then
+    msg2 "Sending notification..."
+    send_email "Update the archzfs repository!" "The i686 linux-lts package has been changed!"
+else
+    msg2 "The i686 linux-lts kernel package is current."
+fi
+
+#
+# Check x86_64 linux-lts kernel version
+#
+msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
+
+check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "$AZB_LTS_KERNEL_X64_VERSION"
+
+if [[ $? != 0 ]]; then
+    msg2 "Sending notification..."
+    send_email "Update the archzfs repository!" "The x86_64 linux-lts package has been changed!"
+else
+    msg2 "The x86_64 linux-lts kernel package is current."
 fi
 
 #
@@ -110,14 +136,11 @@ fi
 #
 msg "Checking zfsonlinux.org for new versions..."
 
-check_webpage "http://zfsonlinux.org/" \
-    "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "$AZB_ZOL_VERSION"
-
+check_webpage "http://zfsonlinux.org/" "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "$AZB_ZOL_VERSION"
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
-    run_cmd send_email "Update the archzfs repository!" \
-        "The ZOL packages have been changed!"
+    run_cmd send_email "Update the archzfs repository!" "The ZOL packages have been changed!"
 else
     msg2 "The ZOL sources are current."
 fi
