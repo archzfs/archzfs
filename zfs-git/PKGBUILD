@@ -10,6 +10,7 @@
 pkgname="zfs-git"
 pkgver=0.6.2_r258_g4fd762f_3.14.1_1
 pkgrel=2
+license=('CDDL')
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
@@ -35,11 +36,10 @@ url="http://zfsonlinux.org/"
 source=("git+https://github.com/zfsonlinux/zfs.git#commit=4fd762f")
 groups=("archzfs-git")
 md5sums=('SKIP')
-license=("CDDL")
-install=zfs.install
 replaces=("zfs")
 provides=("zfs")
 conflicts=("zfs" "zfs-lts")
+install=zfs.install
 
 build() {
     cd "${srcdir}/zfs"

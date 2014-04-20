@@ -10,6 +10,7 @@
 pkgname="spl-git"
 pkgver=0.6.2_r33_g89aa970_3.14.1_1
 pkgrel=2
+license=('GPL')
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
@@ -35,11 +36,10 @@ url="http://zfsonlinux.org/"
 source=("git+https://github.com/zfsonlinux/spl.git#commit=89aa970")
 groups=("archzfs-git")
 md5sums=('SKIP')
-license=("GPL")
-install=spl.install
 replaces=("spl")
 provides=("spl")
 conflicts=("spl" "spl-lts")
+install=spl.install
 
 build() {
     cd "${srcdir}/spl"
