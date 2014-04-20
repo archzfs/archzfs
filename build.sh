@@ -100,20 +100,63 @@ get_new_pkgver() {
     full_kernel_git_version
 
     # Get SPL version
-    cd $AZB_SPL_GIT_PATH
+    cd spl-git
+    check_git_repo
+    mkdir temp
+    cd temp
+    git clone ../spl
+    cd spl
+    git checkout -b azb $AZB_GIT_SPL_COMMIT
     AZB_NEW_SPL_X32_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^spl-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_GIT_KERNEL_X32_VERSION_CLEAN})
     AZB_NEW_SPL_X64_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^spl-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_GIT_KERNEL_X64_VERSION_CLEAN})
-    cd - > /dev/null
+    cd ../../
+    rm -rf temp
+    cd ../
 
     # Get ZFS version
-    cd $AZB_ZFS_GIT_PATH
+    cd zfs-git
+    check_git_repo
+    mkdir temp
+    cd temp
+    git clone ../zfs
+    cd zfs
+    git checkout -b azb $AZB_GIT_ZFS_COMMIT
     AZB_NEW_ZFS_X32_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_GIT_KERNEL_X32_VERSION_CLEAN})
     AZB_NEW_ZFS_X64_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_GIT_KERNEL_X64_VERSION_CLEAN})
-    cd - > /dev/null
+    cd ../../
+    rm -rf temp
+    cd ../
+}
+
+check_git_repo() {
+    # Checks the current path for a git repo
+    [[ `cat PKGBUILD` =~ git\+([[:alpha:]\/:\.]+)\/([[:alpha:]]+)\.git  ]] &&
+    local urlbase=${BASH_REMATCH[1]}; local reponame=${BASH_REMATCH[2]}
+    local url=${urlbase}/${reponame}.git
+    debug "BASH_REMATCH[1]: ${BASH_REMATCH[1]}"
+    debug "BASH_REMATCH[2]: ${BASH_REMATCH[2]}"
+    debug "GIT URL: $url"
+    debug "GIT REPO: $reponame"
+    if [[ ! -d "$reponame"  ]]; then
+        msg2 "Cloning repo..."
+        if ! git clone --mirror "$url" "$reponame"; then
+            error "Failure while cloning $url repo"
+            plain "Aborting..."
+            exit 1
+        fi
+    else
+        msg2 "Updating repo..."
+        if ! git fetch --all -p; then
+            error "Failure while fetching $url repo"
+            plain "Aborting..."
+            exit 1
+        fi
+    fi
+
 }
 
 update_git_pkgbuilds() {
@@ -123,13 +166,11 @@ update_git_pkgbuilds() {
     AZB_CURRENT_SPL_UTILS_PKGVER=$(grep "pkgver=" spl-utils-git/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_ZFS_PKGVER=$(grep "pkgver=" zfs-git/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_ZFS_UTILS_PKGVER=$(grep "pkgver=" zfs-utils-git/PKGBUILD | cut -d= -f2)
+    AZB_CURRENT_SPL_GIT_COMMIT=$(grep "#commit=" spl-git/PKGBUILD | cut -d= -f3 | sed "s/..$//g")
+    AZB_CURRENT_ZFS_GIT_COMMIT=$(grep "#commit=" zfs-git/PKGBUILD | cut -d= -f3 | sed "s/..$//g")
     AZB_CURRENT_PKGREL=$(grep "pkgrel=" spl-git/PKGBUILD | cut -d= -f2)
-    # AZB_CURRENT_SPL_DEPVER=$(grep "spl-git=" zfs-git/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
-    # AZB_CURRENT_ZFS_UTILS_DEPVER=$(grep "zfs-utils-git=" zfs-git/PKGBUILD | cut -d\" -f2 | cut -d= -f2)
     AZB_CURRENT_X32_KERNEL_VERSION=$(grep -m1 "_kernel_version_x32=" spl-git/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X64_KERNEL_VERSION=$(grep -m1 "_kernel_version_x64=" spl-git/PKGBUILD | cut -d\" -f2)
-    # AZB_CURRENT_X32_KERNEL_VERSION_CLEAN=$(grep -m1 "_kernel_version_x32_clean=" spl-git/PKGBUILD | cut -d\" -f2)
-    # AZB_CURRENT_X64_KERNEL_VERSION_CLEAN=$(grep -m1 "_kernel_version_x64_clean=" spl-git/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X32_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x32_full=" spl-git/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X64_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x64_full=" spl-git/PKGBUILD | cut -d\" -f2)
 
@@ -142,13 +183,11 @@ update_git_pkgbuilds() {
     debug "AZB_CURRENT_SPL_UTILS_PKGVER: $AZB_CURRENT_SPL_UTILS_PKGVER"
     debug "AZB_CURRENT_ZFS_PKGVER: $AZB_CURRENT_ZFS_PKGVER"
     debug "AZB_CURRENT_ZFS_UTILS_PKGVER: $AZB_CURRENT_ZFS_UTILS_PKGVER"
+    debug "AZB_CURRENT_SPL_GIT_COMMIT: $AZB_CURRENT_SPL_GIT_COMMIT"
+    debug "AZB_CURRENT_ZFS_GIT_COMMIT: $AZB_CURRENT_ZFS_GIT_COMMIT"
     debug "AZB_CURRENT_PKGREL: $AZB_CURRENT_PKGREL"
-    # debug "AZB_CURRENT_SPL_DEPVER: $AZB_CURRENT_SPL_DEPVER"
-    # debug "AZB_CURRENT_ZFS_UTILS_DEPVER: $AZB_CURRENT_ZFS_UTILS_DEPVER"
     debug "AZB_CURRENT_X32_KERNEL_VERSION: $AZB_CURRENT_X32_KERNEL_VERSION"
     debug "AZB_CURRENT_X64_KERNEL_VERSION: $AZB_CURRENT_X64_KERNEL_VERSION"
-    # debug "AZB_CURRENT_X32_KERNEL_VERSION_CLEAN: $AZB_CURRENT_X32_KERNEL_VERSION_CLEAN"
-    # debug "AZB_CURRENT_X64_KERNEL_VERSION_CLEAN: $AZB_CURRENT_X64_KERNEL_VERSION_CLEAN"
     debug "AZB_CURRENT_X32_KERNEL_VERSION_FULL: $AZB_CURRENT_X32_KERNEL_VERSION_FULL"
     debug "AZB_CURRENT_X64_KERNEL_VERSION_FULL: $AZB_CURRENT_X64_KERNEL_VERSION_FULL"
 
@@ -161,11 +200,6 @@ update_git_pkgbuilds() {
     run_cmd "find *-git -iname \"PKGBUILD\" -print | xargs sed -i \
         \"s/_kernel_version_x64=\\\"$AZB_CURRENT_X64_KERNEL_VERSION\\\"/_kernel_version_x64=\\\"$AZB_GIT_KERNEL_X64_VERSION\\\"/g\""
 
-    # run_cmd "find *-git -iname \"PKGBUILD\" -print | xargs sed -i \
-        # \"s/_kernel_version_x32_clean=\\\"$AZB_CURRENT_X32_KERNEL_VERSION_CLEAN\\\"/_kernel_version_x32_clean=\\\"$AZB_GIT_KERNEL_X32_VERSION_CLEAN\\\"/g\""
-    # run_cmd "find *-git -iname \"PKGBUILD\" -print | xargs sed -i \
-        # \"s/_kernel_version_x64_clean=\\\"$AZB_CURRENT_X64_KERNEL_VERSION_CLEAN\\\"/_kernel_version_x64_clean=\\\"$AZB_GIT_KERNEL_X64_VERSION_CLEAN\\\"/g\""
-
     run_cmd "find *-git -iname \"PKGBUILD\" -o -iname \"*.install\" -print | xargs sed -i \
         \"s/_kernel_version_x32_full=\\\"$AZB_CURRENT_X32_KERNEL_VERSION_FULL\\\"/_kernel_version_x32_full=\\\"$AZB_GIT_KERNEL_X32_VERSION_FULL\\\"/g\""
     run_cmd "find *-git -iname \"PKGBUILD\" -o -iname \"*.install\" -print | xargs sed -i \
@@ -176,6 +210,12 @@ update_git_pkgbuilds() {
     run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_SPL_UTILS_PKGVER/pkgver=$AZB_NEW_SPL_X64_PKGVER/g\" spl-utils-git/PKGBUILD"
     run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_ZFS_PKGVER/pkgver=$AZB_NEW_ZFS_X64_PKGVER/g\" zfs-git/PKGBUILD"
     run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_ZFS_UTILS_PKGVER/pkgver=$AZB_NEW_ZFS_X64_PKGVER/g\" zfs-utils-git/PKGBUILD"
+
+    # Replace the git commit id
+    run_cmd "find zfs*git -iname \"PKGBUILD\" -print | xargs sed -i \
+        \"s/#commit=$AZB_CURRENT_ZFS_GIT_COMMIT/#commit=$AZB_GIT_ZFS_COMMIT/g\""
+    run_cmd "find spl*git -iname \"PKGBUILD\" -print | xargs sed -i \
+        \"s/#commit=$AZB_CURRENT_SPL_GIT_COMMIT/#commit=$AZB_GIT_SPL_COMMIT/g\""
 
     # Update the sums of the files
     for PKG in $AZB_GIT_PKG_LIST; do
