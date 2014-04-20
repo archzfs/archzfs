@@ -9,7 +9,7 @@
 #
 pkgname="spl-git"
 pkgver=0.6.2_r33_g89aa970_3.14.1_1
-pkgrel=1
+pkgrel=2
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
@@ -32,7 +32,7 @@ depends=("spl-utils-git" "linux=${_kernel_version}")
 makedepends=("git" "linux-headers=${_kernel_version}")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
-source=("git+https://github.com/zfsonlinux/spl.git#commit=4444111")
+source=("git+https://github.com/zfsonlinux/spl.git#commit=89aa970")
 groups=("archzfs-git")
 md5sums=('SKIP')
 license=("GPL")

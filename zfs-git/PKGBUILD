@@ -9,7 +9,7 @@
 #
 pkgname="zfs-git"
 pkgver=0.6.2_r258_g4fd762f_3.14.1_1
-pkgrel=1
+pkgrel=2
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
@@ -32,10 +32,9 @@ depends=("spl-git" "zfs-utils-git" "linux=${_kernel_version}")
 makedepends=("git" "linux-headers=${_kernel_version}")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
-source=("git+https://github.com/zfsonlinux/zfs.git#commit=4444111")
+source=("git+https://github.com/zfsonlinux/zfs.git#commit=4fd762f")
 groups=("archzfs-git")
-md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
-         '577cc119618ad580d87b470463c1ef55')
+md5sums=('SKIP')
 license=("CDDL")
 install=zfs.install
 replaces=("zfs")
