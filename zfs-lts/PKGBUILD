@@ -54,7 +54,7 @@ build() {
                 --with-udevdir=/lib/udev \
                 --libexecdir=/usr/lib/zfs-0.6.2 \
                 --with-config=kernel \
-                --with-linux=/usr/lib/modules/${_kernel_version_full}-ARCH/build
+                --with-linux=/usr/lib/modules/${_kernel_version_full}-lts/build
 
     make
 }
@@ -66,5 +66,5 @@ package() {
     cp -r "$pkgdir"/{lib,usr}
     rm -r "$pkgdir"/lib
 
-    sed -i "s+${srcdir}++" ${pkgdir}/usr/src/zfs-*/${_kernel_version_full}-ARCH/Module.symvers
+    sed -i "s+${srcdir}++" ${pkgdir}/usr/src/zfs-*/${_kernel_version_full}-lts/Module.symvers
 }
