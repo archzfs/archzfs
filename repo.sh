@@ -20,7 +20,7 @@ AZB_MODE_LTS=0
 usage() {
 	echo "repo.sh - Adds the compiled packages to the archzfs repo."
     echo
-	echo "Usage: repo.sh [options] [repo] [package [...]]"
+	echo "Usage: repo.sh [options] [mode] [repo] [package [...]]"
     echo
     echo "Options:"
     echo
