@@ -29,29 +29,20 @@ fi
 
 pkgdesc="Solaris Porting Layer kernel modules."
 depends=("spl-utils-git" "linux=${_kernel_version}")
-makedepends=("linux-headers=${_kernel_version}")
+makedepends=("git" "linux-headers=${_kernel_version}")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
-source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.2.tar.gz"
-        "http://demizerone.com/patches/spl-0.6.2-r33-g89aa970.patch.tar.xz")
+source=("git+https://github.com/zfsonlinux/spl.git#commit=4444111")
 groups=("archzfs-git")
-md5sums=('f00535bf89a7fde0e08f44a14a1f1e03'
-         '47996445b30f932c3bc516f0e3d43ef2')
+md5sums=('SKIP')
 license=("GPL")
 install=spl.install
 replaces=("spl")
 provides=("spl")
 conflicts=("spl" "spl-lts")
 
-prepare() {
-    cd "${srcdir}"
-    tar --xz -xf spl-0.6.2-r33-g89aa970.patch.tar.xz
-    cd "${srcdir}/spl-0.6.2"
-    patch -Np1 < ../spl-0.6.2-r33-g89aa970.patch
-}
-
 build() {
-    cd "${srcdir}/spl-0.6.2"
+    cd "${srcdir}/spl"
     ./autogen.sh
 
     _at_enable=""
@@ -68,7 +59,7 @@ build() {
 }
 
 package() {
-    cd "${srcdir}/spl-0.6.2"
+    cd "${srcdir}/spl"
     make DESTDIR="${pkgdir}" install
 
     mv "${pkgdir}/lib" "${pkgdir}/usr/"
