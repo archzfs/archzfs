@@ -12,8 +12,10 @@ set -e
 trap 'trap_abort' INT QUIT TERM HUP
 trap 'trap_exit' EXIT
 
-DRY_RUN=0   # Show commands only. Don't do anything.
+DRY_RUN=0       # Show commands only. Don't do anything.
 AZB_REPO=""     # The destination repo for the packages
+AZB_MODE_GIT=0
+AZB_MODE_LTS=0
 
 usage() {
 	echo "repo.sh - Adds the compiled packages to the archzfs repo."
@@ -22,21 +24,30 @@ usage() {
     echo
     echo "Options:"
     echo
-    echo "    -h:    Show help information."
-    echo "    -n:    Dryrun; Output commands, but don't do anything."
-    echo "    -d:    Show debug info."
+    echo "    -h:       Show help information."
+    echo "    -n:       Dryrun; Output commands, but don't do anything."
+    echo "    -d:       Show debug info."
+    echo
+    echo "Modes:"
+    echo
+    echo "    git       Use the git packages."
+    echo "    lts       Use the lts packages."
     echo
     echo "Example Usage:"
     echo
-    echo "       repm core                  :: Add packages in the current directory to the core repo."
-    echo "       repm core -n -d            :: Show output commands and debug info."
-    echo "       repm core package.tar.xz   :: Add package.tar.xz to the core repo."
-    echo "       repm core *.tar.xz         :: Add *.tar.xz to the core repo."
+    echo "    repo.sh   git core                  :: Add git packages in the current directory to the core repo."
+    echo "    repo.sh   lts core -n -d            :: Show output commands and debug info."
+    echo "    repo.sh   git core package.tar.xz   :: Add package.tar.xz to the core repo."
+    echo "    repo.sh   gts core *.tar.xz         :: Add *.tar.xz to the core repo."
 }
 
 ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "core" ]]; then
+    if [[ ${ARGS[$a]} == "git" ]]; then
+        AZB_MODE_GIT=1
+    elif [[ ${ARGS[$a]} == "lts" ]]; then
+        AZB_MODE_LTS=1
+    elif [[ ${ARGS[$a]} == "core" ]]; then
         AZB_REPO="demz-repo-core"
     elif [[ ${ARGS[$a]} == "community" ]]; then
         AZB_REPO="demz-repo-community"
@@ -55,6 +66,14 @@ for (( a = 0; a < $#; a++ )); do
 done
 
 if [ $# -lt 1 ]; then
+    usage;
+    exit 0;
+fi
+
+if [[ $AZB_MODE_GIT == 0 && $AZB_MODE_LTS == 0 ]]; then
+    echo -e "\n"
+    error "A mode must be selected!"
+    echo -e "\n"
     usage;
     exit 0;
 fi
@@ -87,9 +106,11 @@ for arg in "$@"; do
     fi
 done
 
+[[ $AZB_MODE_GIT == 1 ]] && path_glob="*-git" || path_glob="*-lts"
+
 # Get the local packages if no packages were passed to the script
 if [[ "${#pkgs[@]}" -eq 0 ]]; then
-    for pkg in $(find . -iname "*.pkg.tar.xz"); do
+    for pkg in $(find ${path_glob} -iname "*.pkg.tar.xz"); do
         debug "Found package: $pkg"
         pkgs+=($pkg)
     done
@@ -107,8 +128,8 @@ if [[ $AZB_REPO != "" ]]; then
     pkg_list=()
 
     # Set the AZB_KERNEL_*_VERSION variables
-    full_kernel_git_version
-    full_kernel_archiso_version
+    [[ $AZB_MODE_GIT == 1 ]] && full_kernel_git_version || full_kernel_lts_version
+    [[ $AZB_REPO == "demz-repo-archiso" ]] && full_kernel_archiso_version
 
     # Add packages to the pkg_list
     for pkg in ${pkgs[@]}; do
