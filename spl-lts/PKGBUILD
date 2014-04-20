@@ -29,7 +29,7 @@ fi
 
 pkgdesc="Solaris Porting Layer kernel modules."
 depends=("spl-utils-lts" "linux-lts=${_kernel_version}")
-makedepends=("linux-headers-lts=${_kernel_version}")
+makedepends=("linux-lts-headers=${_kernel_version}")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.2.tar.gz")

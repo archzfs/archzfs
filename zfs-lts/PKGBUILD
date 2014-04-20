@@ -30,7 +30,7 @@ fi
 
 pkgdesc="Kernel modules for the Zettabyte File System."
 depends=("spl-lts" "zfs-utils-lts" "linux-lts=${_kernel_version}")
-makedepends=("linux-headers-lts=${_kernel_version}")
+makedepends=("linux-lts-headers=${_kernel_version}")
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz")
