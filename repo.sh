@@ -145,12 +145,14 @@ if [[ $AZB_REPO != "" ]]; then
         # Use a specific version incase of archiso
         if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
             [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_KERNEL_ARCHISO_VERSION_CLEAN}-${AZB_ARCHISO_PKGREL} ]] && version_match=1
-        elif [[ $AZB_REPO == "demz-repo-core" ]]; then
+        elif [[ $AZB_REPO == "demz-repo-core" && $AZB_MODE_GIT == 1 ]]; then
             [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_GIT_KERNEL_X64_VERSION_CLEAN}-${AZB_GIT_PKGREL} ]] && version_match=1
+        elif [[ $AZB_REPO == "demz-repo-core" && $AZB_MODE_LTS == 1 ]]; then
+            [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_LTS_KERNEL_X64_VERSION_CLEAN}-${AZB_LTS_PKGREL} ]] && version_match=1
         fi
 
         if [[ $version_match -eq 0 ]]; then
-            debug "$vers not equal to $REQUIRED_VERSION"
+            debug "Version mismatch!"
             continue
         fi
 
