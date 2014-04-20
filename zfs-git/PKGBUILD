@@ -38,14 +38,14 @@ arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz"
         "http://demizerone.com/patches/zfs-0.6.2-r258-g4fd762f.patch.tar.xz")
-groups=("archzfs")
+groups=("archzfs-git")
 md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
          '577cc119618ad580d87b470463c1ef55')
 license=("CDDL")
 install=zfs.install
 replaces=("zfs")
 provides=("zfs")
-conflicts=("zfs")
+conflicts=("zfs" "zfs-lts")
 
 prepare() {
     cd "${srcdir}"

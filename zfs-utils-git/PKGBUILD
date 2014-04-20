@@ -29,7 +29,7 @@ source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz
         "zfs-utils.bash-completion-r1"
         "zfs-utils.initcpio.install"
         "zfs-utils.initcpio.hook")
-groups=("archzfs")
+groups=("archzfs-git")
 md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
          '577cc119618ad580d87b470463c1ef55'
          '9ddb0c8a94861f929d0fa741fdc49950'
@@ -38,7 +38,7 @@ md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
 license=("CDDL")
 replaces=("zfs-utils")
 provides=("zfs-utils")
-conflicts=("zfs-utils")
+conflicts=("zfs-utils" "zfs-utils-lts")
 
 prepare() {
     cd "${srcdir}"

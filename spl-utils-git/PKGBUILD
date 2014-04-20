@@ -33,7 +33,7 @@ md5sums=('f00535bf89a7fde0e08f44a14a1f1e03'
 license=("GPL")
 replaces=("spl-utils")
 provides=("spl-utils")
-conflicts=("spl-utils")
+conflicts=("spl-utils" "spl-utils-lts")
 
 prepare() {
     cd "${srcdir}"

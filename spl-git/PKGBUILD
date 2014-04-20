@@ -45,7 +45,7 @@ license=("GPL")
 install=spl.install
 replaces=("spl")
 provides=("spl")
-conflicts=("spl")
+conflicts=("spl" "spl-lts")
 
 prepare() {
     cd "${srcdir}"
