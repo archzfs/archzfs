@@ -166,9 +166,9 @@ update_git_pkgbuilds() {
     # run_cmd "find *-git -iname \"PKGBUILD\" -print | xargs sed -i \
         # \"s/_kernel_version_x64_clean=\\\"$AZB_CURRENT_X64_KERNEL_VERSION_CLEAN\\\"/_kernel_version_x64_clean=\\\"$AZB_GIT_KERNEL_X64_VERSION_CLEAN\\\"/g\""
 
-    run_cmd "find *-git -iname \"PKGBUILD\" -print | xargs sed -i \
+    run_cmd "find *-git -iname \"PKGBUILD\" -o -iname \"*.install\" -print | xargs sed -i \
         \"s/_kernel_version_x32_full=\\\"$AZB_CURRENT_X32_KERNEL_VERSION_FULL\\\"/_kernel_version_x32_full=\\\"$AZB_GIT_KERNEL_X32_VERSION_FULL\\\"/g\""
-    run_cmd "find *-git -iname \"PKGBUILD\" -print | xargs sed -i \
+    run_cmd "find *-git -iname \"PKGBUILD\" -o -iname \"*.install\" -print | xargs sed -i \
         \"s/_kernel_version_x64_full=\\\"$AZB_CURRENT_X64_KERNEL_VERSION_FULL\\\"/_kernel_version_x64_full=\\\"$AZB_GIT_KERNEL_X64_VERSION_FULL\\\"/g\""
 
     # Replace the linux version in the top level PKGVER
@@ -215,9 +215,9 @@ update_lts_pkgbuilds() {
     run_cmd "find *-lts -iname \"PKGBUILD\" -print | xargs sed -i \
         \"s/_kernel_version_x64=\\\"$AZB_CURRENT_X64_KERNEL_VERSION\\\"/_kernel_version_x64=\\\"$AZB_LTS_KERNEL_X64_VERSION\\\"/g\""
 
-    run_cmd "find *-lts -iname \"PKGBUILD\" -print | xargs sed -i \
+    run_cmd "find *-lts -iname \"PKGBUILD\" -o -iname \"*.install\" -print | xargs sed -i \
         \"s/_kernel_version_x32_full=\\\"$AZB_CURRENT_X32_KERNEL_VERSION_FULL\\\"/_kernel_version_x32_full=\\\"$AZB_LTS_KERNEL_X32_VERSION_FULL\\\"/g\""
-    run_cmd "find *-lts -iname \"PKGBUILD\" -print | xargs sed -i \
+    run_cmd "find *-lts -iname \"PKGBUILD\" -o -iname \"*.install\" -print | xargs sed -i \
         \"s/_kernel_version_x64_full=\\\"$AZB_CURRENT_X64_KERNEL_VERSION_FULL\\\"/_kernel_version_x64_full=\\\"$AZB_LTS_KERNEL_X64_VERSION_FULL\\\"/g\""
 
     # Replace the linux version in the top level PKGVER
