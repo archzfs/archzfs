@@ -1,7 +1,6 @@
 #!/bin/bash
 
 build() {
-
     map add_module \
         zavl \
         znvpair \
@@ -14,8 +13,12 @@ build() {
         zlib_deflate
 
     map add_binary \
+        arcstat.py \
+        dbufstat.py \
         fsck.zfs \
+        mount.zfs \
         zdb \
+        zed \
         zfs \
         zhack \
         zinject \
@@ -25,7 +28,6 @@ build() {
         ztest \
         splat \
         hostid \
-        mount.zfs \
         /lib/udev/vdev_id \
         /lib/udev/zvol_id
 
@@ -33,6 +35,9 @@ build() {
         /lib/udev/rules.d/60-zvol.rules \
         /lib/udev/rules.d/69-vdev.rules \
         /lib/udev/rules.d/90-zfs.rules
+
+    map add_dir \
+        /etc/zfs/zed.d
 
     add_runscript
 
