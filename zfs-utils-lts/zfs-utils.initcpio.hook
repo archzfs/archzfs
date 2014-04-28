@@ -58,11 +58,9 @@ zfs_mount_handler () {
 }
 
 run_hook() {
-    case $zfs_force in
-        1|[Yy][Ee][Ss]|[Oo][Nn]|[Tt][Rr][Uu][Ee])
-            ZPOOL_FORCE='-f'
-            ;;
-    esac
+    # Force import the pools, useful if the pool has not properly been exported
+    # using 'zpool export <pool>'
+    [[ $zfs_force == 1 ]] && ZPOOL_FORCE='-f'
 
     if [ "$root" = 'zfs' ]; then
         mount_handler='zfs_mount_handler'
@@ -78,12 +76,6 @@ run_hook() {
             mount_handler="zfs_mount_handler"
             ;;
     esac
-
-    if [ -n "$spl_hostid" ]; then
-        echo "The spl_hostid kernel parameter is now deprecated. Please add \
-your hostid to /etc/hostid manually. For more information see the comments \
-section at the ZFS AUR page or the ArchWiki ZFS page."
-    fi
 
     if [ ! -f "/etc/hostid" ] ; then
         echo "ZFS: No hostid found on kernel command line or /etc/hostid. ZFS pools may not import correctly."
