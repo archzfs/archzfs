@@ -8,8 +8,8 @@
 # The build script generates and updates the pkgver and _kernel* variables.
 #
 pkgname="zfs-utils-lts"
-pkgver=0.6.2_3.10.37
-pkgrel=2
+pkgver=0.6.2_3.10.38
+pkgrel=1
 pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=("spl-lts")
 arch=("i686" "x86_64")
@@ -20,8 +20,8 @@ source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz
         "zfs-utils.initcpio.hook")
 md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
          '9ddb0c8a94861f929d0fa741fdc49950'
-         'ebea2b1e593a9a19efa0f7ae7451bbc7'
-         'b567a95a34759f196bf4be8061a895e5')
+         'd36549e6e04d817051d50c3636f21132'
+         'ffa2220e660198eaf404daa937394973')
 license=("CDDL")
 groups=("archzfs-lts")
 provides=("zfs-utils")
