@@ -78,6 +78,8 @@ if [[ $AZB_MODE_GIT == 0 && $AZB_MODE_LTS == 0 ]]; then
     exit 0;
 fi
 
+[[ $AZB_MODE_GIT == 1 ]] && AZB_KERNEL_VERSION=$AZB_GIT_KERNEL_VERSION || AZB_KERNEL_VERSION=$AZB_LTS_KERNEL_VERSION
+
 msg "repo.sh started..."
 
 if [[ $AZB_REPO == "" ]]; then
@@ -110,7 +112,13 @@ done
 
 # Get the local packages if no packages were passed to the script
 if [[ "${#pkgs[@]}" -eq 0 ]]; then
-    for pkg in $(find ${path_glob} -iname "*.pkg.tar.xz"); do
+    # Get packages from the backup directory if the repo is demz-repo-archiso
+    if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
+        fcmd_out=$(find ${AZB_PACKAGE_BACKUP_DIR} -iname "*${AZB_KERNEL_ARCHISO_VERSION}*.pkg.tar.xz")
+    else
+        fcmd_out=$(find ${path_glob} -iname "*${AZB_KERNEL_VERSION}*.pkg.tar.xz")
+    fi
+    for pkg in $fcmd_out; do
         debug "Found package: $pkg"
         pkgs+=($pkg)
     done
@@ -144,6 +152,7 @@ if [[ $AZB_REPO != "" ]]; then
 
         # Use a specific version incase of archiso
         if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
+            debug "Expect version: ${AZB_ZOL_VERSION}.*${AZB_KERNEL_ARCHISO_VERSION_CLEAN}-${AZB_ARCHISO_PKGREL}"
             [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_KERNEL_ARCHISO_VERSION_CLEAN}-${AZB_ARCHISO_PKGREL} ]] && version_match=1
         elif [[ $AZB_REPO == "demz-repo-core" && $AZB_MODE_GIT == 1 ]]; then
             [[ $vers =~ ${AZB_ZOL_VERSION}.*${AZB_GIT_KERNEL_X64_VERSION_CLEAN}-${AZB_GIT_PKGREL} ]] && version_match=1
