@@ -187,7 +187,7 @@ if [[ $AZB_REPO != "" ]]; then
     pkg_mv_list=()
     pkg_cp_list=()
     pkg_add_list=()
-    src_rm_list=()
+    src_mv_list=()
     src_cp_list=()
 
     for ipkg in ${pkg_list[@]}; do
@@ -227,8 +227,8 @@ if [[ $AZB_REPO != "" ]]; then
         for file in $(find -L $AZB_SOURCE_TARGET -iname "${name}*.src.tar.gz" 2>/dev/null); do
             src_name=$(tar -O -xzvf "$file" $name/PKGBUILD 2> /dev/null | grep "pkgname" | cut -d \" -f 2)
             if [[ $src_name == $name ]]; then
-                debug "Added $src_name ($file) to src_rm_list"
-                src_rm_list+=("$file")
+                debug "Added $src_name ($file) to src_mv_list"
+                src_mv_list+=("$file")
             fi
         done
         src_cp_list+=("./$name/$name-${vers}.src.tar.gz")
@@ -274,9 +274,10 @@ if [[ $AZB_REPO != "" ]]; then
 
     done
 
-    if [[ ${#src_rm_list[@]} -ne 0 ]]; then
-        zlist=$(echo "${src_rm_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-        run_cmd "rm $zlist"
+    # Move the package sources to the backup directory
+    if [[ ${#src_mv_list[@]} -ne 0 ]]; then
+        zlist=$(echo "${src_mv_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+        run_cmd "mv $zlist $AZB_PACKAGE_BACKUP_DIR/"
     fi
 
     nlist=$(echo "${src_cp_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
