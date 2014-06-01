@@ -68,7 +68,7 @@ build_git_sources() {
     for PKG in $AZB_GIT_PKG_LIST; do
         msg "Building source for $PKG";
         run_cmd "cd \"$PWD/$PKG\""
-        run_cmd "makepkg -Sfc"
+        run_cmd "mkaurball -f"
         run_cmd "cd - > /dev/null"
     done
 }
@@ -77,7 +77,7 @@ build_lts_sources() {
     for PKG in $AZB_LTS_PKG_LIST; do
         msg "Building source for $PKG";
         run_cmd "cd \"$PWD/$PKG\""
-        run_cmd "makepkg -Sfc"
+        run_cmd "mkaurball -f"
         run_cmd "cd - > /dev/null"
     done
 }
