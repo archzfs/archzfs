@@ -90,13 +90,9 @@ fi
 # The abs path to the repo
 AZB_REPO_TARGET=$AZB_REPO_BASEPATH/$AZB_REPO
 
-# The abs path to the package source directory in the repo
-AZB_SOURCE_TARGET="$AZB_REPO_TARGET/sources/"
-
 debug "DRY_RUN: "$DRY_RUN
 debug "AZB_REPO: "$AZB_REPO
 debug "AZB_REPO_TARGET: $AZB_REPO_TARGET"
-debug "AZB_SOURCE_TARGET: $AZB_SOURCE_TARGET"
 
 # A list of packages to install. Pulled from the command line.
 pkgs=()
@@ -188,7 +184,6 @@ if [[ $AZB_REPO != "" ]]; then
     pkg_cp_list=()
     pkg_add_list=()
     src_mv_list=()
-    src_cp_list=()
 
     for ipkg in ${pkg_list[@]}; do
         IFS=';' read -a pkgopt <<< "$ipkg"
@@ -217,21 +212,6 @@ if [[ $AZB_REPO != "" ]]; then
 
         bname=$(basename $pbin)
         pkg_add_list+=("$repo/$bname;$repo")
-
-        # Copy the sources to the source target
-        [[ ! -d $AZB_SOURCE_TARGET ]] && run_cmd "mkdir -p $AZB_SOURCE_TARGET"
-
-        # If there is zfs and zfs-utils in the directory, the glob will get
-        # both zfs and zfs-utils when globbing zfs*, therefore we have to check
-        # each file to see if it is the one we want.
-        for file in $(find -L $AZB_SOURCE_TARGET -iname "${name}*.src.tar.gz" 2>/dev/null); do
-            src_name=$(tar -O -xzvf "$file" $name/PKGBUILD 2> /dev/null | grep "pkgname" | cut -d \" -f 2)
-            if [[ $src_name == $name ]]; then
-                debug "Added $src_name ($file) to src_mv_list"
-                src_mv_list+=("$file")
-            fi
-        done
-        src_cp_list+=("./$name/$name-${vers}.src.tar.gz")
     done
 
     msg "Performing file operations..."
@@ -279,8 +259,4 @@ if [[ $AZB_REPO != "" ]]; then
         zlist=$(echo "${src_mv_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
         run_cmd "mv $zlist $AZB_PACKAGE_BACKUP_DIR/"
     fi
-
-    nlist=$(echo "${src_cp_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-    run_cmd "cp $nlist $AZB_SOURCE_TARGET"
-
 fi
