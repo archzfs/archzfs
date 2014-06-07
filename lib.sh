@@ -69,8 +69,8 @@ run_cmd() {
     if [[ $DRY_RUN -eq 1 ]]; then
         plain "$@"
     else
-        plain "Running command: $1"
-        eval "$@"
+        plain "Running command: $@"
+        $@
         plain "Command returned: $?"
     fi
 }
