@@ -69,8 +69,7 @@ check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</stron
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
-    run_cmd send_email \
-        "Push the required packages to the archiso repo!" "The archiso has been changed!"
+    send_email "Push the required packages to the archiso repo!" "The archiso has been changed!"
 else
     msg2 "The archiso kernel version is current."
 fi
