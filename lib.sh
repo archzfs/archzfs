@@ -70,7 +70,7 @@ run_cmd() {
         plain "$@"
     else
         plain "Running command: $@"
-        $@
+        eval "$@"
         plain "Command returned: $?"
     fi
 }
