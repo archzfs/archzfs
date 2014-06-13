@@ -18,12 +18,6 @@ source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.2.tar.gz
         "zfs-utils.bash-completion-r1"
         "zfs-utils.initcpio.install"
         "zfs-utils.initcpio.hook"
-        "zfs-import-cache.service"
-        "zfs-import-scan.service"
-        "zfs-mount.service"
-        "zfs-share.service"
-        "zfs.target"
-        "50-zfs.preset"
         )
 md5sums=('0b183b0abdd5be287046ad9ce4f899fd'
          '9ddb0c8a94861f929d0fa741fdc49950'
@@ -75,12 +69,4 @@ package() {
     install -D -m644 "${srcdir}"/zfs-utils.initcpio.hook "${pkgdir}"/usr/lib/initcpio/hooks/zfs
     install -D -m644 "${srcdir}"/zfs-utils.initcpio.install "${pkgdir}"/usr/lib/initcpio/install/zfs
     install -D -m644 "${srcdir}"/zfs-utils.bash-completion-r1 "${pkgdir}"/usr/share/bash-completion/completions/zfs
-
-    # XXX: steal from the upstream master branch, should be removed in the future
-    install -D -m644 "${srcdir}"/zfs-import-cache.service "${pkgdir}"/usr/lib/systemd/system/zfs-import-cache.service
-    install -D -m644 "${srcdir}"/zfs-import-scan.service "${pkgdir}"/usr/lib/systemd/system/zfs-import-scan.service
-    install -D -m644 "${srcdir}"/zfs-mount.service "${pkgdir}"/usr/lib/systemd/system/zfs-mount.service
-    install -D -m644 "${srcdir}"/zfs-share.service "${pkgdir}"/usr/lib/systemd/system/zfs-share.service
-    install -D -m644 "${srcdir}"/zfs.target "${pkgdir}"/usr/lib/systemd/system/zfs.target
-    install -D -m644 "${srcdir}"/50-zfs.preset "${pkgdir}"/usr/lib/systemd/system-preset/50-zfs.preset
 }
