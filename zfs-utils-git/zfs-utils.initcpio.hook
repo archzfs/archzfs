@@ -1,4 +1,4 @@
-#!/usr/bin/ash
+#!/usr/bin/bash
 
 ZPOOL_FORCE=""
 
