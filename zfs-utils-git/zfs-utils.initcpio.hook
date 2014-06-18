@@ -1,5 +1,3 @@
-#!/usr/bin/bash
-
 ZPOOL_FORCE=""
 
 zfs_get_bootfs () {
