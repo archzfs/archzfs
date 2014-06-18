@@ -144,24 +144,27 @@ check_git_repo() {
     debug "GIT REPO: $reponame"
     if [[ ! -d "$reponame"  ]]; then
         msg2 "Cloning repo..."
-        if ! git clone --mirror "$url" "$reponame"; then
+        git clone --mirror "$url" "$reponame"
+        if [[ $? != 0 ]]; then
             error "Failure while cloning $url repo"
             plain "Aborting..."
             exit 1
         fi
     else
         msg2 "Updating repo..."
-        if ! git fetch --all -p; then
+        cd $reponame > /dev/null
+        git fetch --all -p
+        if [[ $? != 0 ]]; then
             error "Failure while fetching $url repo"
             plain "Aborting..."
             exit 1
         fi
+        cd - > /dev/null
     fi
 
 }
 
 update_git_pkgbuilds() {
-
     # Get variables from the existing PKGBUILDs
     AZB_CURRENT_SPL_PKGVER=$(grep "pkgver=" spl-git/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_SPL_UTILS_PKGVER=$(grep "pkgver=" spl-utils-git/PKGBUILD | cut -d= -f2)
