@@ -96,12 +96,12 @@ sign_packages() {
 
 get_new_pkgver() {
     # Sets NEW_{SPL,ZFS}_PKGVER with an updated PKGVER pulled from the git repo
-
     full_kernel_git_version
 
     # Get SPL version
     cd spl-git
     check_git_repo
+    [[ -d temp ]] && rm -r temp
     mkdir temp
     cd temp
     git clone ../spl
@@ -118,6 +118,7 @@ get_new_pkgver() {
     # Get ZFS version
     cd zfs-git
     check_git_repo
+    [[ -d temp ]] && rm -r temp
     mkdir temp
     cd temp
     git clone ../zfs
