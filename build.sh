@@ -377,4 +377,6 @@ fi
 if [[ $AZB_CLEANUP -eq 1 ]]; then
     msg "Cleaning up work files..."
     run_cmd "find . \( -iname \"*.log\" -o -iname \"*.pkg.tar.xz*\" -o -iname \"*.src.tar.gz\" \) -print -exec rm -rf {} \\;"
+    run_cmd "rm -rf  */src"
+    run_cmd "rm -rf */*.tar.gz"
 fi
