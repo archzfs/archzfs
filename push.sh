@@ -63,11 +63,11 @@ FILES=""
 
 if [[ $AZB_MODE_GIT == 1 ]]; then
     full_kernel_git_version
-    FILES=$(find *-git -iname "*${AZB_ZOL_VERSION}*${AZB_GIT_KERNEL_X64_VERSION_CLEAN}-${AZB_GIT_PKGREL}*.src.tar.gz" | tr "\n" " ")
+    FILES=$(find $AZB_REPO_BASEPATH/demz-repo-core/x86_64/ -iname "*-git*${AZB_ZOL_VERSION}*${AZB_GIT_KERNEL_X64_VERSION_CLEAN}-${AZB_GIT_PKGREL}*.src.tar.gz" | tr "\n" " ")
     debug "${FILES}"
 elif [[ $AZB_MODE_LTS == 1 ]]; then
     full_kernel_lts_version
-    FILES=$(find *-lts -iname "*${AZB_ZOL_VERSION}*${AZB_LTS_KERNEL_X64_VERSION_CLEAN}-${AZB_LTS_PKGREL}*.src.tar.gz" | tr "\n" " ")
+    FILES=$(find $AZB_REPO_BASEPATH/demz-repo-core/x86_64/ -iname "*-lts*${AZB_ZOL_VERSION}*${AZB_LTS_KERNEL_X64_VERSION_CLEAN}-${AZB_LTS_PKGREL}*.src.tar.gz" | tr "\n" " ")
     debug "${FILES}"
 fi
 
