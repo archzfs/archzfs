@@ -1,85 +1,36 @@
-ZPOOL_FORCE=""
+#
+# Global Variables
+#
+ZPOOL_FORCE="" # Force import of zfs pools
+ZFS_DATASET="" # The type of zfs pool to mount
 
-zfs_get_bootfs () {
-    for zfs_dataset in $(/usr/bin/zpool list -H -o bootfs); do
-        case ${zfs_dataset} in
-            "" | "-")
-                # skip this line/dataset
-                ;;
-            "no pools available")
-                return 1
-                ;;
-            *)
-                ZFS_DATASET=${zfs_dataset}
-                return 0
-                ;;
-        esac
-    done
-    return 1
-}
-
-zfs_mount_handler () {
-    local node=$1
-    if [ "$ZFS_DATASET" = "bootfs" ] ; then
-        if ! zfs_get_bootfs ; then
-            # Lets import everything and try again
-            /usr/bin/zpool import -N -a $ZPOOL_FORCE
-            if ! zfs_get_bootfs ; then
-                echo "ZFS: Cannot find bootfs."
-                return 1
-            fi
-        fi
-    fi
-
-    local pool="${ZFS_DATASET%%/*}"
-    local zpool_import_flags=""
-    local rwopt_exp=${rwopt:-ro}
-
-    if ! "/usr/bin/zpool" list -H $pool 2>&1 > /dev/null ; then
-        if [ "$rwopt_exp" != "rw" ]; then
-            msg "ZFS: Importing pool $pool readonly."
-            zpool_import_flags="-o readonly=on"
-        else
-            msg "ZFS: Importing pool $pool."
-        fi
-
-        if ! "/usr/bin/zpool" import $zpool_import_flags -N $pool $ZPOOL_FORCE ; then
-            echo "ZFS: Unable to import pool $pool."
-            return 1
-        fi
-    fi
-
-    local mountpoint=$("/usr/bin/zfs" get -H -o value mountpoint $ZFS_DATASET)
-    if [ "$mountpoint" = "legacy" ] ; then
-        mount -t zfs -o ${rwopt_exp} "$ZFS_DATASET" "$node"
-    else
-        mount -o zfsutil,${rwopt_exp} -t zfs "$ZFS_DATASET" "$node"
-    fi
-}
-
+#
+# mkinitcpio hooks
+#
 run_hook() {
     # Force import the pools, useful if the pool has not properly been exported
     # using 'zpool export <pool>'
     [[ $zfs_force == 1 ]] && ZPOOL_FORCE='-f'
 
-    if [ "$root" = 'zfs' ]; then
-        mount_handler='zfs_mount_handler'
-    fi
-
+    # zfs specified on the kernel command line contains the type of dataset to
+    # mount
     case $zfs in
         "")
-            # skip this line/dataset
+            # skip this dataset
             ;;
         auto|bootfs)
             ZFS_DATASET='bootfs'
-            mount_handler="zfs_mount_handler"
             ;;
         *)
             ZFS_DATASET=$zfs
-            mount_handler="zfs_mount_handler"
             ;;
     esac
 
+    # Set the mount handler function in mkinitcpio
+    mount_handler="zfs_mount_handler"
+
+    # Check for the hostid. An improper hostid is one reason why pools would
+    # refuse to import.
     if [ ! -f "/etc/hostid" ] ; then
         echo "ZFS: No hostid found on kernel command line or /etc/hostid. ZFS pools may not import correctly."
     fi
@@ -94,6 +45,76 @@ run_hook() {
 
 run_latehook () {
     /usr/bin/zpool import -N -a $ZPOOL_FORCE
+    # Mount the remaining
+    local node=$1
+    /usr/bin/zfs list -H -o name -t filesystem -r $ZFS_DATASET | while read -r ZFS_CHILDREN_DATASET ; do
+        local mountpoint=$("/usr/bin/zfs" get -H -o value mountpoint $ZFS_CHILDREN_DATASET)
+        if [ "$mountpoint" = "legacy" ] ; then
+            echo "ZFS: mounting legacy don't work with this hack: $ZFS_CHILDREN_DATASET"
+            #mount -t zfs -o ${rwopt_exp} "$ZFS_CHILDREN_DATASET" "$node"
+            return 1
+        else
+            mount -o zfsutil,${rwopt_exp} -t zfs "$ZFS_CHILDREN_DATASET" "$node/$mountpoint"
+        fi
+
+    done
 }
 
+#
+# Helper Functions
+#
+zfs_mount_handler () {
+    # Import the bootfs datasets if zfs=bootfs
+    if [ "$ZFS_DATASET" = "bootfs" ] ; then
+        if ! zfs_get_bootfs_datasets ; then
+            # Lets import everything and try again
+            /usr/bin/zpool import -N -a $ZPOOL_FORCE
+            if ! zfs_get_bootfs_datasets ; then
+                echo "ZFS: Cannot find any bootfs datasets!"
+                return 1
+            fi
+        fi
+    fi
+
+    local pool="${ZFS_DATASET%%/*}" # Get datasets without /
+    local zpool_import_flags=""
+    local rwopt_exp=${rwopt:-ro} # rw option on kernel cmd line, ro is default
+
+    echo "ZFS_DATASET: $ZFS_DATASET"
+    echo "pool: $pool"
+    echo "rwopt_exp: $rwopt_exp"
+
+    # Attempt to import pools automatically
+    if ! "/usr/bin/zpool" list -H $pool 2>&1 > /dev/null ; then
+        if [ "$rwopt_exp" != "rw" ]; then
+            msg "ZFS: Importing pool $pool readonly."
+            zpool_import_flags="-o readonly=on"
+        fi
+        msg "ZFS: Importing pool $pool."
+        if ! "/usr/bin/zpool" import $zpool_import_flags -N $pool $ZPOOL_FORCE ; then
+            echo "ZFS: Unable to import pool $pool."
+            return 1
+        fi
+    fi
+
+    # Remaining mounts are done in run_latehook()
+}
+
+zfs_get_bootfs_datasets () {
+    for zfs_dataset in $(/usr/bin/zpool list -H -o bootfs); do
+        case ${zfs_dataset} in
+            "" | "-")
+                # skip this dataset
+                ;;
+            "no pools available")
+                return 1
+                ;;
+            *)
+                ZFS_DATASET=${zfs_dataset}
+                return 0
+                ;;
+        esac
+    done
+    return 1
+}
 # vim:set ts=4 sw=4 ft=sh et:
