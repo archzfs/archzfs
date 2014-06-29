@@ -49,4 +49,4 @@ AZB_REMOTE_LOGIN="jalvarez@web200.webfactional.com"
 AZB_GPG_SIGN_KEY='0EE7A126'
 
 # Package backup directory (for adding packages to demz-repo-archiso)
-AZB_PACKAGE_BACKUP_DIR="/data/pacman/repo/backup"
+AZB_PACKAGE_BACKUP_DIR="/data/pacman/repo/archive_archzfs"

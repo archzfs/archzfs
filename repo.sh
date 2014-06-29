@@ -93,6 +93,7 @@ AZB_REPO_TARGET=$AZB_REPO_BASEPATH/$AZB_REPO
 debug "DRY_RUN: "$DRY_RUN
 debug "AZB_REPO: "$AZB_REPO
 debug "AZB_REPO_TARGET: $AZB_REPO_TARGET"
+debug "AZB_KERNEL_VERSION: $AZB_KERNEL_VERSION"
 
 # A list of packages to install. Pulled from the command line.
 pkgs=()
@@ -115,34 +116,28 @@ if [[ "${#pkgs[@]}" -eq 0 ]]; then
         fcmd_out=$(find ${path_glob} -iname "*${AZB_KERNEL_VERSION}*.pkg.tar.xz")
     fi
     for pkg in $fcmd_out; do
-        debug "Found package: $pkg"
         pkgs+=($pkg)
     done
 fi
 
-for pkg in ${pkgs[@]}; do
-    debug "PKG: $pkg"
-done
-
 if [[ $AZB_REPO != "" ]]; then
-
     msg "Creating a list of packages to add..."
+
     # A list of packages to add. The strings are in the form of
     # "name;pkg.tar.xz;repo_path". There must be no spaces.
     pkg_list=()
 
-    # Set the AZB_KERNEL_*_VERSION variables
+    # A list of package sources to move
+    pkg_src_list=()
+
     [[ $AZB_MODE_GIT == 1 ]] && full_kernel_git_version || full_kernel_lts_version
     [[ $AZB_REPO == "demz-repo-archiso" ]] && full_kernel_archiso_version
 
-    # Add packages to the pkg_list
     for pkg in ${pkgs[@]}; do
 
         arch=$(package_arch_from_path $pkg)
         name=$(package_name_from_path $pkg)
         vers=$(package_version_from_path $pkg)
-
-        debug "Found package: $name, $arch, $vers"
 
         version_match=0
 
@@ -164,15 +159,19 @@ if [[ $AZB_REPO != "" ]]; then
         if [[ $arch == "any" ]]; then
             repos=`realpath $AZB_REPO_TARGET/{x86_64,i686}`
             for repo in $repos; do
-                debug "Using: $name;$vers;$pkg;$repo"
+                debug "Package: pkgname: $name\n\t\t  pkgver: $vers\n\t\t  pkgpath: $pkg\n\t\t  pkgdest: $AZB_REPO_TARGET/$arch"
+                # Each index is [name, version, pkgpath, pkgdest]
                 pkg_list+=("$name;$vers;$pkg;$repo")
             done
             continue
         fi
 
-        debug "Using: $name;$vers;$pkg;$AZB_REPO_TARGET/$arch"
+        debug "Using: pkgname: $name\n\t\t  pkgver: $vers\n\t\t  pkgpath: $pkg\n\t\t  pkgdest: $AZB_REPO_TARGET/$arch"
         pkg_list+=("$name;$vers;$pkg;$AZB_REPO_TARGET/$arch")
 
+        litem="$name/$name-$vers.src.tar.gz;$AZB_REPO_TARGET/$arch"
+        debug "Source: srcname: $name-$vers.src.tar.gz\n\t\t   srcdest: $AZB_REPO_TARGET/$arch"
+        pkg_src_list+=($litem)
     done
 
     if [[ ${#pkg_list[@]} == 0 ]]; then
@@ -180,8 +179,8 @@ if [[ $AZB_REPO != "" ]]; then
         exit 1
     fi
 
-    pkg_mv_list=()
-    pkg_cp_list=()
+    exist_pkg_mv_list=()
+    new_pkg_mv_list=()
     pkg_add_list=()
     src_mv_list=()
 
@@ -190,10 +189,10 @@ if [[ $AZB_REPO != "" ]]; then
 
         name="${pkgopt[0]}"
         vers="${pkgopt[1]}"
-        pbin="${pkgopt[2]}"
+        pkgp="${pkgopt[2]}"
         repo="${pkgopt[3]}"
 
-        msg2 "Processing $pbin to $repo"
+        msg2 "Processing $name-$vers to $repo"
         [[ ! -d $repo ]] && run_cmd "mkdir -p $repo"
 
         # Move the old packages to backup
@@ -201,50 +200,52 @@ if [[ $AZB_REPO != "" ]]; then
             ename=$(package_name_from_path $x)
             evers=$(package_version_from_path $x)
             if [[ $ename == $name && $evers != $vers ]]; then
-                debug "Found Old Package: $ename, Version: $evers"
-                # The '*' globs the signatures
-                debug "Added $repo/$ename-${evers}* to move list"
-                pkg_mv_list+=("$repo/$ename-${evers}*")
+                # The '*' globs the signatures and package sources
+                epkg="$repo/$ename-${evers}*"
+                debug "Found existing package $epkg"
+                exist_pkg_mv_list+=($epkg)
+                src="${epkg:0:(-1)}.src.tar.gz"
+                if [[ -f $src ]]; then
+                    exist_pkg_mv_list+=($src)
+                fi
             fi
         done
 
-        pkg_cp_list+=("$pbin*;$repo")
-
-        bname=$(basename $pbin)
+        new_pkg_mv_list+=("$pkgp*;$repo")
+        bname=$(basename $pkgp)
         pkg_add_list+=("$repo/$bname;$repo")
     done
 
     msg "Performing file operations..."
 
-    if [[ ${#pkg_mv_list[@]} -gt 0 ]]; then
-        msg2 "Move old packages to backup directory"
-        run_cmd "mv ${pkg_mv_list[*]} $AZB_REPO_BASEPATH/backup/"
+    if [[ ${#exist_pkg_mv_list[@]} -gt 0 ]]; then
+        msg2 "Move old packages and sources to backup directory"
+        run_cmd "mv ${exist_pkg_mv_list[*]} $AZB_PACKAGE_BACKUP_DIR/"
     fi
 
     for arch in "i686" "x86_64"; do
 
-        msg "Copying the new $arch packages and adding to repo..."
+        msg "Copying the new $arch packages and sources to the repo..."
 
-        cp_list=""  # The packages to copy in one string
+        mv_list=""  # The packages to copy in one string
         ra_list=""  # The packages to add to the repo in one string
         repo=""     # The destination repo
 
         # Create the command file lists from the arrays
-        for pkg in "${pkg_cp_list[@]}"; do
+        for pkg in "${new_pkg_mv_list[@]}"; do
             if [[ "$pkg" == *$arch* ]]; then
-                debug "Copying: $pkg"
-                cp_list="$cp_list "$(echo "$pkg" | cut -d \; -f 1)
+                mv_list="$mv_list "$(echo "$pkg" | cut -d \; -f 1)
                 repo=$(echo "$pkg" | cut -d \; -f 2)
                 ra=$(echo "$pkg" | cut -d \; -f 1 | xargs basename)
                 ra_list="$ra_list $repo/${ra%?}"
             fi
         done
 
-        if [[ $cp_list == "" ]]; then
-            warning "No packages to copy!"
+        if [[ $mv_list == "" ]]; then
+            warning "No packages to move!"
             continue
         fi
-        run_cmd "cp $cp_list $repo/"
+        run_cmd "mv $mv_list $repo/"
 
         run_cmd "repo-add -k $AZB_GPG_SIGN_KEY -s -v -f $repo/${AZB_REPO}.db.tar.xz $ra_list"
         if [[ $? -ne 0 ]]; then
@@ -254,9 +255,20 @@ if [[ $AZB_REPO != "" ]]; then
 
     done
 
-    # Move the package sources to the backup directory
-    if [[ ${#src_mv_list[@]} -ne 0 ]]; then
-        zlist=$(echo "${src_mv_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-        run_cmd "mv $zlist $AZB_PACKAGE_BACKUP_DIR/"
-    fi
+    # Copy package sources
+    msg "Copy package sources"
+    for arch in "i686" "x86_64"; do
+        src_mv_list=()
+        for src in "${pkg_src_list[@]}"; do
+            if [[ "$src" == *$arch* ]]; then
+                src_mv_list="$src_mv_list "$(echo "$src" | cut -d \; -f 1)
+                repo=$(echo "$src" | cut -d \; -f 2)
+            fi
+        done
+        run_cmd "cp $src_mv_list $repo/"
+        if [[ $arch == "x86_64" ]]; then
+            # Delete the package sources
+            run_cmd "rm $src_mv_list"
+        fi
+    done
 fi
