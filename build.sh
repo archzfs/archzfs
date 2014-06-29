@@ -358,6 +358,7 @@ if [[ $AZB_BUILD == 1 && $AZB_MODE_GIT == 1 ]]; then
     done
     build_git_sources
     sign_packages
+    run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
 elif [[ $AZB_BUILD == 1 && $AZB_MODE_LTS == 1 ]]; then
     for PKG in $AZB_LTS_PKG_LIST; do
         msg "Building $PKG..."
@@ -368,6 +369,7 @@ elif [[ $AZB_BUILD == 1 && $AZB_MODE_LTS == 1 ]]; then
     done
     build_lts_sources
     sign_packages
+    run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
 fi
 
 if [[ $AZB_SIGN -eq 1 ]]; then
