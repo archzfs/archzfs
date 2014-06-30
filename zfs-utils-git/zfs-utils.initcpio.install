@@ -59,7 +59,7 @@ Command Line Setup:
 
     To use ZFS as your boot filesystem:
 
-        zfs=bootfs
+        zfs=bootfs or zfs=auto or root=zfs
 
     To use a pool or dataset:
 
