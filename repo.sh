@@ -204,10 +204,6 @@ if [[ $AZB_REPO != "" ]]; then
                 epkg="$repo/$ename-${evers}*"
                 debug "Found existing package $epkg"
                 exist_pkg_mv_list+=($epkg)
-                src="${epkg:0:(-1)}.src.tar.gz"
-                if [[ -f $src ]]; then
-                    exist_pkg_mv_list+=($src)
-                fi
             fi
         done
 
@@ -220,7 +216,7 @@ if [[ $AZB_REPO != "" ]]; then
 
     if [[ ${#exist_pkg_mv_list[@]} -gt 0 ]]; then
         msg2 "Move old packages and sources to backup directory"
-        run_cmd "mv ${exist_pkg_mv_list[*]} $AZB_PACKAGE_BACKUP_DIR/"
+        run_cmd "mv -f ${exist_pkg_mv_list[*]} $AZB_PACKAGE_BACKUP_DIR/"
     fi
 
     for arch in "i686" "x86_64"; do
