@@ -9,7 +9,7 @@
 #
 pkgname="spl-git"
 pkgver=0.6.3_r0_g31cb538_3.15.2_1
-pkgrel=1
+pkgrel=2
 license=('GPL')
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
