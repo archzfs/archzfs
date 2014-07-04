@@ -9,7 +9,7 @@
 #
 pkgname="spl-utils-git"
 pkgver=0.6.3_r0_g31cb538_3.15.3_1
-pkgrel=2
+pkgrel=1
 license=('GPL')
 pkgdesc="Solaris Porting Layer kernel module support files."
 makedepends=("git")

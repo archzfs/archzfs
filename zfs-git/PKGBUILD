@@ -9,7 +9,7 @@
 #
 pkgname="zfs-git"
 pkgver=0.6.3_r0_g07dabd2_3.15.3_1
-pkgrel=2
+pkgrel=1
 license=('CDDL')
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
