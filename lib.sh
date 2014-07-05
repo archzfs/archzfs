@@ -67,7 +67,9 @@ debug() {
 run_cmd() {
     # $1: The command to run
     if [[ $DRY_RUN -eq 1 ]]; then
-        plain "$@"
+        for pos in $@; do
+            plain $pos
+        done
     else
         plain "Running command: $@"
         eval "$@"
