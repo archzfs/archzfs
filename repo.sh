@@ -112,6 +112,9 @@ if [[ "${#pkgs[@]}" -eq 0 ]]; then
     # Get packages from the backup directory if the repo is demz-repo-archiso
     if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
         fcmd_out=$(find ${AZB_PACKAGE_BACKUP_DIR} -iname "*${AZB_KERNEL_ARCHISO_VERSION}*.pkg.tar.xz")
+        if [[ $fcmd_out == "" ]]; then
+            fcmd_out=$(find ${AZB_REPO_BASEPATH}/demz-repo-core -iname "*${AZB_KERNEL_ARCHISO_VERSION}*.pkg.tar.xz")
+        fi
     else
         fcmd_out=$(find ${path_glob} -iname "*${AZB_KERNEL_VERSION}*.pkg.tar.xz")
     fi
@@ -169,7 +172,11 @@ if [[ $AZB_REPO != "" ]]; then
         debug "Using: pkgname: $name\n\t\t  pkgver: $vers\n\t\t  pkgpath: $pkg\n\t\t  pkgdest: $AZB_REPO_TARGET/$arch"
         pkg_list+=("$name;$vers;$pkg;$AZB_REPO_TARGET/$arch")
 
-        litem="$name/$name-$vers.src.tar.gz;$AZB_REPO_TARGET/$arch"
+        if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
+            litem="$AZB_REPO_BASEPATH/demz-repo-core/$arch/$name-$vers.src.tar.gz;$AZB_REPO_TARGET/$arch"
+        else
+            litem="$name/$name-$vers.src.tar.gz;$AZB_REPO_TARGET/$arch"
+        fi
         debug "Source: srcname: $name-$vers.src.tar.gz\n\t\t   srcdest: $AZB_REPO_TARGET/$arch"
         pkg_src_list+=($litem)
     done
@@ -180,7 +187,7 @@ if [[ $AZB_REPO != "" ]]; then
     fi
 
     exist_pkg_mv_list=()
-    new_pkg_mv_list=()
+    new_pkg_cp_list=()
     pkg_add_list=()
     src_mv_list=()
 
@@ -207,41 +214,64 @@ if [[ $AZB_REPO != "" ]]; then
             fi
         done
 
-        new_pkg_mv_list+=("$pkgp*;$repo")
+        # The * is to catch the signature
+        new_pkg_cp_list+=("$pkgp*;$repo")
         bname=$(basename $pkgp)
         pkg_add_list+=("$repo/$bname;$repo")
     done
 
+    # Remove duplicate src packages
+    for ((i = 0; i < ${#exist_pkg_mv_list[@]}; i++)); do
+        bname=$(basename ${exist_pkg_mv_list[$i]})
+        if [[ $bname != *src.tar.gz ]]; then
+            continue
+        fi
+        for pkg2 in ${exist_pkg_mv_list[@]}; do
+            bname2=$(basename $pkg2)
+            if [[ $bname2 != *src.tar.gz ]]; then
+                continue
+            fi
+            if [[ $bname == $bname2 ]]; then
+                unset $exist_pkg_mv_list[$i]
+            fi
+        done
+    done
+
     msg "Performing file operations..."
 
-    if [[ ${#exist_pkg_mv_list[@]} -gt 0 ]]; then
+    if [[ ${#exist_pkg_mv_list[@]} -gt 0 && $AZB_REPO != "demz-repo-archiso" ]]; then
         msg2 "Move old packages and sources to backup directory"
         run_cmd "mv -f ${exist_pkg_mv_list[*]} $AZB_PACKAGE_BACKUP_DIR/"
+    elif [[ ${#exist_pkg_mv_list[@]} -gt 0 && $AZB_REPO == "demz-repo-archiso" ]]; then
+        # We don't need the archiso repo packages because they are already in
+        # the backup directory.
+        run_cmd "rm -f ${exist_pkg_mv_list[*]}"
     fi
 
     for arch in "i686" "x86_64"; do
 
-        msg "Copying the new $arch packages and sources to the repo..."
+        msg "Copying the new $arch packages to the repo..."
 
-        mv_list=""  # The packages to copy in one string
+        cp_list=""  # The packages to copy in one string
         ra_list=""  # The packages to add to the repo in one string
         repo=""     # The destination repo
 
         # Create the command file lists from the arrays
-        for pkg in "${new_pkg_mv_list[@]}"; do
+        for pkg in "${new_pkg_cp_list[@]}"; do
             if [[ "$pkg" == *$arch* ]]; then
-                mv_list="$mv_list "$(echo "$pkg" | cut -d \; -f 1)
+                cp_list="$cp_list "$(echo "$pkg" | cut -d \; -f 1)
                 repo=$(echo "$pkg" | cut -d \; -f 2)
                 ra=$(echo "$pkg" | cut -d \; -f 1 | xargs basename)
                 ra_list="$ra_list $repo/${ra%?}"
             fi
         done
 
-        if [[ $mv_list == "" ]]; then
-            warning "No packages to move!"
+        if [[ $cp_list == "" ]]; then
+            warning "No packages to copy!"
             continue
         fi
-        run_cmd "mv $mv_list $repo/"
+
+        run_cmd "cp -f $cp_list $repo/"
 
         run_cmd "repo-add -k $AZB_GPG_SIGN_KEY -s -v -f $repo/${AZB_REPO}.db.tar.xz $ra_list"
         if [[ $? -ne 0 ]]; then
@@ -254,17 +284,17 @@ if [[ $AZB_REPO != "" ]]; then
     # Copy package sources
     msg "Copy package sources"
     for arch in "i686" "x86_64"; do
-        src_mv_list=()
+        src_cp_list=()
         for src in "${pkg_src_list[@]}"; do
             if [[ "$src" == *$arch* ]]; then
-                src_mv_list="$src_mv_list "$(echo "$src" | cut -d \; -f 1)
+                src_cp_list="$src_cp_list "$(echo "$src" | cut -d \; -f 1)
                 repo=$(echo "$src" | cut -d \; -f 2)
             fi
         done
-        run_cmd "cp $src_mv_list $repo/"
-        if [[ $arch == "x86_64" ]]; then
+        run_cmd "cp $src_cp_list $repo/"
+        if [[ $arch == "x86_64" && $AZB_REPO != "demz-repo-archiso" ]]; then
             # Delete the package sources
-            run_cmd "rm $src_mv_list"
+            run_cmd "rm $src_cp_list"
         fi
     done
 fi
