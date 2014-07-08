@@ -1,23 +1,47 @@
 #!/bin/bash
-#
-# This script is used to make sure the archzfs repositories are up to date and
-# in sync with my local repositories.
-#
-# This is necessary because I often forgot to push the changes to the archzfs
-# host after updating my local repositories.
-#
-source "lib.sh"
-source "conf.sh"
+
+DIR="$( cd "$( dirname "$0"  )" && pwd  )"
+
+set -e
+
+source $DIR/lib.sh
+source $DIR/conf.sh
+
+trap 'trap_abort' INT QUIT TERM HUP
+trap 'trap_exit' EXIT
+
+usage() {
+	echo "verifier.sh - Compares repository hashes."
+    echo
+	echo "Usage: ./verifier.sh [options]"
+    echo
+    echo "Options:"
+    echo
+    echo "    -h:    Show help information."
+    echo "    -d:    Show debug info."
+    echo
+	echo "Examples:"
+    echo
+    echo "    verifier.sh -d    :: Show debug output."
+}
+
+ARGS=("$@")
+for (( a = 0; a < $#; a++ )); do
+    if [[ ${ARGS[$a]} == "-h" ]]; then
+        usage;
+        exit 0;
+    elif [[ ${ARGS[$a]} == "-d" ]]; then
+        DEBUG=1
+    fi
+done
 
 compute_local_repo_hash() {
     # $1: The repository to compute
     # Sets LOCAL_REPO_HASH
     msg2 "Computing local $1 repository hashes..."
-    LFILES=$(cd $REPO_BASEPATH; sha256sum $1/{x86_64,i686}/*)
-    if [[ $DEBUG == "1" ]]; then
-        msg2 "Repository hash list:"
-        echo "$LFILES"
-    fi
+    LFILES=$(cd $AZB_REPO_BASEPATH; sha256sum $1/*/*)
+    debug "Repository hash list:"
+    debug "$LFILES"
     LOCAL_REPO_HASH=$(echo "$LFILES" | sha256sum | cut -f 1 -d' ')
     msg2 "Computed hash: $LOCAL_REPO_HASH"
 }
@@ -26,11 +50,9 @@ compute_remote_repo_hash() {
     # $1: The repository to compute
     # Sets REMOTE_REPO_HASH
     msg2 "Computing remote $1 repository hashes..."
-    RFILES=$(ssh $REMOTE_LOGIN "cd webapps/default; sha256sum $1/{x86_64,i686}/*")
-    if [[ $DEBUG == "1" ]]; then
-        msg2 "Repository hash list:"
-        echo "$RFILES"
-    fi
+    RFILES=$(ssh $AZB_REMOTE_LOGIN "cd webapps/default; sha256sum $1/*/*")
+    debug "Repository hash list:"
+    debug "$RFILES"
     REMOTE_REPO_HASH=$(echo "$RFILES" | sha256sum | cut -f 1 -d' ')
     msg2 "Computed hash: $REMOTE_REPO_HASH"
 }
