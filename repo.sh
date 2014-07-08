@@ -209,7 +209,6 @@ if [[ $AZB_REPO != "" ]]; then
             if [[ $ename == $name && $evers != $vers ]]; then
                 # The '*' globs the signatures and package sources
                 epkg="$repo/$ename-${evers}*"
-                debug "Found existing package $epkg"
                 exist_pkg_mv_list+=($epkg)
             fi
         done
@@ -220,33 +219,29 @@ if [[ $AZB_REPO != "" ]]; then
         pkg_add_list+=("$repo/$bname;$repo")
     done
 
-    # Remove duplicate src packages
+    # Build mv list with unique source packages since i686 and x86_64 both have
+    # identical source packages. If we attempt to move with identical file
+    # names, cp will fail with the "cp: will not overwrite just-created" error.
+    exist_pkg_mv_list_uniq=()
     for ((i = 0; i < ${#exist_pkg_mv_list[@]}; i++)); do
-        bname=$(basename ${exist_pkg_mv_list[$i]})
-        if [[ $bname != *src.tar.gz ]]; then
+        if [[ ${exist_pkg_mv_list[$i]} != *src.tar.gz ]]; then
+            exist_pkg_mv_list_uniq+=(${exist_pkg_mv_list[$i]})
             continue
         fi
-        for pkg2 in ${exist_pkg_mv_list[@]}; do
-            bname2=$(basename $pkg2)
-            if [[ $bname2 != *src.tar.gz ]]; then
-                continue
-            fi
-            if [[ $bname == $bname2 ]]; then
-                unset $exist_pkg_mv_list[$i]
-            fi
-        done
+        if [[ ${exist_pkg_mv_list[$i]} == *x86_64* ]]; then
+            exist_pkg_mv_list_uniq+=(${exist_pkg_mv_list[$i]})
+        fi
     done
 
     msg "Performing file operations..."
 
-    if [[ ${#exist_pkg_mv_list[@]} -gt 0 && $AZB_REPO != "demz-repo-archiso" ]]; then
-        msg2 "Move old packages and sources to backup directory"
-        run_cmd "mv -f ${exist_pkg_mv_list[*]} $AZB_PACKAGE_BACKUP_DIR/"
-    elif [[ ${#exist_pkg_mv_list[@]} -gt 0 && $AZB_REPO == "demz-repo-archiso" ]]; then
-        # We don't need the archiso repo packages because they are already in
-        # the backup directory.
-        run_cmd "rm -f ${exist_pkg_mv_list[*]}"
+    if [[ ${#exist_pkg_mv_list_uniq[@]} -gt 0 && $AZB_REPO != "demz-repo-archiso" ]]; then
+        msg2 "Copy old packages and sources to backup directory"
+        run_cmd "cp -f ${exist_pkg_mv_list_uniq[*]} $AZB_PACKAGE_BACKUP_DIR/"
     fi
+
+    # Remove the existing packages in the repo path
+    run_cmd "rm -f ${exist_pkg_mv_list[*]}"
 
     for arch in "i686" "x86_64"; do
 
