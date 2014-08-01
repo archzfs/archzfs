@@ -9,16 +9,16 @@
 # The build script generates and updates the pkgver and _kernel* variables.
 #
 pkgname="zfs-lts"
-pkgver=0.6.3_3.14.14
+pkgver=0.6.3_3.14.15
 pkgrel=1
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
 # 3.12.9-1 and x86_64 was versioned at 3.12.9-2.
-_kernel_version_x32="3.14.14-1"
-_kernel_version_x32_full="3.14.14-1"
-_kernel_version_x64="3.14.14-1"
-_kernel_version_x64_full="3.14.14-1"
+_kernel_version_x32="3.14.15-1"
+_kernel_version_x32_full="3.14.15-1"
+_kernel_version_x64="3.14.15-1"
+_kernel_version_x64_full="3.14.15-1"
 
 if [[ $CARCH == "i686" ]]; then
     _kernel_version=${_kernel_version_x32}
@@ -35,7 +35,7 @@ arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.3.tar.gz")
 groups=("archzfs-lts")
-md5sums=('5bcc32c122934d421eba68e16826637d')
+md5sums=('9b3306f8b99f4758c216617d4f107886')
 license=("CDDL")
 install=zfs.install
 provides=("zfs")
