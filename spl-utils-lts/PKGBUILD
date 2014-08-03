@@ -9,7 +9,7 @@
 #
 pkgname="spl-utils-lts"
 pkgver=0.6.3_3.14.15
-pkgrel=1
+pkgrel=2
 pkgdesc="Solaris Porting Layer kernel module support files."
 arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"

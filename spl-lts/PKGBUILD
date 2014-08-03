@@ -9,7 +9,7 @@
 #
 pkgname="spl-lts"
 pkgver=0.6.3_3.14.15
-pkgrel=1
+pkgrel=2
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at

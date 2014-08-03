@@ -10,7 +10,7 @@
 #
 pkgname="zfs-lts"
 pkgver=0.6.3_3.14.15
-pkgrel=1
+pkgrel=2
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
@@ -35,7 +35,7 @@ arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.3.tar.gz")
 groups=("archzfs-lts")
-md5sums=('9b3306f8b99f4758c216617d4f107886')
+md5sums=('5bcc32c122934d421eba68e16826637d')
 license=("CDDL")
 install=zfs.install
 provides=("zfs")

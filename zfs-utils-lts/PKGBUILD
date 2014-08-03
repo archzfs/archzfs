@@ -9,7 +9,7 @@
 #
 pkgname="zfs-utils-lts"
 pkgver=0.6.3_3.14.15
-pkgrel=1
+pkgrel=2
 pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=("spl-lts")
 arch=("i686" "x86_64")
@@ -19,7 +19,7 @@ source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-0.6.3.tar.gz
         "zfs-utils.initcpio.install"
         "zfs-utils.initcpio.hook"
         )
-md5sums=('9b3306f8b99f4758c216617d4f107886'
+md5sums=('5bcc32c122934d421eba68e16826637d'
          '9ddb0c8a94861f929d0fa741fdc49950'
          'd36549e6e04d817051d50c3636f21132'
          'ffa2220e660198eaf404daa937394973')
