@@ -8,6 +8,7 @@
 AZB_GIT_PKG_LIST="spl-utils-git spl-git zfs-utils-git zfs-git"
 AZB_LTS_PKG_LIST="spl-utils-lts spl-lts zfs-utils-lts zfs-lts"
 AZB_UPDATE_PKGBUILDS=""
+AZB_UPDPKGSUMS=0
 AZB_UPDATE_TEST_PKGBUILDS=""
 AZB_BUILD=0
 AZB_USE_TEST=0
@@ -36,6 +37,7 @@ usage() {
     echo "    -n:    Dryrun; Output commands, but don't do anything."
     echo "    -d:    Show debug info."
     echo "    -u:    Perform an update in the clean chroot."
+    echo "    -U:    Uses updpkgsums on PKGBUILDS."
     echo "    -C:    Remove all files that are not package sources."
     echo
     echo "Modes:"
@@ -275,12 +277,14 @@ update_lts_pkgbuilds() {
     # Replace the ZOL Version
     run_cmd "find *-lts -type f -print | xargs sed -i \"s/$AZB_CURRENT_ZOL_VERSION/$AZB_ZOL_VERSION/g\""
 
+    return 0
+}
+
+update_lts_pkgsums() {
     # Update the sums of the files
     for PKG in $AZB_LTS_PKG_LIST; do
         run_cmd "updpkgsums $PKG/PKGBUILD"
     done
-
-    return 0
 }
 
 if [[ $# -lt 1 ]]; then
@@ -309,6 +313,8 @@ for (( a = 0; a < $#; a++ )); do
         exit 0;
     elif [[ ${ARGS[$a]} == "-u" ]]; then
         AZB_CHROOT_UPDATE="-u"
+    elif [[ ${ARGS[$a]} == "-U" ]]; then
+        AZB_UPDPKGSUMS=1
     elif [[ ${ARGS[$a]} == "-C" ]]; then
         AZB_CLEANUP=1
     elif [[ ${ARGS[$a]} == "-n" ]]; then
@@ -335,6 +341,10 @@ if [[ $AZB_MODE_GIT == 0 && $AZB_MODE_LTS == 0 && $AZB_CLEANUP == 0 ]]; then
 fi
 
 msg "build.sh started..."
+
+if [[ $AZB_UPDPKGSUMS == 1 && $AZB_MODE_LTS == 1 ]]; then
+    update_lts_pkgsums
+fi
 
 if [[ $AZB_UPDATE_PKGBUILDS == 1 && $AZB_MODE_GIT == 1 ]]; then
     update_git_pkgbuilds
