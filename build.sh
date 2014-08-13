@@ -21,8 +21,6 @@ AZB_MODE_LTS=0
 source ./lib.sh
 source ./conf.sh
 
-set -e
-
 trap 'trap_abort' INT QUIT TERM HUP
 trap 'trap_exit' EXIT
 
