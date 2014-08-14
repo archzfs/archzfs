@@ -8,16 +8,16 @@
 # The build script generates and updates the pkgver and _kernel* variables.
 #
 pkgname="spl-lts"
-pkgver=0.6.3_3.14.16
+pkgver=0.6.3_3.14.17
 pkgrel=2
 
 # Used incase the i686 and x86_64 linux packages get out of sync with the
 # PKGREL. This occurred on January 31, 2014 where i686 was versioned at
 # 3.12.9-1 and x86_64 was versioned at 3.12.9-2.
-_kernel_version_x32="3.14.16-1"
-_kernel_version_x32_full="3.14.16-1"
-_kernel_version_x64="3.14.16-1"
-_kernel_version_x64_full="3.14.16-1"
+_kernel_version_x32="3.14.17-1"
+_kernel_version_x32_full="3.14.17-1"
+_kernel_version_x64="3.14.17-1"
+_kernel_version_x64_full="3.14.17-1"
 
 if [[ $CARCH == "i686" ]]; then
     _kernel_version=${_kernel_version_x32}
@@ -34,7 +34,6 @@ arch=("i686" "x86_64")
 url="http://zfsonlinux.org/"
 source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-0.6.3.tar.gz")
 groups=("archzfs-lts")
-md5sums=('8df6ce3c8f1d9af6526b36f5079cba59')
 license=("GPL")
 install=spl.install
 provides=("spl")
@@ -64,3 +63,4 @@ package() {
     mv "${pkgdir}/lib" "${pkgdir}/usr/"
     sed -i "s+${srcdir}++" ${pkgdir}/usr/src/spl-*/${_kernel_version_full}-lts/Module.symvers
 }
+sha256sums=('898aa3912c73420a0082375679e28267a26d348a84561e25898a171785f41fe3')
