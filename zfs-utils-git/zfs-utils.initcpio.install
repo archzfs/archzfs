@@ -45,6 +45,7 @@ build() {
     echo 'zfs' >>"$BUILDROOT/etc/filesystems"
 
     [[ -f /etc/zfs/zpool.cache ]] && add_file "/etc/zfs/zpool.cache"
+    [[ -f /etc/modprobe.d/zfs.conf ]] && add_file "/etc/modprobe.d/zfs.conf"
     [[ -f /etc/hostid ]] && add_file "/etc/hostid"
 }
 
@@ -84,6 +85,9 @@ Examples:
     This will setup your root using tank/root zfs pool.
 
         zfs=tank/root rw
+
+If you want to set properties for zfs-on-linux module, you should add them to
+/etc/modprobe.d/zfs.conf and then rebuild initcpio.
 
 HELPEOF
 }
