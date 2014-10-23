@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 #
 # This script builds the archzfs packages in a clean clean chroot environment.
 #
