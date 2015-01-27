@@ -1,4 +1,5 @@
 ZPOOL_FORCE=""
+ZPOOL_IMPORT_FLAGS=""
 
 zfs_get_bootfs () {
     for zfs_dataset in $(/usr/bin/zpool list -H -o bootfs); do
@@ -23,7 +24,7 @@ zfs_mount_handler () {
     if [ "$ZFS_DATASET" = "bootfs" ] ; then
         if ! zfs_get_bootfs ; then
             # Lets import everything and try again
-            /usr/bin/zpool import -N -a $ZPOOL_FORCE
+            /usr/bin/zpool import $ZPOOL_IMPORT_FLAGS -N -a $ZPOOL_FORCE
             if ! zfs_get_bootfs ; then
                 echo "ZFS: Cannot find bootfs."
                 return 1
@@ -32,18 +33,17 @@ zfs_mount_handler () {
     fi
 
     local pool="${ZFS_DATASET%%/*}"
-    local zpool_import_flags=""
     local rwopt_exp=${rwopt:-ro}
 
     if ! "/usr/bin/zpool" list -H $pool 2>&1 > /dev/null ; then
         if [ "$rwopt_exp" != "rw" ]; then
             msg "ZFS: Importing pool $pool readonly."
-            zpool_import_flags="-o readonly=on"
+            ZPOOL_IMPORT_FLAGS="$ZPOOL_IMPORT_FLAGS -o readonly=on"
         else
             msg "ZFS: Importing pool $pool."
         fi
 
-        if ! "/usr/bin/zpool" import $zpool_import_flags -N $pool $ZPOOL_FORCE ; then
+        if ! "/usr/bin/zpool" import $ZPOOL_IMPORT_FLAGS -N $pool $ZPOOL_FORCE ; then
             echo "ZFS: Unable to import pool $pool."
             return 1
         fi
@@ -61,6 +61,7 @@ run_hook() {
     # Force import the pools, useful if the pool has not properly been exported
     # using 'zpool export <pool>'
     [[ $zfs_force == 1 ]] && ZPOOL_FORCE='-f'
+    [[ "$zfs_import_dir" != "" ]] && ZPOOL_IMPORT_FLAGS="$ZPOOL_IMPORT_FLAGS -d $zfs_import_dir"
 
     if [ "$root" = 'zfs' ]; then
         mount_handler='zfs_mount_handler'

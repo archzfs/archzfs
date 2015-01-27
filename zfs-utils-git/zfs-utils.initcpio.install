@@ -73,6 +73,15 @@ Command Line Setup:
         If set to 1, this will use "zpool import -f" when attempting to import
         pools.
 
+    To search for devices in a directory other than "/dev":
+
+        zfs_import_dir=/dev/disk/by-uuid
+            or
+        zfs_import_dir=/dev/disk/by-partuuid
+            or
+        zfs_import_dir=/dev/disk/by-path
+            etc.
+
     Following initcpio convention, the 'rw' option must be specified to load the
     pool as read/write. Pools are loaded as read only by default.
 
