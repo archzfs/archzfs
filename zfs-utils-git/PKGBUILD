@@ -8,7 +8,7 @@
 # The build script generates and updates the pkgver and _kernel* variables.
 #
 pkgname="zfs-utils-git"
-pkgver=0.6.3_r170_gd958324f_3.18.2_2
+pkgver=0.6.3_r170_gd958324f_3.18.4_1
 pkgrel=1
 license=('CDDL')
 pkgdesc="Kernel module support files for the Zettabyte File System."
@@ -23,8 +23,8 @@ source=("git+https://github.com/zfsonlinux/zfs.git#commit=d958324f"
 groups=("archzfs-git")
 md5sums=('SKIP'
          '9ddb0c8a94861f929d0fa741fdc49950'
-         'a584c3af9e0aee7a545edefb57c0b48f'
-         '87edeffee32ee1154a373f1291e81b49')
+         '9ef4841abb85dee611828cc7e6f5c6fe'
+         '62ba32c6853c315ff231c396cf8bfdbb')
 replaces=("zfs-utils")
 provides=("zfs-utils")
 conflicts=("zfs-utils" "zfs-utils-lts")
