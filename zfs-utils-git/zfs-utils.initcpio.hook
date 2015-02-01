@@ -49,14 +49,24 @@ zfs_mount_handler () {
     fi
 
     local node=$1
+    local tab_file="$node/etc/fstab"
     local zfs_datasets=$(zfs list -H -o name -t filesystem -r "$ZFS_DATASET")
 
-    # Mount the root, and any non legacy child datasets
-    for dataset in $datasets; do
+    # Mount the root, and any child datasets
+    for dataset in $zfs_datasets; do
         mountpoint=$(zfs get -H -o value mountpoint "$dataset")
         case $mountpoint in
-            "none" | "legacy")
+            "none")
                 # skip this line/dataset.
+                ;;
+            "legacy")
+                if [ -f "$tab_file" ]; then
+                    if findmnt -snero source -F "$tab_file" -S "$dataset" > /dev/null 2>&1; then
+                        opt=$(findmnt -snero options -F "$tab_file" -S "$dataset")
+                        mnt=$(findmnt -snero target -F "$tab_file" -S "$dataset")
+                        mount -t zfs -o "$opt" "$dataset" "$node$mnt"
+                    fi
+                fi
                 ;;
             *)
                 mount -t zfs -o "zfsutil,$rwopt_exp" "$dataset" "$node$mountpoint"
