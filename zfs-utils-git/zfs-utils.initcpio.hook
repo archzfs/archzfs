@@ -20,7 +20,6 @@ zfs_get_bootfs () {
 }
 
 zfs_mount_handler () {
-    local node=$1
     if [ "$ZFS_DATASET" = "bootfs" ] ; then
         if ! zfs_get_bootfs ; then
             # Lets import everything and try again
@@ -49,12 +48,21 @@ zfs_mount_handler () {
         fi
     fi
 
-    local mountpoint=$("/usr/bin/zfs" get -H -o value mountpoint $ZFS_DATASET)
-    if [ "$mountpoint" = "legacy" ] ; then
-        mount -t zfs -o ${rwopt_exp} "$ZFS_DATASET" "$node"
-    else
-        mount -o zfsutil,${rwopt_exp} -t zfs "$ZFS_DATASET" "$node"
-    fi
+    local node=$1
+    local zfs_datasets=$(zfs list -H -o name -t filesystem -r "$ZFS_DATASET")
+
+    # Mount the root, and any non legacy child datasets
+    for dataset in $datasets; do
+        mountpoint=$(zfs get -H -o value mountpoint "$dataset")
+        case $mountpoint in
+            "none" | "legacy")
+                # skip this line/dataset.
+                ;;
+            *)
+                mount -t zfs -o "zfsutil,$rwopt_exp" "$dataset" "$node$mountpoint"
+                ;;
+        esac
+    done
 }
 
 run_hook() {
