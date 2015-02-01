@@ -2,7 +2,7 @@ ZPOOL_FORCE=""
 ZPOOL_IMPORT_FLAGS=""
 
 zfs_get_bootfs () {
-    for zfs_dataset in $(/usr/bin/zpool list -H -o bootfs) ; do
+    for zfs_dataset in $(zpool list -H -o bootfs) ; do
         case $zfs_dataset in
             "" | "-")
                 # skip this line/dataset
@@ -23,7 +23,7 @@ zfs_mount_handler () {
     if [ "$ZFS_DATASET" = "bootfs" ] ; then
         if ! zfs_get_bootfs ; then
             # Lets import everything and try again
-            /usr/bin/zpool import $ZPOOL_IMPORT_FLAGS -N -a $ZPOOL_FORCE
+            zpool import $ZPOOL_IMPORT_FLAGS -N -a $ZPOOL_FORCE
             if ! zfs_get_bootfs ; then
                 echo "ZFS: Cannot find bootfs."
                 return 1
@@ -34,7 +34,7 @@ zfs_mount_handler () {
     local pool="${ZFS_DATASET%%/*}"
     local rwopt_exp=${rwopt:-ro}
 
-    if ! "/usr/bin/zpool" list -H "$pool" 2>&1 > /dev/null ; then
+    if ! zpool list -H "$pool" 2>&1 > /dev/null ; then
         if [ "$rwopt_exp" != "rw" ] ; then
             msg "ZFS: Importing pool $pool readonly."
             ZPOOL_IMPORT_FLAGS="$ZPOOL_IMPORT_FLAGS -o readonly=on"
@@ -42,14 +42,14 @@ zfs_mount_handler () {
             msg "ZFS: Importing pool $pool."
         fi
 
-        if ! "/usr/bin/zpool" import $ZPOOL_IMPORT_FLAGS -N "$pool" $ZPOOL_FORCE ; then
+        if ! zpool import $ZPOOL_IMPORT_FLAGS -N "$pool" $ZPOOL_FORCE ; then
             echo "ZFS: Unable to import pool $pool."
             return 1
         fi
     fi
 
     local node=$1
-    local mountpoint=$("/usr/bin/zfs" get -H -o value mountpoint "$ZFS_DATASET")
+    local mountpoint=$(zfs get -H -o value mountpoint "$ZFS_DATASET")
 
     if [ "$mountpoint" = "legacy" ] ; then
         mount -t zfs -o "$rwopt_exp" "$ZFS_DATASET" "$node"
@@ -95,7 +95,7 @@ run_hook () {
 
 
 run_latehook () {
-    /usr/bin/zpool import -N -a $ZPOOL_FORCE
+    zpool import -N -a $ZPOOL_FORCE
 }
 
 # vim:set ts=4 sw=4 ft=sh et:
