@@ -111,9 +111,9 @@ done
 if [[ "${#pkgs[@]}" -eq 0 ]]; then
     # Get packages from the backup directory if the repo is demz-repo-archiso
     if [[ $AZB_REPO == "demz-repo-archiso" ]]; then
-        fcmd_out=$(find ${AZB_PACKAGE_BACKUP_DIR} -iname "*${AZB_KERNEL_ARCHISO_VERSION}*.pkg.tar.xz")
+        fcmd_out=$(find ${AZB_REPO_BASEPATH}/demz-repo-core -iname "*${AZB_KERNEL_ARCHISO_VERSION}*.pkg.tar.xz")
         if [[ $fcmd_out == "" ]]; then
-            fcmd_out=$(find ${AZB_REPO_BASEPATH}/demz-repo-core -iname "*${AZB_KERNEL_ARCHISO_VERSION}*.pkg.tar.xz")
+            fcmd_out=$(find ${AZB_PACKAGE_BACKUP_DIR} -iname "*${AZB_KERNEL_ARCHISO_VERSION}*.pkg.tar.xz")
         fi
     else
         fcmd_out=$(find ${path_glob} -iname "*${AZB_KERNEL_VERSION}*.pkg.tar.xz")
