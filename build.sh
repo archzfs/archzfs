@@ -239,7 +239,7 @@ update_lts_pkgbuilds() {
     AZB_CURRENT_X64_KERNEL_VERSION=$(grep -m1 "_kernel_version_x64=" spl-lts/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X32_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x32_full=" spl-lts/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X64_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x64_full=" spl-lts/PKGBUILD | cut -d\" -f2)
-    AZB_CURRENT_ZOL_VERSION=$(grep 'spl-' spl-lts/PKGBUILD | \grep -o -m1 '[[:digit:]]\+\.[[:digit:]]\+\.[[:digit:]]')
+    AZB_CURRENT_ZOL_VERSION=$(grep 'spl-[[:digit:]\.]\+"' spl-lts/PKGBUILD  | head -1 | \grep -o -m1 '[[:digit:]\.]\+')
 
     AZB_NEW_LTS_PKGVER=${AZB_ZOL_VERSION}_${AZB_LTS_KERNEL_VERSION}
 
