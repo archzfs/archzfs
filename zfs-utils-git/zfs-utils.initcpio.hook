@@ -60,7 +60,7 @@ zfs_mount_handler () {
 run_hook() {
     # Force import the pools, useful if the pool has not properly been exported
     # using 'zpool export <pool>'
-    [[ $zfs_force == 1 ]] && ZPOOL_FORCE='-f'
+    [[ "$zfs_force" == 1 ]] && ZPOOL_FORCE='-f'
     [[ "$zfs_import_dir" != "" ]] && ZPOOL_IMPORT_FLAGS="$ZPOOL_IMPORT_FLAGS -d $zfs_import_dir"
 
     if [ "$root" = 'zfs' ]; then
