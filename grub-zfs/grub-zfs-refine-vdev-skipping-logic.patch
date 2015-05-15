@@ -1,0 +1,30 @@
+From 51ddd3fa3f3e91d887f39664a5943c6693df1b39 Mon Sep 17 00:00:00 2001
+From: Tim Chase <tim@chase2k.com>
+Date: Thu, 26 Jun 2014 22:57:54 -0500
+Subject: [PATCH] Refine vdev-skipping logic
+
+Skip a vdev in the !data->mounted case when a pool's guid has already
+been determined and the vdev's pool guid doesn't match.
+
+This fixes pool detection in a number of cases in which multiple pools
+exist.  For example, previously if a system had a 3-disk raidz followed
+by a single-disk pool, scanning of the 4th disk would cause the first
+3-disk raidz pool to not be visible.
+---
+ grub-core/fs/zfs/zfs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/grub-core/fs/zfs/zfs.c b/grub-core/fs/zfs/zfs.c
+index cfb25c0..279224a 100644
+--- a/grub-core/fs/zfs/zfs.c
++++ b/grub-core/fs/zfs/zfs.c
+@@ -1081,7 +1081,8 @@ check_pool_label (struct grub_zfs_data *data,
+ 
+   grub_dprintf ("zfs", "check 11 passed\n");
+ 
+-  if (data->mounted && data->guid != poolguid)
++  if ((data->mounted && data->guid != poolguid)
++   || (data->guid && data->guid != poolguid))
+     return grub_error (GRUB_ERR_BAD_FS, "another zpool");
+   else
+     data->guid = poolguid;

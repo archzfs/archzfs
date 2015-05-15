@@ -1,0 +1,196 @@
+From 2ad1334019f0ec1f7569e923d00edc46358abf15 Mon Sep 17 00:00:00 2001
+From: Tim Chase <tim@chase2k.com>
+Date: Sun, 17 Aug 2014 09:48:11 -0500
+Subject: [PATCH] Add support for embedded data
+
+The embedded_feature allows for small highly-compressible object's data
+to be stored in a block pointer rather than actually being pointed
+to by the block pointer.  This patch also adds recognition of the
+"embedded_dataset" feature.
+---
+ grub-core/fs/zfs/zfs.c | 84 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ include/grub/zfs/spa.h | 27 +++++++++++++---
+ 2 files changed, 105 insertions(+), 6 deletions(-)
+
+diff --git a/grub-core/fs/zfs/zfs.c b/grub-core/fs/zfs/zfs.c
+index 568ff98..6a87f09 100644
+--- a/grub-core/fs/zfs/zfs.c
++++ b/grub-core/fs/zfs/zfs.c
+@@ -282,7 +282,9 @@ grub_crypto_cipher_handle_t (*grub_zfs_load_key) (const struct grub_zfs_key *key
+ #define MAX_SUPPORTED_FEATURE_STRLEN 50
+ static const char *spa_feature_names[] = {
+   "org.illumos:lz4_compress",
+-  "com.delphix:hole_birth",NULL
++  "com.delphix:hole_birth",
++  "com.delphix:extensible_dataset",
++  "com.delphix:embedded_data",NULL
+ };
+ 
+ static int
+@@ -1800,6 +1802,76 @@ zio_read_data (blkptr_t * bp, grub_zfs_endian_t endian, void *buf,
+ }
+ 
+ /*
++ * buf must be at least BPE_GET_PSIZE(bp) bytes long (which will never be
++ * more than BPE_PAYLOAD_SIZE bytes).
++ */
++static void
++decode_embedded_bp_compressed (const blkptr_t *bp, void *buf)
++{
++  int psize, i;
++  grub_uint8_t *buf8 = buf;
++  grub_uint64_t w = 0;
++  const grub_uint64_t *bp64 = (const grub_uint64_t *)bp;
++
++  psize = BPE_GET_PSIZE(bp);
++
++  /*
++   * Decode the words of the block pointer into the byte array.
++   * Low bits of first word are the first byte (little endian).
++   */
++  for (i = 0; i < psize; i++)
++    {
++      if (i % sizeof (w) == 0)
++        {
++          /* beginning of a word */
++          w = *bp64;
++          bp64++;
++          if (!BPE_IS_PAYLOADWORD(bp, bp64))
++            bp64++;
++        }
++     buf8[i] = BF64_GET(w, (i % sizeof (w)) * 8, 8);
++    }
++}
++
++/*
++ * Fill in the buffer with the (decompressed) payload of the embedded
++ * blkptr_t.  Takes into account compression and byteorder (the payload is
++ * treated as a stream of bytes).
++ * Return 0 on success, or ENOSPC if it won't fit in the buffer.
++ */
++static int
++decode_embedded_bp(const blkptr_t *bp, void **buf)
++{
++  int comp;
++  int lsize, psize;
++  grub_uint8_t *dst;
++
++  lsize = BPE_GET_LSIZE(bp);
++  psize = BPE_GET_PSIZE(bp);
++  comp = BP_GET_COMPRESS(bp);
++
++  dst = *buf = grub_malloc (lsize);
++
++  if (comp != ZIO_COMPRESS_OFF)
++    {
++      grub_uint8_t dstbuf[BPE_PAYLOAD_SIZE];
++
++      if ((unsigned int)comp >= ZIO_COMPRESS_FUNCTIONS ||
++        decomp_table[comp].decomp_func == NULL)
++        return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
++          "compression algorithm not supported\n");
++
++      decode_embedded_bp_compressed(bp, dstbuf);
++      decomp_table[comp].decomp_func(dstbuf, dst, psize, lsize);
++    }
++  else
++    {
++      decode_embedded_bp_compressed(bp, dst);
++    }
++  return (0);
++}
++
++/*
+  * Read in a block of data, verify its checksum, decompress if needed,
+  * and put the uncompressed data in buf.
+  */
+@@ -1816,6 +1888,14 @@ zio_read (blkptr_t *bp, grub_zfs_endian_t endian, void **buf,
+ 
+   *buf = NULL;
+ 
++  if (BP_IS_EMBEDDED(bp))
++    {
++      if (BPE_GET_ETYPE(bp) != BP_EMBEDDED_TYPE_DATA)
++          return grub_error (GRUB_ERR_NOT_IMPLEMENTED_YET,
++            "unsupported embedded BP (type=%u)\n", (int)BPE_GET_ETYPE(bp));
++    return decode_embedded_bp(bp, buf);
++    }
++
+   checksum = (grub_zfs_to_cpu64((bp)->blk_prop, endian) >> 40) & 0xff;
+   comp = (grub_zfs_to_cpu64((bp)->blk_prop, endian)>>32) & 0xff;
+   encrypted = ((grub_zfs_to_cpu64((bp)->blk_prop, endian) >> 60) & 3);
+@@ -4177,7 +4257,7 @@ check_feature (const char *name, grub_uint64_t val,
+     return 0;
+   if (name[0] == 0)
+     return 0;
+-  for (i = 0; spa_feature_names[i] != NULL; i++) 
++  for (i = 0; spa_feature_names[i] != NULL; i++)  
+     if (grub_strcmp (name, spa_feature_names[i]) == 0) 
+       return 0;
+   return 1;
+diff --git a/include/grub/zfs/spa.h b/include/grub/zfs/spa.h
+index 960f16f..dcc3a9b 100644
+--- a/include/grub/zfs/spa.h
++++ b/include/grub/zfs/spa.h
+@@ -126,7 +126,7 @@ typedef struct zio_cksum {
+  *	+-------+-------+-------+-------+-------+-------+-------+-------+
+  * 5	|G|			 offset3				|
+  *	+-------+-------+-------+-------+-------+-------+-------+-------+
+- * 6	|BDX|lvl| type	| cksum | comp	|     PSIZE	|     LSIZE	|
++ * 6	|BDX|lvl| type	| cksum |E| comp|    PSIZE	|     LSIZE	|
+  *	+-------+-------+-------+-------+-------+-------+-------+-------+
+  * 7	|			padding					|
+  *	+-------+-------+-------+-------+-------+-------+-------+-------+
+@@ -160,7 +160,8 @@ typedef struct zio_cksum {
+  * G		gang block indicator
+  * B		byteorder (endianness)
+  * D		dedup
+- * X		unused
++ * X		encryption (on version 30, which is not supported)
++ * E		blkptr_t contains embedded data
+  * lvl		level of indirection
+  * type		DMU object type
+  * phys birth	txg of block allocation; zero if same as logical birth txg
+@@ -204,8 +205,8 @@ typedef struct blkptr {
+ #define	BP_SET_LSIZE(bp, x)	\
+ 	BF64_SET_SB((bp)->blk_prop, 0, SPA_LSIZEBITS, SPA_MINBLOCKSHIFT, 1, x)
+ 
+-#define	BP_GET_COMPRESS(bp)		BF64_GET((bp)->blk_prop, 32, 8)
+-#define	BP_SET_COMPRESS(bp, x)		BF64_SET((bp)->blk_prop, 32, 8, x)
++#define	BP_GET_COMPRESS(bp)		BF64_GET((bp)->blk_prop, 32, 7)
++#define	BP_SET_COMPRESS(bp, x)		BF64_SET((bp)->blk_prop, 32, 7, x)
+ 
+ #define	BP_GET_CHECKSUM(bp)		BF64_GET((bp)->blk_prop, 40, 8)
+ #define	BP_SET_CHECKSUM(bp, x)		BF64_SET((bp)->blk_prop, 40, 8, x)
+@@ -216,6 +217,8 @@ typedef struct blkptr {
+ #define	BP_GET_LEVEL(bp)		BF64_GET((bp)->blk_prop, 56, 5)
+ #define	BP_SET_LEVEL(bp, x)		BF64_SET((bp)->blk_prop, 56, 5, x)
+ 
++#define	BP_IS_EMBEDDED(bp)		BF64_GET((bp)->blk_prop, 39, 1)
++
+ #define	BP_GET_DEDUP(bp)		BF64_GET((bp)->blk_prop, 62, 1)
+ #define	BP_SET_DEDUP(bp, x)		BF64_SET((bp)->blk_prop, 62, 1, x)
+ 
+@@ -297,6 +300,22 @@ typedef struct blkptr {
+ 	ZIO_SET_CHECKSUM(&(bp)->blk_cksum, 0, 0, 0, 0);	\
+ }
+ 
++#define	BPE_GET_ETYPE(bp)	BP_GET_CHECKSUM(bp)
++#define	BPE_GET_LSIZE(bp)	\
++	BF64_GET_SB((bp)->blk_prop, 0, 25, 0, 1)
++#define	BPE_GET_PSIZE(bp)	\
++	BF64_GET_SB((bp)->blk_prop, 25, 7, 0, 1)
++
++typedef enum bp_embedded_type {
++	BP_EMBEDDED_TYPE_DATA,
++	NUM_BP_EMBEDDED_TYPES
++} bp_embedded_type_t;
++
++#define	BPE_NUM_WORDS 14
++#define	BPE_PAYLOAD_SIZE (BPE_NUM_WORDS * sizeof (grub_uint64_t))
++#define	BPE_IS_PAYLOADWORD(bp, wp) \
++	((wp) != &(bp)->blk_prop && (wp) != &(bp)->blk_birth)
++
+ #define	BP_SPRINTF_LEN	320
+ 
+ #endif	/* ! GRUB_ZFS_SPA_HEADER */
