@@ -229,28 +229,33 @@ update_git_pkgbuilds() {
 
 update_lts_pkgbuilds() {
 
-    # Set the AZB_LTS_KERNEL* variables
-    full_kernel_lts_version
-
     # Get variables from the existing PKGBUILDs
-    AZB_CURRENT_LTS_PKGVER=$(grep "pkgver=" spl-lts/PKGBUILD | cut -d= -f2)
+    AZB_CURRENT_SPL_PKGVER=$(grep "pkgver=" spl-lts/PKGBUILD | cut -d= -f2)
+    AZB_CURRENT_SPL_UTILS_PKGVER=$(grep "pkgver=" spl-utils-lts/PKGBUILD | cut -d= -f2)
+    AZB_CURRENT_ZFS_PKGVER=$(grep "pkgver=" zfs-lts/PKGBUILD | cut -d= -f2)
+    AZB_CURRENT_ZFS_UTILS_PKGVER=$(grep "pkgver=" zfs-utils-lts/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_PKGREL=$(grep "pkgrel=" spl-lts/PKGBUILD | cut -d= -f2)
     AZB_CURRENT_X32_KERNEL_VERSION=$(grep -m1 "_kernel_version_x32=" spl-lts/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X64_KERNEL_VERSION=$(grep -m1 "_kernel_version_x64=" spl-lts/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X32_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x32_full=" spl-lts/PKGBUILD | cut -d\" -f2)
     AZB_CURRENT_X64_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x64_full=" spl-lts/PKGBUILD | cut -d\" -f2)
-    AZB_CURRENT_ZOL_VERSION=$(grep 'spl-[[:digit:]\.]\+"' spl-lts/PKGBUILD  | head -1 | \grep -o -m1 '[[:digit:]\.]\+')
+    AZB_CURRENT_ZOL_VERSION=$(grep 'spl-[[:digit:]\.]\+"' spl-lts/PKGBUILD | head -1 | \grep -o -m1 '[[:digit:]\.]\+')
 
-    AZB_NEW_LTS_PKGVER=${AZB_ZOL_VERSION}_${AZB_LTS_KERNEL_VERSION}
+    # Set the AZB_LTS_KERNEL* variables
+    full_kernel_lts_version
 
-    debug "AZB_CURRENT_LTS_PKGVER: ${AZB_CURRENT_LTS_PKGVER}"
+    AZB_NEW_LTS_PKGVER=${AZB_ZOL_VERSION}_${AZB_LTS_KERNEL_X64_VERSION_CLEAN}
+
     debug "AZB_NEW_LTS_PKGVER: $AZB_NEW_LTS_PKGVER"
+    debug "AZB_CURRENT_SPL_PKGVER: $AZB_CURRENT_SPL_PKGVER"
+    debug "AZB_CURRENT_SPL_UTILS_PKGVER: $AZB_CURRENT_SPL_UTILS_PKGVER"
+    debug "AZB_CURRENT_ZFS_PKGVER: $AZB_CURRENT_ZFS_PKGVER"
+    debug "AZB_CURRENT_ZFS_UTILS_PKGVER: $AZB_CURRENT_ZFS_UTILS_PKGVER"
     debug "AZB_CURRENT_PKGREL: $AZB_CURRENT_PKGREL"
     debug "AZB_CURRENT_X32_KERNEL_VERSION: $AZB_CURRENT_X32_KERNEL_VERSION"
     debug "AZB_CURRENT_X64_KERNEL_VERSION: $AZB_CURRENT_X64_KERNEL_VERSION"
     debug "AZB_CURRENT_X32_KERNEL_VERSION_FULL: $AZB_CURRENT_X32_KERNEL_VERSION_FULL"
     debug "AZB_CURRENT_X64_KERNEL_VERSION_FULL: $AZB_CURRENT_X64_KERNEL_VERSION_FULL"
-    debug "AZB_CURRENT_ZOL_VERSION: $AZB_CURRENT_ZOL_VERSION"
 
     # Change the top level AZB_LTS_PKGREL
     run_cmd "find *-lts -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgrel=$AZB_CURRENT_PKGREL/pkgrel=$AZB_LTS_PKGREL/g\""
@@ -267,10 +272,10 @@ update_lts_pkgbuilds() {
         \"s/_kernel_version_x64_full=\\\"$AZB_CURRENT_X64_KERNEL_VERSION_FULL\\\"/_kernel_version_x64_full=\\\"$AZB_LTS_KERNEL_X64_VERSION_FULL\\\"/g\""
 
     # Replace the linux version in the top level PKGVER
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_LTS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" spl-lts/PKGBUILD"
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_LTS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" spl-utils-lts/PKGBUILD"
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_LTS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" zfs-lts/PKGBUILD"
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_LTS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" zfs-utils-lts/PKGBUILD"
+    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_SPL_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" spl-lts/PKGBUILD"
+    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_SPL_UTILS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" spl-utils-lts/PKGBUILD"
+    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_ZFS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" zfs-lts/PKGBUILD"
+    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_ZFS_UTILS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" zfs-utils-lts/PKGBUILD"
 
     # Replace the ZOL Version
     run_cmd "find *-lts -type f -print | xargs sed -i \"s/$AZB_CURRENT_ZOL_VERSION/$AZB_ZOL_VERSION/g\""
