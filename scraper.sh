@@ -139,7 +139,7 @@ check_webpage "http://zfsonlinux.org/" "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
-    run_cmd send_email "Update the archzfs repository!" "The ZOL packages have been changed!"
+    send_email "Update the archzfs repository!" "The upstream ZOL packages have been changed!"
 else
     msg2 "The ZOL sources are current."
 fi
