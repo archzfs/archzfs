@@ -50,3 +50,6 @@ AZB_GPG_SIGN_KEY='0EE7A126'
 
 # Package backup directory (for adding packages to demz-repo-archiso)
 AZB_PACKAGE_BACKUP_DIR="/data/pacman/repo/archive_archzfs"
+
+AZB_GIT_PKG_LIST="spl-utils-git spl-git zfs-utils-git zfs-git"
+AZB_LTS_PKG_LIST="spl-utils-lts spl-lts zfs-utils-lts zfs-lts"

@@ -1,0 +1,24 @@
+[submodule "zfs-git"]
+	path = zfs-git
+	url = https://aur4.archlinux.org/zfs-git
+[submodule "zfs-lts"]
+	path = zfs-lts
+	url = https://aur4.archlinux.org/zfs-lts
+[submodule "zfs-utils-lts"]
+	path = zfs-utils-lts
+	url = https://aur4.archlinux.org/zfs-utils-lts
+[submodule "zfs-utils-git"]
+	path = zfs-utils-git
+	url = https://aur4.archlinux.org/zfs-utils-git
+[submodule "spl-git"]
+	path = spl-git
+	url = https://aur4.archlinux.org/spl-git
+[submodule "spl-utils-git"]
+	path = spl-utils-git
+	url = https://aur4.archlinux.org/spl-utils-git
+[submodule "spl-utils-lts"]
+	path = spl-utils-lts
+	url = https://aur4.archlinux.org/spl-utils-lts
+[submodule "spl-lts"]
+	path = spl-lts
+	url = https://aur4.archlinux.org/spl-lts

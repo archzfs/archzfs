@@ -1,7 +1,5 @@
 *!
 */*.tar.*
 *.log
-*/spl
-*/zfs
 testing/
 src/

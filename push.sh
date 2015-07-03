@@ -10,6 +10,8 @@ DRY_RUN=0       # Show commands only. Don't do anything.
 DEBUG=0         # Show debug output.
 AZB_MODE_GIT=0
 AZB_MODE_LTS=0
+AZB_BUILD_AUR=0
+AZB_BUILD_AUR4=0
 
 usage() {
 	echo "push.sh - Pushes the packages sources to AUR using burp."
@@ -26,6 +28,8 @@ usage() {
     echo
     echo "    git       Use the git packages."
     echo "    lts       Use the lts packages."
+    echo "    aur       Save package sources to AUR4 directory."
+    echo "    aur4      Save package sources to AUR4 directory."
     echo
     echo "Example Usage:"
     echo
@@ -39,6 +43,10 @@ for (( a = 0; a < $#; a++ )); do
         AZB_MODE_GIT=1
     elif [[ ${ARGS[$a]} == "lts" ]]; then
         AZB_MODE_LTS=1
+    elif [[ ${ARGS[$a]} == "aur" ]]; then
+        AZB_BUILD_AUR=1
+    elif [[ ${ARGS[$a]} == "aur4" ]]; then
+        AZB_BUILD_AUR4=1
     elif [[ ${ARGS[$a]} == "-h" ]]; then
         usage;
         exit 0;
@@ -57,21 +65,41 @@ if [[ $AZB_MODE_GIT == 0 && $AZB_MODE_LTS == 0 ]]; then
     exit 0;
 fi
 
-msg "Pushing the package sources to AUR..."
-
 FILES=""
 
-if [[ $AZB_MODE_GIT == 1 ]]; then
-    full_kernel_git_version
-    FILES=$(find $AZB_REPO_BASEPATH/demz-repo-core/x86_64/ -iname "*-git*${AZB_ZOL_VERSION}*${AZB_GIT_KERNEL_X64_VERSION_CLEAN}-${AZB_GIT_PKGREL}*.src.tar.gz" | tr "\n" " ")
-    debug "${FILES}"
-elif [[ $AZB_MODE_LTS == 1 ]]; then
-    full_kernel_lts_version
-    FILES=$(find $AZB_REPO_BASEPATH/demz-repo-core/x86_64/ -iname "*-lts*${AZB_ZOL_VERSION}*${AZB_LTS_KERNEL_X64_VERSION_CLEAN}-${AZB_LTS_PKGREL}*.src.tar.gz" | tr "\n" " ")
-    debug "${FILES}"
+if [[ $AZB_BUILD_AUR == 1 ]]; then
+    msg "Pushing the package sources to AUR..."
+    if [[ $AZB_MODE_GIT == 1 ]]; then
+        full_kernel_git_version
+        FILES=$(find $AZB_REPO_BASEPATH/demz-repo-core/x86_64/ -iname "*-git*${AZB_ZOL_VERSION}*${AZB_GIT_KERNEL_X64_VERSION_CLEAN}-${AZB_GIT_PKGREL}*.src.tar.gz" | tr "\n" " ")
+        debug "${FILES}"
+    elif [[ $AZB_MODE_LTS == 1 ]]; then
+        full_kernel_lts_version
+        FILES=$(find $AZB_REPO_BASEPATH/demz-repo-core/x86_64/ -iname "*-lts*${AZB_ZOL_VERSION}*${AZB_LTS_KERNEL_X64_VERSION_CLEAN}-${AZB_LTS_PKGREL}*.src.tar.gz" | tr "\n" " ")
+        debug "${FILES}"
+    fi
+    run_cmd "burp -c modules ${FILES} -v"
 fi
 
-run_cmd "burp -c modules ${FILES} -v"
+if [[ $AZB_BUILD_AUR4 == 1 && $AZB_MODE_GIT == 1 ]]; then
+    for PKG in $AZB_GIT_PKG_LIST; do
+        full_kernel_git_version
+        msg "Packaging $PKG..."
+        run_cmd "cd \"$PWD/$PKG\""
+        run_cmd "mksrcinfo"
+        run_cmd "git add . && git commit -m 'Update for kernel $AZB_GIT_KERNEL_X64_VERSION_FULL' && git push"
+        run_cmd "cd - > /dev/null"
+    done
+elif [[ $AZB_BUILD_AUR4 == 1 && $AZB_MODE_LTS == 1 ]]; then
+    for PKG in $AZB_LTS_PKG_LIST; do
+        full_kernel_lts_version
+        msg "Packaging $PKG..."
+        run_cmd "cd \"$PWD/$PKG\""
+        run_cmd "mksrcinfo"
+        run_cmd "git add . && git commit -m 'Update for kernel $AZB_GIT_KERNEL_X64_VERSION_FULL' && git push"
+        run_cmd "cd - > /dev/null"
+    done
+fi
 
 # Build the documentation and push it to the remote host
 # msg "Building the documentation..."
