@@ -1,13 +1,20 @@
 Zettabyte File System for Arch Linux
 ====================================
 
-Homepage: http://demizerone.com/archzfs
+This project contains the build scripts for archzfs. Two types of packages are
+supported, Git packages and LTS packages.
 
-These are the sources and packages for the ZFS filesystem support for Arch
-Linux.
+The Git packages include zfs-git, zfs-utils-git, spl-git, and spl-utils-git.
+These track the mainline kernel releases in arch. Since Arch is bleeding edge,
+so too are these packages. They usually pull from zfsonlinux master branch up
+to the latest commit that add supports for latest kernel version.
 
-This repository contains the pacman package sources, pre-built packages, pacman
-package repository, and documentation.
+The LTS packages include zfs-lts, zfs-utils-lts, spl-lts, and spl-utils-lts.
+These track the linux-lts packages in arch and are only built using stable
+zfsonlinux releases. These packages are the best bet for those concerned with
+stability.
+
+These packages must be re-built for each kernel release.
 
 --------
 Licenses
@@ -30,8 +37,15 @@ namespace container.
 How to use this Repository
 --------------------------
 
-.. note:: All of these commands require the current directory to be the archzfs
-          project directory.
+Clone
++++++
+
+.. code:: console
+
+   git clone https://github.com/archzfs/archzfs.git --recursive
+
+Update
+++++++
 
 1. Set the appropriate variables in conf.sh
 
@@ -50,66 +64,48 @@ How to use this Repository
      used for sending email. Required only if ``scraper.sh`` or ``verifier.sh``
      are going to be used.
 
-   * Ssh remote login
+   * SSH remote login
 
      Used in ``verifier.sh`` for making sure the local ``demz-repo-*`` are in
      sync with the remote repos.
 
 #. Set the appropriate kernel versions in conf.sh.
 
-   If the any of the ``*_X*_PKGREL`` variables are changed in ``conf.sh`,` then
-   ``AZB_PKGREL`` must be incremented as well. ``AZB_PKGREL`` controls the top
-   level ``pkgrel`` inside the PKGBUILDS.
-
 #. Update the PKGBUILDs
 
-   Use ``./build update`` to update the PKGBUILDS using the ``conf.sh``
-   variables.
+   Use ``./build git update`` to update the archzfs-git PKGBUILDS using the
+   ``conf.sh`` variables.
 
-   ``./build.sh update-test`` uses the ``AZB_LINUX_TEST_*`` variables. Using
-   the test values are useful for test building the zfs packages against the
-   Linux kernel version in the official testing repo. Mostly used on minor
-   Linux kernel updates (3.12 -> 3.13).
+   Use ``./build lts update`` to update the archzfs-lts PKGBUILDS using the
+   ``conf.sh`` variables.
+
+   ``./build.sh (git|lts) update-test`` uses the ``AZB_LINUX_TEST_*``
+   variables. Using the test values are useful for test building the zfs
+   packages against the Linux kernel version in the official testing repo.
+   Mostly used on minor Linux kernel updates (3.12 -> 3.13).
 
 #. Build the packages
 
-   Use ``./build.sh make -u`` to build the packages, update the clean chroot in
-   the process.
+   Use ``./build.sh (git|lts) make -u`` to build the packages, update the clean
+   chroot in the process.
 
-   It is possible to use ``./build.sh update make -u`` in one shot.
+   It is possible to use ``./build.sh (git|lts) update make -u`` in one shot.
 
-   If you want to see command output only, use ``./build.sh make -n``. Add the
-   ``-d`` to see debugging output.
+   If you want to see command output only, use ``./build.sh (git|lts) make
+   -n``. Add the ``-d`` to see debugging output.
 
 #. Add packages to the repo
 
-   Use ``./repo.sh core -n`` to what changes will occur without actually making
-   them.
+   Use ``./repo.sh (git|lts) core -n`` to what changes will occur without
+   actually making them.
 
-   ``./repo.sh core`` will add the package versions defined by
+   ``./repo.sh (git|lts) core`` will add the package versions defined by
    ``AZB_LINUX_VERSION`` to the ``demz-repo-core`` repository.
 
 #. Push the package sources to AUR.
 
-   Pushing to AUR using ``push.sh`` requires burp_.  Simply use ``./push.sh``
-   to push the package sources by version (specified by ``AZB_LINUX_VERSION``)
-   to AUR.
+   Push to AUR4 using ``push.sh (git|lts) aur4``. This commits the latest
+   changes to each individual package repo (for AUR) and uses ``git push`` to
+   push to AUR.
 
-#. Creating a GIT patch
-
-   * Clone the ZFS and SPL sources
-   * Set the paths to the sources in conf.sh
-   * cd to ZFS git repo and create a new branch "patch_br"
-   * Use: git rebase -i <hash> to squash all of the commits until the last
-     release (tagged 0.6.2 currently). Use fixup to discard the commit log
-     messages.
-   * git format-patch -1
-   * Edit the patch and remove uneeded messages or changes
-   * git co master
-   * mv 0001* $(git describe --long).patch
-   * rename the patch adding a "r": zfs-0.6.2-r*
-   * tar --xz -cvvf zfs.patch.tar.xz zfs.patch
-   * Copy the patches to the PKGBUILD directories
-
-.. _burp: https://www.archlinux.org/packages/extra/x86_64/burp/
 .. _clean-chroot-manager: https://aur.archlinux.org/packages/clean-chroot-manager
