@@ -37,6 +37,21 @@ namespace container.
 How to use this Repository
 --------------------------
 
+Submitting changes
+++++++++++++++++++
+
+The Arch User Repository v4 requires package updates to be submitted through
+Git. Unfortunately, this makes working with the archzfs build scripts on Github
+slightly more complicated. The actual PKGBUILDS in the archzfs repo are set as
+git submodules which reference the aur4 git repo and a commit hash. Github does
+not support external submodules, and thus PR requests are no longer possible on
+PKGBUILDS and mkinitcpio hook scripts.
+
+Contributions are still very much appreciated! To submit a contribution, please
+open an issue in Github and within the description post a git generated patch
+of the changes. This is only temporary until AUR supports some kind of "pull
+request" type system.
+
 Clone
 +++++
 
