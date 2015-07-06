@@ -14,17 +14,17 @@ readonly ALL_OFF BOLD BLUE GREEN RED YELLOW
 
 plain() {
 	local mesg=$1; shift
-	printf "${BOLD}    ${mesg}${ALL_OFF}\n" "$@" >&2
+	printf "${BOLD}    ${mesg}${ALL_OFF}\n" "$@"
 }
 
 msg() {
 	local mesg=$1; shift
-	printf "${GREEN}####${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
+	printf "${GREEN}####${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
 }
 
 msg2() {
 	local mesg=$1; shift
-	printf "${BLUE}  ##${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
+	printf "${BLUE}  ##${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
 }
 
 warning() {

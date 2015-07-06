@@ -16,7 +16,7 @@ usage() {
     echo "Options:"
     echo
     echo "    -h:    Show help information."
-    echo "    -n:    Don't send email."
+    echo "    -n:    Dry run."
     echo "    -d:    Show debug info."
     echo
 	echo "Examples:"
@@ -41,7 +41,6 @@ check_webpage() {
     # $1: The url to scrape
     # $2: The Perl regex to match with
     # $3: Expect match
-    # Sends a message on mismatch. Only the first match is checked.
     debug "Checking webpage: $1"
     debug "Using regex: `printf "%q" "$2"`"
     debug "Expecting: $3"
@@ -58,6 +57,8 @@ check_webpage() {
     fi
 }
 
+HAS_ERROR=0
+
 msg "scraper.sh started..."
 
 #
@@ -68,8 +69,8 @@ msg "Checking archiso download page for linux kernel version changes..."
 check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" "$AZB_KERNEL_ARCHISO_VERSION"
 
 if [[ $? != 0 ]]; then
-    msg2 "Sending notification..."
-    send_email "Push the required packages to the archiso repo!" "The archiso has been changed!"
+    error "The archiso has been changed!"
+    HAS_ERROR=1
 else
     msg2 "The archiso kernel version is current."
 fi
@@ -82,8 +83,8 @@ msg "Checking the online package database for i686 linux kernel version changes.
 check_webpage "https://www.archlinux.org/packages/core/i686/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_GIT_KERNEL_X32_VERSION"
 
 if [[ $? != 0 ]]; then
-    msg2 "Sending notification..."
-    send_email "Update the archzfs repository!" "The i686 linux package has been changed!"
+    error "linux i686 is out-of-date!"
+    HAS_ERROR=1
 else
     msg2 "The i686 linux kernel package is current."
 fi
@@ -96,8 +97,8 @@ msg "Checking the online package database for x86_64 linux kernel version change
 check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "$AZB_GIT_KERNEL_X64_VERSION"
 
 if [[ $? != 0 ]]; then
-    msg2 "Sending notification..."
-    send_email "Update the archzfs repository!" "The x86_64 linux package has been changed!"
+    error "linux x86_64 is out-of-date!"
+    HAS_ERROR=1
 else
     msg2 "The x86_64 linux kernel package is current."
 fi
@@ -110,8 +111,8 @@ msg "Checking the online package database for i686 linux-lts kernel version chan
 check_webpage "https://www.archlinux.org/packages/core/i686/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "$AZB_LTS_KERNEL_X32_VERSION"
 
 if [[ $? != 0 ]]; then
-    msg2 "Sending notification..."
-    send_email "Update the archzfs repository!" "The i686 linux-lts package has been changed!"
+    error "linux-lts i686 is out-of-date!"
+    HAS_ERROR=1
 else
     msg2 "The i686 linux-lts kernel package is current."
 fi
@@ -124,8 +125,8 @@ msg "Checking the online package database for x86_64 linux-lts kernel version ch
 check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "$AZB_LTS_KERNEL_X64_VERSION"
 
 if [[ $? != 0 ]]; then
-    msg2 "Sending notification..."
-    send_email "Update the archzfs repository!" "The x86_64 linux-lts package has been changed!"
+    error "linux-lts x86_64 is out-of-date!"
+    HAS_ERROR=1
 else
     msg2 "The x86_64 linux-lts kernel package is current."
 fi
@@ -139,7 +140,12 @@ check_webpage "http://zfsonlinux.org/" "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]
 
 if [[ $? != 0 ]]; then
     msg2 "Sending notification..."
-    send_email "Update the archzfs repository!" "The upstream ZOL packages have been changed!"
+    error "ZOL version has changed!"
+    HAS_ERROR=1
 else
     msg2 "The ZOL sources are current."
+fi
+
+if [[ $HAS_ERROR -eq 1 ]]; then
+    exit 1;
 fi
