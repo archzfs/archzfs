@@ -44,11 +44,14 @@ check_webpage() {
     debug "Checking webpage: $1"
     debug "Using regex: `printf "%q" "$2"`"
     debug "Expecting: $3"
+    PAGE=""
     if [[ $DEBUG == 1 ]]; then
-        SCRAPED_STRING=$(curl -vsL "${1}" | \grep -Po -m 1 "${2}")
+        PAGE=$(curl -vsL "${1}")
     else
-        SCRAPED_STRING=$(curl -sL "${1}" | \grep -Po -m 1 "${2}")
+        PAGE=$(curl -sL "${1}")
     fi
+    debug "Page: ${PAGE}"
+    SCRAPED_STRING=$(echo "${PAGE}" | \grep -Po -m 1 "${2}")
     debug "Got \"$SCRAPED_STRING\" from webpage."
     if [[ $SCRAPED_STRING != "$3" ]]; then
         error "Checking \"$1\" expected \"$3\" got \"$SCRAPED_STRING\""
@@ -139,7 +142,6 @@ msg "Checking zfsonlinux.org for new versions..."
 check_webpage "http://zfsonlinux.org/" "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "$AZB_ZOL_VERSION"
 
 if [[ $? != 0 ]]; then
-    msg2 "Sending notification..."
     error "ZOL version has changed!"
     HAS_ERROR=1
 else
