@@ -42,8 +42,8 @@ AZB_EMAIL="jeezusjr@gmail.com"
 # Repository path and name
 AZB_REPO_BASEPATH="/data/pacman/repo"
 
-# SSH login address
-AZB_REMOTE_LOGIN="jalvarez@web200.webfaction.com"
+# SSH login address (can use ssh config Hosts)
+AZB_REMOTE_LOGIN="webfaction"
 
 # The signing key to use to sign packages
 AZB_GPG_SIGN_KEY='0EE7A126'
