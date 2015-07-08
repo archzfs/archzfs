@@ -62,6 +62,11 @@ check_webpage() {
 
 HAS_ERROR=0
 
+# Bail if no internet
+if [[ $(ping -w 1 -c 1 8.8.8.8 &> /dev/null; echo $?) != 0 ]]; then
+    exit 0;
+fi
+
 msg "scraper.sh started..."
 
 #
