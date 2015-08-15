@@ -87,7 +87,8 @@ if [[ $AZB_BUILD_AUR4 == 1 && $AZB_MODE_GIT == 1 ]]; then
         msg "Packaging $PKG..."
         run_cmd "cd \"$PWD/$PKG\""
         run_cmd "mksrcinfo"
-        run_cmd "git add . && git commit -m 'Update for kernel $AZB_GIT_KERNEL_X64_VERSION_FULL'; git push"
+        run_cmd "git add . && git commit -m 'Update for kernel $AZB_GIT_KERNEL_X64_VERSION_FULL'"
+        run_cmd "git push"
         run_cmd "cd - > /dev/null"
     done
 elif [[ $AZB_BUILD_AUR4 == 1 && $AZB_MODE_LTS == 1 ]]; then
@@ -96,7 +97,8 @@ elif [[ $AZB_BUILD_AUR4 == 1 && $AZB_MODE_LTS == 1 ]]; then
         msg "Packaging $PKG..."
         run_cmd "cd \"$PWD/$PKG\""
         run_cmd "mksrcinfo"
-        run_cmd "git add . && git commit -m 'Update for kernel $AZB_LTS_KERNEL_X64_VERSION_FULL' && git push"
+        run_cmd "git add . && git commit -m 'Update for kernel $AZB_LTS_KERNEL_X64_VERSION_FULL'"
+        run_cmd "git push"
         run_cmd "cd - > /dev/null"
     done
 fi
