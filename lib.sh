@@ -1,7 +1,7 @@
 shopt -s nullglob
 
-# check if messages are to be printed using color
-unset ALL_OFF BOLD BLUE GREEN RED YELLOW
+
+unset ALL_OFF BOLD BLUE GREEN RED YELLOW WHITE
 
 # prefer terminal safe colored and bold text when tput is supported
 ALL_OFF="$(tput sgr0 2> /dev/null)"
@@ -10,31 +10,32 @@ BLUE="${BOLD}$(tput setaf 4 2> /dev/null)"
 GREEN="${BOLD}$(tput setaf 2 2> /dev/null)"
 RED="${BOLD}$(tput setaf 1 2> /dev/null)"
 YELLOW="${BOLD}$(tput setaf 3 2> /dev/null)"
+WHITE="${BOLD}$(tput setaf 7 2> /dev/null)"
 readonly ALL_OFF BOLD BLUE GREEN RED YELLOW
 
 plain() {
 	local mesg=$1; shift
-	printf "${BOLD}    ${mesg}${ALL_OFF}\n" "$@"
+	printf "${WHITE}     ○ ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n" "$@"
 }
 
 msg() {
 	local mesg=$1; shift
-	printf "${GREEN}####${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
+	printf "${GREEN}==== ${ALL_OFF}${WHITE}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
 }
 
 msg2() {
 	local mesg=$1; shift
-	printf "${BLUE}  ##${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
+	printf "${BLUE}++++  ${ALL_OFF}${WHITE}${BOLD}${mesg}${ALL_OFF}\n" "$@"
 }
 
 warning() {
 	local mesg=$1; shift
-	printf "${YELLOW}#### $(gettext "WARNING:")${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
+	printf "${YELLOW}====  WARNING: ${ALL_OFF}${WHITE}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
 }
 
 error() {
 	local mesg=$1; shift
-	printf "${RED}#### $(gettext "ERROR:")${ALL_OFF}${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
+	printf "${RED}====  ERROR: ${ALL_OFF}${BOLD}${WHITE}${mesg}${ALL_OFF}\n" "$@" >&2
 }
 
 send_email() {
