@@ -1,5 +1,5 @@
 # ZFSonLinux stable version (LTS packages)
-AZB_ZOL_VERSION="0.6.4.2"
+AZB_ZOL_VERSION="0.6.5"
 
 # Kernel version for GIT packages
 AZB_GIT_SPL_COMMIT="04974ca1"
