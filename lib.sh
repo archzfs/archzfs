@@ -70,8 +70,7 @@ run_cmd() {
 }
 
 cleanup() {
-	# [[ -n $WORKDIR ]] && rm -rf "$WORKDIR"
-	[[ $1 ]] && exit $1
+    exit $1 || true
 }
 
 abort() {
