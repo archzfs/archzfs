@@ -268,7 +268,7 @@ if [[ $AZB_REPO != "" ]]; then
 
         run_cmd "cp -f $cp_list $repo/"
 
-        run_cmd "repo-add -k $AZB_GPG_SIGN_KEY -s -v -f $repo/${AZB_REPO}.db.tar.xz $ra_list"
+        run_cmd "repo-add -k $AZB_GPG_SIGN_KEY -s -v $repo/${AZB_REPO}.db.tar.xz $ra_list"
         if [[ $? -ne 0 ]]; then
             error "An error occurred adding the package to the repo!"
             exit 1
