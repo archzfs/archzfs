@@ -26,7 +26,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
 if ! source ${SCRIPT_DIR}/lib.sh; then
-    error "Could not load lib.sh!"
+    echo "!! ERROR !!: Could not lload lib.sh!"
 fi
 
 
