@@ -252,7 +252,7 @@ for (( a = 0; a < $#; a++ )); do
 done
 
 
-if [[ $AZB_CLEANUP == 1 && $# -gt 1 ]]; then
+if [[ $AZB_CLEANUP -eq 1 && $# -gt 1 ]]; then
     echo -e "\n"
     error "-C should be used by itself!"
     echo -e "\n"
@@ -261,7 +261,7 @@ if [[ $AZB_CLEANUP == 1 && $# -gt 1 ]]; then
 fi
 
 
-if [[ ${AZB_MODE_GIT} == 0 && ${AZB_MODE_LTS} == 0 && $AZB_CLEANUP == 0 ]]; then
+if [[ ${AZB_MODE_DEF} -eq 0 && ${AZB_MODE_GIT} -eq 0 && ${AZB_MODE_LTS} -eq 0 && $AZB_CLEANUP -eq 0 ]]; then
     echo -e "\n"
     error "A build mode must be selected!"
     echo -e "\n"
@@ -273,31 +273,32 @@ fi
 msg "build.sh started..."
 
 
-if [[ $AZB_UPDPKGSUMS == 1 && ${AZB_MODE_LTS} == 1 ]]; then
+if [[ $AZB_UPDPKGSUMS -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
     update_lts_pkgsums
 fi
 
 
-if [[ ${AZB_UPDATE_PKGBUILDS} == 1 && ${AZB_MODE_DEF} == 1 ]]; then
+if [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_DEF} -eq 1 ]]; then
     debug "Updating default pkgbuilds"
     update_def_pkgbuilds
-elif [[ ${AZB_UPDATE_PKGBUILDS} == 1 && ${AZB_MODE_GIT} == 1 ]]; then
+elif [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_GIT} -eq 1 ]]; then
     debug "Updating git pkgbuilds"
     update_git_pkgbuilds
-elif [[ ${AZB_UPDATE_PKGBUILDS} == 1 && ${AZB_MODE_LTS} == 1 ]]; then
+elif [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
     debug "Updating lts pkgbuilds"
     update_lts_pkgbuilds
 fi
 
 
 if [ -n "$AZB_CHROOT_UPDATE" ]; then
-    msg "Updating the i686 and x86_64 clean chroots..."
+    msg "Updating the i686 clean chroot..."
     run_cmd "sudo ccm32 u"
+    msg "Updating the x86_64 clean chroot..."
     run_cmd "sudo ccm64 u"
 fi
 
 
-if [[ ${AZB_BUILD} == 1 && ${AZB_MODE_GIT} == 1 ]]; then
+if [[ ${AZB_BUILD} -eq 1 && ${AZB_MODE_DEF} -eq 1 ]]; then
     for PKG in ${AZB_GIT_PKG_LIST}; do
         msg "Building $PKG..."
         run_cmd "cd \"$PWD/packages/$PKG\""
@@ -308,7 +309,7 @@ if [[ ${AZB_BUILD} == 1 && ${AZB_MODE_GIT} == 1 ]]; then
     build_def_sources
     sign_packages
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
-elif [[ ${AZB_BUILD} == 1 && ${AZB_MODE_GIT} == 1 ]]; then
+elif [[ ${AZB_BUILD} -eq 1 && ${AZB_MODE_GIT} -eq 1 ]]; then
     for PKG in ${AZB_GIT_PKG_LIST}; do
         msg "Building $PKG..."
         run_cmd "cd \"$PWD/packages/$PKG\""
@@ -319,7 +320,7 @@ elif [[ ${AZB_BUILD} == 1 && ${AZB_MODE_GIT} == 1 ]]; then
     build_git_sources
     sign_packages
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
-elif [[ ${AZB_BUILD} == 1 && ${AZB_MODE_LTS} == 1 ]]; then
+elif [[ ${AZB_BUILD} -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
     for PKG in ${AZB_LTS_PKG_LIST}; do
         msg "Building $PKG..."
         run_cmd "cd \"$PWD/packages/$PKG\""
