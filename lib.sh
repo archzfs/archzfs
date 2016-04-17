@@ -94,13 +94,14 @@ abort() {
 
 trap_abort() {
     trap - INT QUIT TERM HUP
+    msg "Got INT QUIT TERM HUP signal!"
     abort
 }
 
 
 trap_exit() {
     trap - EXIT
-    msg "Have EXIT"
+    msg "$(date) :: All Done!"
     cleanup
 }
 

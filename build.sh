@@ -270,7 +270,7 @@ if [[ ${AZB_MODE_DEF} -eq 0 && ${AZB_MODE_GIT} -eq 0 && ${AZB_MODE_LTS} -eq 0 &&
 fi
 
 
-msg "build.sh started..."
+msg "$(date) :: build.sh started..."
 
 
 if [[ $AZB_UPDPKGSUMS -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
