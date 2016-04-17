@@ -1,97 +1,202 @@
+#!/bin/bash -e
+
 shopt -s nullglob
 
+# check if messages are to be printed using color
+unset ALL_OFF BOLD BLACK BLUE GREEN RED YELLOW WHITE DEFAULT CYAN MAGENTA
+ALL_OFF="\e[0m"
+BOLD="\e[1m"
+BLACK="${BOLD}\e[30m"
+RED="${BOLD}\e[31m"
+GREEN="${BOLD}\e[32m"
+YELLOW="${BOLD}\e[33m"
+BLUE="${BOLD}\e[34m"
+MAGENTA="${BOLD}\e[35m"
+CYAN="${BOLD}\e[36m"
+WHITE="${BOLD}\e[37m"
+DEFAULT="${BOLD}\e[39m"
+readonly ALL_OFF BOLD BLACK BLUE GREEN RED YELLOW WHITE DEFAULT CYAN MAGENTA
 
-unset ALL_OFF BOLD BLUE GREEN RED YELLOW WHITE
-
-# prefer terminal safe colored and bold text when tput is supported
-ALL_OFF="$(tput sgr0 2> /dev/null)"
-BOLD="$(tput bold 2> /dev/null)"
-BLUE="${BOLD}$(tput setaf 4 2> /dev/null)"
-GREEN="${BOLD}$(tput setaf 2 2> /dev/null)"
-RED="${BOLD}$(tput setaf 1 2> /dev/null)"
-YELLOW="${BOLD}$(tput setaf 3 2> /dev/null)"
-WHITE="${BOLD}$(tput setaf 7 2> /dev/null)"
-readonly ALL_OFF BOLD BLUE GREEN RED YELLOW
 
 plain() {
     local mesg=$1; shift
-    printf "${WHITE}     ○ ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n" "$@"
+    printf "${ALL_OFF}${BLACK}%s${ALL_OFF}\n\n" "${mesg}"
+    if [[ $# -gt 0 ]]; then
+        printf "%s\n\n" "$@"
+    fi
 }
+
+
+plain_one_line() {
+    local mesg=$1; shift
+    printf "○ ${ALL_OFF}${BLACK}%s${ALL_OFF} %s\n\n" "${mesg}" "${@}"
+}
+
 
 msg() {
     local mesg=$1; shift
-    printf "${GREEN}==== ${ALL_OFF}${WHITE}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
+    printf "${GREEN}====${ALL_OFF} ${BLACK}${BOLD}%s${ALL_OFF}\n\n" "$mesg"
+    if [[ $# -gt 0 ]]; then
+        printf "%s\n\n" "$@"
+    fi
 }
+
 
 msg2() {
     local mesg=$1; shift
-    printf "${BLUE}++++  ${ALL_OFF}${WHITE}${BOLD}${mesg}${ALL_OFF}\n" "$@"
+    printf "${BLUE}++++ ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    if [[ $# -gt 0 ]]; then
+        printf "%s\n\n" "$@"
+    fi
 }
+
 
 warning() {
     local mesg=$1; shift
-    printf "${YELLOW}====  WARNING: ${ALL_OFF}${WHITE}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
+    printf "${YELLOW}==== WARNING: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    if [[ $# -gt 0 ]]; then
+        printf "%s\n\n" "$@"
+    fi
 }
+
 
 error() {
     local mesg=$1; shift
-    printf "${RED}====  ERROR: ${ALL_OFF}${BOLD}${WHITE}${mesg}${ALL_OFF}\n" "$@" >&2
-}
-
-send_email() {
-    # $1 = Message
-    # $2 = Subject
-    # $3 = attachment
-    if [[ $3 == "" ]]; then
-        echo -e "${1}" | mutt -s "${2}" "${AZB_EMAIL}"
-    else
-        echo -e "${1}" | mutt -s "${2}" "${AZB_EMAIL}" -a "${3}"
+    printf "${RED}==== ERROR: ${ALL_OFF}${RED}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    if [[ $# -gt 0 ]]; then
+        printf "%s\n\n" "$@"
     fi
 }
+
 
 debug() {
     # $1: The message to print.
     if [[ $DEBUG -eq 1 ]]; then
-        plain "DEBUG: $1"
+        local mesg=$1; shift
+        printf "${MAGENTA}~~~~ DEBUG: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+        if [[ $# -gt 0 ]]; then
+            printf "%s\n\n" "$@"
+        fi
     fi
 }
 
-run_cmd() {
-    # $1: The command to run
-    if [[ $DRY_RUN -eq 1 ]]; then
-        for pos in $@; do
-            plain $pos
-        done
-    else
-        plain "Running command: $@"
-        eval "$@"
-        plain "Command returned: $?"
-    fi
-}
 
 cleanup() {
     exit $1 || true
 }
+
 
 abort() {
     msg 'Aborting...'
     cleanup 0
 }
 
+
 trap_abort() {
-    trap - EXIT INT QUIT TERM HUP
+    trap - INT QUIT TERM HUP
     abort
 }
 
+
 trap_exit() {
-    trap - EXIT INT QUIT TERM HUP
+    trap - EXIT
+    msg "Have EXIT"
     cleanup
 }
 
-die() {
-    (( $# )) && error "$@"
-    cleanup 1
+
+# Check a symlink, re-create it if the target is not correct
+function check_symlink() {
+    # $1 = Symlink
+    # $2 = Symlink target
+    if [[ "$1" = "$(readlink $2)" ]]; then
+        return
+    elif [[ -L "$2" ]]; then
+        rm "$2"
+    fi
+    ln -s "$1" "$2"
 }
+
+
+# Converts an absolute path into a relative path using python and prints on
+# stdout.
+function relativePath() {
+    # $1: Path that should be converted to relative path
+    # $2: The start path, usually $PWD
+    python -c "import os.path; print(os.path.relpath('$1', '$2'))"
+}
+
+
+norun() {
+    local mesg=$1; shift
+    printf "${MAGENTA}XXXX NORUN: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    if [[ $# -gt 0 ]]; then
+        printf "%s\n\n" "$@"
+    fi
+}
+
+
+# Runs a command. Ouput is not captured
+# To use this function, define the following in your calling script:
+# RUN_CMD_RETURN=""
+run_cmd() {
+    # $@: The command and args to run
+    if [[ $DRY_RUN -eq 1 ]]; then
+        norun "CMD:" "$@"
+    else
+        plain "Running command:" "$@"
+        plain_one_line "Output:"
+        echo -e "$@" | source /dev/stdin
+        RUN_CMD_RETURN=$?
+        echo
+        plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+    fi
+}
+
+
+# Runs a command, capture the output in RUN_CMD_OUTPUT, but also show stdout.
+# To use this function, define the following in your calling script:
+# RUN_CMD_RETURN=""
+run_cmd_show_and_capture_output() {
+    # $@: The command and args to run
+    if [[ $DRY_RUN -eq 1 ]]; then
+        norun "CMD:" "$@"
+    else
+        plain "Running command:" "$@"
+        plain_one_line "Output:"
+        # The following allows command output to be displayed in jenkins and stored in the variable simultaneously
+        # http://www.tldp.org/LDP/abs/html/x17974.html
+
+        # WARNING: This function sometimes results in the following error:
+        # lib.sh: line 145: /usr/bin/tee: Argument list too long
+        # lib.sh: line 145: /bin/cat: Argument list too long
+
+        exec 6>&1 # Link file descriptor 6 with stdout.
+        RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
+        exec 1>&6 6>&-      # Restore stdout and close file descriptor #6.
+        RUN_CMD_RETURN=$?
+        echo
+        plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+    fi
+}
+
+
+# Runs the command, does not show output to stdout
+# To use this function, define the following in your calling script:
+# RUN_CMD_OUTPUT=""
+# RUN_CMD_RETURN=""
+run_cmd_no_output() {
+    # $@: The command and args to run
+    if [[ $DRY_RUN -eq 1 ]]; then
+        norun "CMD:" "$@"
+    else
+        plain "Running command:" "$@"
+        RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin)
+        RUN_CMD_RETURN=$?
+        plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+    fi
+}
+
 
 package_arch_from_path() {
     # $1: Package path
@@ -99,11 +204,13 @@ package_arch_from_path() {
     return $?
 }
 
+
 package_name_from_path() {
     # $1: Package path
     pacman -Qip "$1" | grep "Name" | cut -d : -f 2 | tr -d ' '
     return $?
 }
+
 
 package_version_from_path() {
     # $1: Package path
@@ -111,11 +218,13 @@ package_version_from_path() {
     return $?
 }
 
+
 package_version_from_syncdb() {
     # $1: Package name
     pacman -Si "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
     return $?
 }
+
 
 full_kernel_version() {
     # Determine if the kernel version has the format 3.14 or 3.14.1
