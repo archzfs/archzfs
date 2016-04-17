@@ -20,8 +20,17 @@ AZB_MODE_GIT=0
 AZB_MODE_LTS=0
 
 
-source ./lib.sh
-source ./conf.sh
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+
+if ! source ${SCRIPT_DIR}/lib.sh; then
+    error "Could not load lib.sh!"
+fi
+
+
+if ! source ${SCRIPT_DIR}/conf.sh; then
+    error "Could not load conf.sh!"
+fi
 
 
 trap 'trap_abort' INT QUIT TERM HUP
@@ -279,13 +288,13 @@ fi
 
 
 if [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_DEF} -eq 1 ]]; then
-    debug "Updating default pkgbuilds"
+    msg "Updating default pkgbuilds"
     update_def_pkgbuilds
 elif [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_GIT} -eq 1 ]]; then
-    debug "Updating git pkgbuilds"
+    msg "Updating git pkgbuilds"
     update_git_pkgbuilds
 elif [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
-    debug "Updating lts pkgbuilds"
+    msg "Updating lts pkgbuilds"
     update_lts_pkgbuilds
 fi
 
