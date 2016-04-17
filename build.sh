@@ -23,9 +23,9 @@ trap 'trap_abort' INT QUIT TERM HUP
 trap 'trap_exit' EXIT
 
 usage() {
-	echo "build.sh - A build script for archzfs"
+    echo "build.sh - A build script for archzfs"
     echo
-	echo "Usage: build.sh [options] [mode] [command [command option] [...]"
+    echo "Usage: build.sh [options] [mode] [command [command option] [...]"
     echo
     echo "Options:"
     echo
@@ -49,7 +49,7 @@ usage() {
     echo "    update-test   Update all git PKGBUILDs using the testing conf.sh variables."
     echo "    sign          GPG detach sign all compiled packages (default)."
     echo
-	echo "Examples:"
+    echo "Examples:"
     echo
     echo "    build.sh -C                       :: Remove all compiled packages"
     echo "    build.sh git make -u              :: Update the chroot and build all of the packages"
@@ -348,8 +348,10 @@ if [[ $AZB_UPDPKGSUMS == 1 && $AZB_MODE_LTS == 1 ]]; then
 fi
 
 if [[ $AZB_UPDATE_PKGBUILDS == 1 && $AZB_MODE_GIT == 1 ]]; then
+    debug "Updating git pkgbuilds"
     update_git_pkgbuilds
 elif [[ $AZB_UPDATE_PKGBUILDS == 1 && $AZB_MODE_LTS == 1 ]]; then
+    debug "Updating lts pkgbuilds"
     update_lts_pkgbuilds
 fi
 

@@ -14,28 +14,28 @@ WHITE="${BOLD}$(tput setaf 7 2> /dev/null)"
 readonly ALL_OFF BOLD BLUE GREEN RED YELLOW
 
 plain() {
-	local mesg=$1; shift
-	printf "${WHITE}     ○ ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n" "$@"
+    local mesg=$1; shift
+    printf "${WHITE}     ○ ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n" "$@"
 }
 
 msg() {
-	local mesg=$1; shift
-	printf "${GREEN}==== ${ALL_OFF}${WHITE}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
+    local mesg=$1; shift
+    printf "${GREEN}==== ${ALL_OFF}${WHITE}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
 }
 
 msg2() {
-	local mesg=$1; shift
-	printf "${BLUE}++++  ${ALL_OFF}${WHITE}${BOLD}${mesg}${ALL_OFF}\n" "$@"
+    local mesg=$1; shift
+    printf "${BLUE}++++  ${ALL_OFF}${WHITE}${BOLD}${mesg}${ALL_OFF}\n" "$@"
 }
 
 warning() {
-	local mesg=$1; shift
-	printf "${YELLOW}====  WARNING: ${ALL_OFF}${WHITE}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
+    local mesg=$1; shift
+    printf "${YELLOW}====  WARNING: ${ALL_OFF}${WHITE}${BOLD} ${mesg}${ALL_OFF}\n" "$@"
 }
 
 error() {
-	local mesg=$1; shift
-	printf "${RED}====  ERROR: ${ALL_OFF}${BOLD}${WHITE}${mesg}${ALL_OFF}\n" "$@" >&2
+    local mesg=$1; shift
+    printf "${RED}====  ERROR: ${ALL_OFF}${BOLD}${WHITE}${mesg}${ALL_OFF}\n" "$@" >&2
 }
 
 send_email() {
@@ -74,23 +74,23 @@ cleanup() {
 }
 
 abort() {
-	msg 'Aborting...'
-	cleanup 0
+    msg 'Aborting...'
+    cleanup 0
 }
 
 trap_abort() {
-	trap - EXIT INT QUIT TERM HUP
-	abort
+    trap - EXIT INT QUIT TERM HUP
+    abort
 }
 
 trap_exit() {
-	trap - EXIT INT QUIT TERM HUP
-	cleanup
+    trap - EXIT INT QUIT TERM HUP
+    cleanup
 }
 
 die() {
-	(( $# )) && error "$@"
-	cleanup 1
+    (( $# )) && error "$@"
+    cleanup 1
 }
 
 package_arch_from_path() {
@@ -119,13 +119,17 @@ package_version_from_syncdb() {
 
 full_kernel_git_version() {
     # Determine if the kernel version has the format 3.14 or 3.14.1
-    [[ ${AZB_GIT_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
+    if [[ ${AZB_GIT_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]; then
+        debug "full_kernel_git_version: Have kernel with minor version!"
+    fi
+    debug "full_kernel_git_version: BASH_REMATCH[1] == '${BASH_REMATCH[1]}'"
     if [[ ${BASH_REMATCH[1]} != "" ]]; then
         AZB_GIT_KERNEL_X32_VERSION_FULL=${AZB_GIT_KERNEL_X32_VERSION}
         AZB_GIT_KERNEL_X64_VERSION_FULL=${AZB_GIT_KERNEL_X64_VERSION}
         AZB_GIT_KERNEL_X32_VERSION_CLEAN=$(echo ${AZB_GIT_KERNEL_X32_VERSION} | sed s/-/_/g)
         AZB_GIT_KERNEL_X64_VERSION_CLEAN=$(echo ${AZB_GIT_KERNEL_X64_VERSION} | sed s/-/_/g)
     else
+        debug "full_kernel_git_version: Have kernel without minor version!'"
         # Kernel version has the format 3.14, so add a 0.
         AZB_GIT_KERNEL_X32_VERSION_FULL=${AZB_GIT_KERNEL_VERSION}.0-${AZB_GIT_KERNEL_X32_PKGREL}
         AZB_GIT_KERNEL_X64_VERSION_FULL=${AZB_GIT_KERNEL_VERSION}.0-${AZB_GIT_KERNEL_X64_PKGREL}
