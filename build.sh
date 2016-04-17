@@ -1,8 +1,10 @@
 #!/bin/bash -e
+
+
 #
 # This script builds the archzfs packages in a clean clean chroot environment.
 #
-# This script requires clean-chroot-manager (https://github.com/graysky2/clean-chroot-manager)
+# clean-chroot-manager (https://github.com/graysky2/clean-chroot-manager) is required!
 #
 
 
