@@ -4,6 +4,8 @@
 #
 # This script requires clean-chroot-manager (https://github.com/graysky2/clean-chroot-manager)
 #
+
+
 # Defaults, don't edit these.
 AZB_UPDATE_PKGBUILDS=""
 AZB_UPDPKGSUMS=0
@@ -13,14 +15,18 @@ AZB_USE_TEST=0
 AZB_CHROOT_UPDATE=""
 AZB_SIGN=""
 AZB_CLEANUP=0
+AZB_MODE_DEF=0
 AZB_MODE_GIT=0
 AZB_MODE_LTS=0
+
 
 source ./lib.sh
 source ./conf.sh
 
+
 trap 'trap_abort' INT QUIT TERM HUP
 trap 'trap_exit' EXIT
+
 
 usage() {
     echo "build.sh - A build script for archzfs"
@@ -38,6 +44,7 @@ usage() {
     echo
     echo "Modes:"
     echo
+    echo "    def    Use default packages."
     echo "    git    Use the git packages."
     echo "    lts    Use the lts packages."
     echo
@@ -58,27 +65,36 @@ usage() {
     echo "    build.sh lts update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
 }
 
-sed_escape_input_string() {
-    echo "$1" | sed -e 's/[]\/$*.^|[]/\\&/g'
+
+build_def_sources() {
+    for PKG in ${AZB_DEF_PKG_LIST}; do
+        msg "Building source for $PKG";
+        run_cmd "cd \"$PWD/packages/$PKG\""
+        run_cmd "mkaurball -f"
+        run_cmd "cd - > /dev/null"
+    done
 }
+
 
 build_git_sources() {
-    for PKG in $AZB_GIT_PKG_LIST; do
+    for PKG in ${AZB_GIT_PKG_LIST}; do
         msg "Building source for $PKG";
-        run_cmd "cd \"$PWD/$PKG\""
+        run_cmd "cd \"$PWD/packages/$PKG\""
         run_cmd "mkaurball -f"
         run_cmd "cd - > /dev/null"
     done
 }
 
+
 build_lts_sources() {
-    for PKG in $AZB_LTS_PKG_LIST; do
+    for PKG in ${AZB_LTS_PKG_LIST}; do
         msg "Building source for $PKG";
-        run_cmd "cd \"$PWD/$PKG\""
+        run_cmd "cd \"$PWD/packages/$PKG\""
         run_cmd "mkaurball -f"
         run_cmd "cd - > /dev/null"
     done
 }
+
 
 sign_packages() {
     FILES=$(find $PWD -iname "*.pkg.tar.xz")
@@ -91,6 +107,7 @@ sign_packages() {
         fi
     done
 }
+
 
 get_new_pkgver() {
     # Sets NEW_{SPL,ZFS}_PKGVER with an updated PKGVER pulled from the git repo
@@ -131,6 +148,7 @@ get_new_pkgver() {
     cd ../
 }
 
+
 check_git_repo() {
     # Checks the current path for a git repo
     [[ `cat PKGBUILD` =~ git\+([[:alpha:]\/:\.]+)\/([[:alpha:]]+)\.git  ]] &&
@@ -162,140 +180,48 @@ check_git_repo() {
 
 }
 
-update_git_pkgbuilds() {
-    # Get variables from the existing PKGBUILDs
-    AZB_CURRENT_SPL_PKGVER=$(grep "pkgver=" spl-git/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_SPL_UTILS_PKGVER=$(grep "pkgver=" spl-utils-git/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_ZFS_PKGVER=$(grep "pkgver=" zfs-git/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_ZFS_UTILS_PKGVER=$(grep "pkgver=" zfs-utils-git/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_SPL_GIT_COMMIT=$(grep "#commit=" spl-git/PKGBUILD | cut -d= -f3 | sed "s/..$//g")
-    AZB_CURRENT_ZFS_GIT_COMMIT=$(grep "#commit=" zfs-git/PKGBUILD | cut -d= -f3 | sed "s/..$//g")
-    AZB_CURRENT_PKGREL=$(grep "pkgrel=" spl-git/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_X32_KERNEL_VERSION=$(grep -m1 "_kernel_version_x32=" spl-git/PKGBUILD | cut -d\" -f2)
-    AZB_CURRENT_X64_KERNEL_VERSION=$(grep -m1 "_kernel_version_x64=" spl-git/PKGBUILD | cut -d\" -f2)
-    AZB_CURRENT_X32_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x32_full=" spl-git/PKGBUILD | cut -d\" -f2)
-    AZB_CURRENT_X64_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x64_full=" spl-git/PKGBUILD | cut -d\" -f2)
 
+update_def_pkgbuilds() {
     # Calculate what the new pkgver would be for the git packages
-    get_new_pkgver
-
+    full_kernel_version
     debug "AZB_NEW_SPL_PKGVER: $AZB_NEW_SPL_X64_PKGVER"
     debug "AZB_NEW_ZFS_PKGVER: $AZB_NEW_ZFS_X64_PKGVER"
-    debug "AZB_CURRENT_SPL_PKGVER: $AZB_CURRENT_SPL_PKGVER"
-    debug "AZB_CURRENT_SPL_UTILS_PKGVER: $AZB_CURRENT_SPL_UTILS_PKGVER"
-    debug "AZB_CURRENT_ZFS_PKGVER: $AZB_CURRENT_ZFS_PKGVER"
-    debug "AZB_CURRENT_ZFS_UTILS_PKGVER: $AZB_CURRENT_ZFS_UTILS_PKGVER"
-    debug "AZB_CURRENT_SPL_GIT_COMMIT: $AZB_CURRENT_SPL_GIT_COMMIT"
-    debug "AZB_CURRENT_ZFS_GIT_COMMIT: $AZB_CURRENT_ZFS_GIT_COMMIT"
-    debug "AZB_CURRENT_PKGREL: $AZB_CURRENT_PKGREL"
-    debug "AZB_CURRENT_X32_KERNEL_VERSION: $AZB_CURRENT_X32_KERNEL_VERSION"
-    debug "AZB_CURRENT_X64_KERNEL_VERSION: $AZB_CURRENT_X64_KERNEL_VERSION"
-    debug "AZB_CURRENT_X32_KERNEL_VERSION_FULL: $AZB_CURRENT_X32_KERNEL_VERSION_FULL"
-    debug "AZB_CURRENT_X64_KERNEL_VERSION_FULL: $AZB_CURRENT_X64_KERNEL_VERSION_FULL"
-
-    # Change the top level AZB_GIT_PKGREL
-    run_cmd "find *-git -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgrel=$AZB_CURRENT_PKGREL/pkgrel=$AZB_GIT_PKGREL/g\""
-
-    # Change _kernel_version_*
-    run_cmd "find *-git -type f -print | xargs sed -i \
-        \"s/_kernel_version_x32=\\\"$AZB_CURRENT_X32_KERNEL_VERSION\\\"/_kernel_version_x32=\\\"$AZB_GIT_KERNEL_X32_VERSION\\\"/g\""
-    run_cmd "find *-git -type f -iname \"PKGBUILD\" -print | xargs sed -i \
-        \"s/_kernel_version_x64=\\\"$AZB_CURRENT_X64_KERNEL_VERSION\\\"/_kernel_version_x64=\\\"$AZB_GIT_KERNEL_X64_VERSION\\\"/g\""
-
-    run_cmd "find *-git -type f -print | xargs sed -i \
-        \"s/_kernel_version_x32_full=\\\"$AZB_CURRENT_X32_KERNEL_VERSION_FULL\\\"/_kernel_version_x32_full=\\\"$AZB_GIT_KERNEL_X32_VERSION_FULL\\\"/g\""
-    run_cmd "find *-git -type f -print | xargs sed -i \
-        \"s/_kernel_version_x64_full=\\\"$AZB_CURRENT_X64_KERNEL_VERSION_FULL\\\"/_kernel_version_x64_full=\\\"$AZB_GIT_KERNEL_X64_VERSION_FULL\\\"/g\""
-
-    # Replace the linux version in the top level PKGVER
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_SPL_PKGVER/pkgver=$AZB_NEW_SPL_X64_PKGVER/g\" spl-git/PKGBUILD"
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_SPL_UTILS_PKGVER/pkgver=$AZB_NEW_SPL_X64_PKGVER/g\" spl-utils-git/PKGBUILD"
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_ZFS_PKGVER/pkgver=$AZB_NEW_ZFS_X64_PKGVER/g\" zfs-git/PKGBUILD"
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_ZFS_UTILS_PKGVER/pkgver=$AZB_NEW_ZFS_X64_PKGVER/g\" zfs-utils-git/PKGBUILD"
-
     # Replace the git commit id
-    run_cmd "find zfs*git -iname \"PKGBUILD\" -print | xargs sed -i \
-        \"s/#commit=$AZB_CURRENT_ZFS_GIT_COMMIT/#commit=$AZB_GIT_ZFS_COMMIT/g\""
-    run_cmd "find spl*git -iname \"PKGBUILD\" -print | xargs sed -i \
-        \"s/#commit=$AZB_CURRENT_SPL_GIT_COMMIT/#commit=$AZB_GIT_SPL_COMMIT/g\""
-
-    # Update the sums of the files
-    for PKG in $AZB_GIT_PKG_LIST; do
-        run_cmd "updpkgsums $PKG/PKGBUILD"
-    done
+    # $AZB_GIT_ZFS_COMMIT
+    # $AZB_GIT_SPL_COMMIT
 }
+
+
+update_git_pkgbuilds() {
+    # Calculate what the new pkgver would be for the git packages
+    get_new_pkgver
+    debug "AZB_NEW_SPL_PKGVER: $AZB_NEW_SPL_X64_PKGVER"
+    debug "AZB_NEW_ZFS_PKGVER: $AZB_NEW_ZFS_X64_PKGVER"
+    # Replace the git commit id
+    # $AZB_GIT_ZFS_COMMIT
+    # $AZB_GIT_SPL_COMMIT
+}
+
 
 update_lts_pkgbuilds() {
-
-    # Get variables from the existing PKGBUILDs
-    AZB_CURRENT_SPL_PKGVER=$(grep "pkgver=" spl-lts/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_SPL_UTILS_PKGVER=$(grep "pkgver=" spl-utils-lts/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_ZFS_PKGVER=$(grep "pkgver=" zfs-lts/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_ZFS_UTILS_PKGVER=$(grep "pkgver=" zfs-utils-lts/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_PKGREL=$(grep "pkgrel=" spl-lts/PKGBUILD | cut -d= -f2)
-    AZB_CURRENT_X32_KERNEL_VERSION=$(grep -m1 "_kernel_version_x32=" spl-lts/PKGBUILD | cut -d\" -f2)
-    AZB_CURRENT_X64_KERNEL_VERSION=$(grep -m1 "_kernel_version_x64=" spl-lts/PKGBUILD | cut -d\" -f2)
-    AZB_CURRENT_X32_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x32_full=" spl-lts/PKGBUILD | cut -d\" -f2)
-    AZB_CURRENT_X64_KERNEL_VERSION_FULL=$(grep -m1 "_kernel_version_x64_full=" spl-lts/PKGBUILD | cut -d\" -f2)
-    AZB_CURRENT_ZOL_VERSION=$(grep 'spl-[[:digit:]\.]\+"' spl-lts/PKGBUILD | head -1 | \grep -o -m1 '[[:digit:]\.]\+')
-
     # Set the AZB_LTS_KERNEL* variables
-    full_kernel_lts_version
-
+    full_kernel_version
     AZB_NEW_LTS_PKGVER=${AZB_ZOL_VERSION}_${AZB_LTS_KERNEL_X64_VERSION_CLEAN}
-
     debug "AZB_NEW_LTS_PKGVER: $AZB_NEW_LTS_PKGVER"
-    debug "AZB_CURRENT_SPL_PKGVER: $AZB_CURRENT_SPL_PKGVER"
-    debug "AZB_CURRENT_SPL_UTILS_PKGVER: $AZB_CURRENT_SPL_UTILS_PKGVER"
-    debug "AZB_CURRENT_ZFS_PKGVER: $AZB_CURRENT_ZFS_PKGVER"
-    debug "AZB_CURRENT_ZFS_UTILS_PKGVER: $AZB_CURRENT_ZFS_UTILS_PKGVER"
-    debug "AZB_CURRENT_PKGREL: $AZB_CURRENT_PKGREL"
-    debug "AZB_CURRENT_X32_KERNEL_VERSION: $AZB_CURRENT_X32_KERNEL_VERSION"
-    debug "AZB_CURRENT_X64_KERNEL_VERSION: $AZB_CURRENT_X64_KERNEL_VERSION"
-    debug "AZB_CURRENT_X32_KERNEL_VERSION_FULL: $AZB_CURRENT_X32_KERNEL_VERSION_FULL"
-    debug "AZB_CURRENT_X64_KERNEL_VERSION_FULL: $AZB_CURRENT_X64_KERNEL_VERSION_FULL"
-
-    # Change the top level AZB_LTS_PKGREL
-    run_cmd "find *-lts -iname \"PKGBUILD\" -print | xargs sed -i \"s/pkgrel=$AZB_CURRENT_PKGREL/pkgrel=$AZB_LTS_PKGREL/g\""
-
-    # Change _kernel_version_*
-    run_cmd "find *-lts -type f -print | xargs sed -i \
-        \"s/_kernel_version_x32=\\\"$AZB_CURRENT_X32_KERNEL_VERSION\\\"/_kernel_version_x32=\\\"$AZB_LTS_KERNEL_X32_VERSION\\\"/g\""
-    run_cmd "find *-lts -type f -print | xargs sed -i \
-        \"s/_kernel_version_x64=\\\"$AZB_CURRENT_X64_KERNEL_VERSION\\\"/_kernel_version_x64=\\\"$AZB_LTS_KERNEL_X64_VERSION\\\"/g\""
-
-    run_cmd "find *-lts -type f -print | xargs sed -i \
-        \"s/_kernel_version_x32_full=\\\"$AZB_CURRENT_X32_KERNEL_VERSION_FULL\\\"/_kernel_version_x32_full=\\\"$AZB_LTS_KERNEL_X32_VERSION_FULL\\\"/g\""
-    run_cmd "find *-lts -type f -print | xargs sed -i \
-        \"s/_kernel_version_x64_full=\\\"$AZB_CURRENT_X64_KERNEL_VERSION_FULL\\\"/_kernel_version_x64_full=\\\"$AZB_LTS_KERNEL_X64_VERSION_FULL\\\"/g\""
-
-    # Replace the linux version in the top level PKGVER
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_SPL_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" spl-lts/PKGBUILD"
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_SPL_UTILS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" spl-utils-lts/PKGBUILD"
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_ZFS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" zfs-lts/PKGBUILD"
-    run_cmd "sed -i \"s/pkgver=$AZB_CURRENT_ZFS_UTILS_PKGVER/pkgver=$AZB_NEW_LTS_PKGVER/g\" zfs-utils-lts/PKGBUILD"
-
-    # Replace the ZOL Version
-    run_cmd "find *-lts -type f -print | xargs sed -i \"s/$AZB_CURRENT_ZOL_VERSION/$AZB_ZOL_VERSION/g\""
-
-    return 0
 }
 
-update_lts_pkgsums() {
-    # Update the sums of the files
-    for PKG in $AZB_LTS_PKG_LIST; do
-        run_cmd "updpkgsums $PKG/PKGBUILD"
-    done
-}
 
 if [[ $# -lt 1 ]]; then
     usage;
     exit 0;
 fi
 
+
 ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "git" ]]; then
+    if [[ ${ARGS[$a]} == "def" ]]; then
+        AZB_MODE_DEF=1
+    elif [[ ${ARGS[$a]} == "git" ]]; then
         AZB_MODE_GIT=1
     elif [[ ${ARGS[$a]} == "lts" ]]; then
         AZB_MODE_LTS=1
@@ -309,9 +235,6 @@ for (( a = 0; a < $#; a++ )); do
         AZB_UPDATE_TEST_PKGBUILDS=1
     elif [[ ${ARGS[$a]} == "sign" ]]; then
         AZB_SIGN=1
-    elif [[ ${ARGS[$a]} == "-h" ]]; then
-        usage;
-        exit 0;
     elif [[ ${ARGS[$a]} == "-u" ]]; then
         AZB_CHROOT_UPDATE="-u"
     elif [[ ${ARGS[$a]} == "-U" ]]; then
@@ -322,8 +245,12 @@ for (( a = 0; a < $#; a++ )); do
         DRY_RUN=1
     elif [[ ${ARGS[$a]} == "-d" ]]; then
         DEBUG=1
+    elif [[ ${ARGS[$a]} == "-h" ]]; then
+        usage;
+        exit 0;
     fi
 done
+
 
 if [[ $AZB_CLEANUP == 1 && $# -gt 1 ]]; then
     echo -e "\n"
@@ -333,7 +260,8 @@ if [[ $AZB_CLEANUP == 1 && $# -gt 1 ]]; then
     exit 0;
 fi
 
-if [[ $AZB_MODE_GIT == 0 && $AZB_MODE_LTS == 0 && $AZB_CLEANUP == 0 ]]; then
+
+if [[ ${AZB_MODE_GIT} == 0 && ${AZB_MODE_LTS} == 0 && $AZB_CLEANUP == 0 ]]; then
     echo -e "\n"
     error "A build mode must be selected!"
     echo -e "\n"
@@ -341,19 +269,26 @@ if [[ $AZB_MODE_GIT == 0 && $AZB_MODE_LTS == 0 && $AZB_CLEANUP == 0 ]]; then
     exit 0;
 fi
 
+
 msg "build.sh started..."
 
-if [[ $AZB_UPDPKGSUMS == 1 && $AZB_MODE_LTS == 1 ]]; then
+
+if [[ $AZB_UPDPKGSUMS == 1 && ${AZB_MODE_LTS} == 1 ]]; then
     update_lts_pkgsums
 fi
 
-if [[ $AZB_UPDATE_PKGBUILDS == 1 && $AZB_MODE_GIT == 1 ]]; then
+
+if [[ ${AZB_UPDATE_PKGBUILDS} == 1 && ${AZB_MODE_DEF} == 1 ]]; then
+    debug "Updating default pkgbuilds"
+    update_def_pkgbuilds
+elif [[ ${AZB_UPDATE_PKGBUILDS} == 1 && ${AZB_MODE_GIT} == 1 ]]; then
     debug "Updating git pkgbuilds"
     update_git_pkgbuilds
-elif [[ $AZB_UPDATE_PKGBUILDS == 1 && $AZB_MODE_LTS == 1 ]]; then
+elif [[ ${AZB_UPDATE_PKGBUILDS} == 1 && ${AZB_MODE_LTS} == 1 ]]; then
     debug "Updating lts pkgbuilds"
     update_lts_pkgbuilds
 fi
+
 
 if [ -n "$AZB_CHROOT_UPDATE" ]; then
     msg "Updating the i686 and x86_64 clean chroots..."
@@ -361,10 +296,22 @@ if [ -n "$AZB_CHROOT_UPDATE" ]; then
     run_cmd "sudo ccm64 u"
 fi
 
-if [[ $AZB_BUILD == 1 && $AZB_MODE_GIT == 1 ]]; then
-    for PKG in $AZB_GIT_PKG_LIST; do
+
+if [[ ${AZB_BUILD} == 1 && ${AZB_MODE_GIT} == 1 ]]; then
+    for PKG in ${AZB_GIT_PKG_LIST}; do
         msg "Building $PKG..."
-        run_cmd "cd \"$PWD/$PKG\""
+        run_cmd "cd \"$PWD/packages/$PKG\""
+        run_cmd "sudo ccm32 s"
+        run_cmd "sudo ccm64 s"
+        run_cmd "cd - > /dev/null"
+    done
+    build_def_sources
+    sign_packages
+    run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
+elif [[ ${AZB_BUILD} == 1 && ${AZB_MODE_GIT} == 1 ]]; then
+    for PKG in ${AZB_GIT_PKG_LIST}; do
+        msg "Building $PKG..."
+        run_cmd "cd \"$PWD/packages/$PKG\""
         run_cmd "sudo ccm32 s"
         run_cmd "sudo ccm64 s"
         run_cmd "cd - > /dev/null"
@@ -372,10 +319,10 @@ if [[ $AZB_BUILD == 1 && $AZB_MODE_GIT == 1 ]]; then
     build_git_sources
     sign_packages
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
-elif [[ $AZB_BUILD == 1 && $AZB_MODE_LTS == 1 ]]; then
-    for PKG in $AZB_LTS_PKG_LIST; do
+elif [[ ${AZB_BUILD} == 1 && ${AZB_MODE_LTS} == 1 ]]; then
+    for PKG in ${AZB_LTS_PKG_LIST}; do
         msg "Building $PKG..."
-        run_cmd "cd \"$PWD/$PKG\""
+        run_cmd "cd \"$PWD/packages/$PKG\""
         run_cmd "sudo ccm32 s"
         run_cmd "sudo ccm64 s"
         run_cmd "cd - > /dev/null"
@@ -385,9 +332,11 @@ elif [[ $AZB_BUILD == 1 && $AZB_MODE_LTS == 1 ]]; then
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
 fi
 
+
 if [[ $AZB_SIGN -eq 1 ]]; then
     sign_packages
 fi
+
 
 if [[ $AZB_CLEANUP -eq 1 ]]; then
     msg "Cleaning up work files..."

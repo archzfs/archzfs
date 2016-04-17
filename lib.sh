@@ -117,57 +117,23 @@ package_version_from_syncdb() {
     return $?
 }
 
-full_kernel_git_version() {
+full_kernel_version() {
     # Determine if the kernel version has the format 3.14 or 3.14.1
-    if [[ ${AZB_GIT_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]; then
-        debug "full_kernel_git_version: Have kernel with minor version!"
+    if [[ ${AZB_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]; then
+        debug "full_kernel_version: Have kernel with minor version!"
     fi
-    debug "full_kernel_git_version: BASH_REMATCH[1] == '${BASH_REMATCH[1]}'"
+    debug "full_kernel_version: BASH_REMATCH[1] == '${BASH_REMATCH[1]}'"
     if [[ ${BASH_REMATCH[1]} != "" ]]; then
-        AZB_GIT_KERNEL_X32_VERSION_FULL=${AZB_GIT_KERNEL_X32_VERSION}
-        AZB_GIT_KERNEL_X64_VERSION_FULL=${AZB_GIT_KERNEL_X64_VERSION}
-        AZB_GIT_KERNEL_X32_VERSION_CLEAN=$(echo ${AZB_GIT_KERNEL_X32_VERSION} | sed s/-/_/g)
-        AZB_GIT_KERNEL_X64_VERSION_CLEAN=$(echo ${AZB_GIT_KERNEL_X64_VERSION} | sed s/-/_/g)
+        AZB_KERNEL_VERSION_FULL_X32=${AZB_KERNEL_VERSION_X32}
+        AZB_KERNEL_VERSION_FULL_X64=${AZB_KERNEL_VERSION_X64}
+        AZB_KERNEL_VERSION_CLEAN_X32=$(echo ${AZB_KERNEL_VERSION_X32} | sed s/-/_/g)
+        AZB_KERNEL_VERSION_CLEAN_X64=$(echo ${AZB_KERNEL_VERSION_X64} | sed s/-/_/g)
     else
         debug "full_kernel_git_version: Have kernel without minor version!'"
         # Kernel version has the format 3.14, so add a 0.
-        AZB_GIT_KERNEL_X32_VERSION_FULL=${AZB_GIT_KERNEL_VERSION}.0-${AZB_GIT_KERNEL_X32_PKGREL}
-        AZB_GIT_KERNEL_X64_VERSION_FULL=${AZB_GIT_KERNEL_VERSION}.0-${AZB_GIT_KERNEL_X64_PKGREL}
-        AZB_GIT_KERNEL_X32_VERSION_CLEAN=$(echo ${AZB_GIT_KERNEL_X32_VERSION_FULL} | sed s/-/_/g)
-        AZB_GIT_KERNEL_X64_VERSION_CLEAN=$(echo ${AZB_GIT_KERNEL_X64_VERSION_FULL} | sed s/-/_/g)
-    fi
-}
-
-full_kernel_lts_version() {
-    # Determine if the kernel version has the format 3.14 or 3.14.1
-    [[ ${AZB_LTS_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
-    if [[ ${BASH_REMATCH[1]} != "" ]]; then
-        AZB_LTS_KERNEL_X32_VERSION_FULL=${AZB_LTS_KERNEL_X32_VERSION}
-        AZB_LTS_KERNEL_X64_VERSION_FULL=${AZB_LTS_KERNEL_X64_VERSION}
-        AZB_LTS_KERNEL_X32_VERSION_CLEAN=$(echo ${AZB_LTS_KERNEL_X32_VERSION} | sed s/-/_/g)
-        AZB_LTS_KERNEL_X64_VERSION_CLEAN=$(echo ${AZB_LTS_KERNEL_X64_VERSION} | sed s/-/_/g)
-    else
-        # Kernel version has the format 3.14, so add a 0.
-        AZB_LTS_KERNEL_X32_VERSION_FULL=${AZB_LTS_KERNEL_VERSION}.0-${AZB_LTS_KERNEL_X32_PKGREL}
-        AZB_LTS_KERNEL_X64_VERSION_FULL=${AZB_LTS_KERNEL_VERSION}.0-${AZB_LTS_KERNEL_X64_PKGREL}
-        AZB_LTS_KERNEL_X32_VERSION_CLEAN=$(echo ${AZB_LTS_KERNEL_X32_VERSION_FULL} | sed s/-/_/g)
-        AZB_LTS_KERNEL_X64_VERSION_CLEAN=$(echo ${AZB_LTS_KERNEL_X64_VERSION_FULL} | sed s/-/_/g)
-    fi
-}
-
-full_kernel_archiso_version() {
-    # Determine if the archiso kernel version has the format 3.14 or 3.14.1
-    [[ ${AZB_KERNEL_ARCHISO_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]
-    if [[ ${BASH_REMATCH[1]} != "" ]]; then
-        AZB_KERNEL_ARCHISO_X32_VERSION_FULL=${AZB_KERNEL_ARCHISO_X32_VERSION}
-        AZB_KERNEL_ARCHISO_X32_VERSION_CLEAN=$(echo ${AZB_KERNEL_ARCHISO_X32_VERSION} | sed s/-/_/g)
-        AZB_KERNEL_ARCHISO_X64_VERSION_FULL=${AZB_KERNEL_ARCHISO_X64_VERSION}
-        AZB_KERNEL_ARCHISO_X64_VERSION_CLEAN=$(echo ${AZB_KERNEL_ARCHISO_X64_VERSION} | sed s/-/_/g)
-    else
-        # Kernel version has the format 3.14, so add a 0.
-        AZB_KERNEL_ARCHISO_X32_VERSION_FULL=${AZB_KERNEL_ARCHISO_VERSION}.0-${AZB_KERNEL_ARCHISO_X32_PKGREL}
-        AZB_KERNEL_ARCHISO_X32_VERSION_CLEAN=${AZB_KERNEL_ARCHISO_VERSION}.0_${AZB_KERNEL_ARCHISO_X32_PKGREL}
-        AZB_KERNEL_ARCHISO_X64_VERSION_FULL=${AZB_KERNEL_ARCHISO_VERSION}.0-${AZB_KERNEL_ARCHISO_X64_PKGREL}
-        AZB_KERNEL_ARCHISO_X64_VERSION_CLEAN=${AZB_KERNEL_ARCHISO_VERSION}.0_${AZB_KERNEL_ARCHISO_X64_PKGREL}
+        AZB_KERNEL_VERSION_FULL_X32=${AZB_KERNEL_VERSION}.0-${AZB_KERNEL_PKGREL_X32}
+        AZB_KERNEL_VERSION_FULL_X64=${AZB_KERNEL_VERSION}.0-${AZB_KERNEL_PKGREL_X64}
+        AZB_KERNEL_VERSION_CLEAN_X32=$(echo ${AZB_KERNEL_VERSION_FULL_X32} | sed s/-/_/g)
+        AZB_KERNEL_VERSION_CLEAN_X64=$(echo ${AZB_KERNEL_VERSION_FULL_X64} | sed s/-/_/g)
     fi
 }
