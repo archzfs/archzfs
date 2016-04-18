@@ -22,7 +22,8 @@ plain() {
     local mesg=$1; shift
     printf "${ALL_OFF}${BLACK}%s${ALL_OFF}\n\n" "${mesg}"
     if [[ $# -gt 0 ]]; then
-        printf "%s\n\n" "$@"
+        printf '%s ' "${@}"
+        printf '\n\n'
     fi
 }
 
@@ -37,7 +38,8 @@ msg() {
     local mesg=$1; shift
     printf "${GREEN}====${ALL_OFF} ${BLACK}${BOLD}%s${ALL_OFF}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
-        printf "%s\n\n" "$@"
+        printf '%s ' "${@}"
+        printf '\n\n'
     fi
 }
 
@@ -46,25 +48,28 @@ msg2() {
     local mesg=$1; shift
     printf "${BLUE}++++ ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
-        printf "%s\n\n" "$@"
+        printf '%s ' "${@}"
+        printf '\n\n'
     fi
 }
 
 
 warning() {
     local mesg=$1; shift
-    printf "${YELLOW}==== WARNING: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    printf "${YELLOW}==== WARNING: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
     if [[ $# -gt 0 ]]; then
-        printf "%s\n\n" "$@"
+        printf '%s ' "${@}" 1>&2
+        printf '\n\n'
     fi
 }
 
 
 error() {
     local mesg=$1; shift
-    printf "${RED}==== ERROR: ${ALL_OFF}${RED}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    printf "${RED}==== ERROR: ${ALL_OFF}${RED}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
     if [[ $# -gt 0 ]]; then
-        printf "%s\n\n" "$@"
+        printf '%s ' "${@}" 1>&2
+        printf '\n\n'
     fi
 }
 
@@ -73,9 +78,10 @@ debug() {
     # $1: The message to print.
     if [[ $DEBUG -eq 1 ]]; then
         local mesg=$1; shift
-        printf "${MAGENTA}~~~~ DEBUG: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+        printf "${MAGENTA}~~~~ DEBUG: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
         if [[ $# -gt 0 ]]; then
-            printf "%s\n\n" "$@"
+            printf '%s ' "${@}" 1>&2
+            printf '\n\n'
         fi
     fi
 }
@@ -161,9 +167,9 @@ run_cmd() {
 run_cmd_show_and_capture_output() {
     # $@: The command and args to run
     if [[ $DRY_RUN -eq 1 ]]; then
-        norun "CMD:" "$@"
+        norun "CMD:" $@
     else
-        plain "Running command:" "$@"
+        plain "Running command:" $@
         plain_one_line "Output:"
         # The following allows command output to be displayed in jenkins and stored in the variable simultaneously
         # http://www.tldp.org/LDP/abs/html/x17974.html
@@ -176,7 +182,7 @@ run_cmd_show_and_capture_output() {
         RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
         exec 1>&6 6>&-      # Restore stdout and close file descriptor #6.
         RUN_CMD_RETURN=$?
-        echo
+        echo -e "\n"
         plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
     fi
 }
@@ -189,10 +195,10 @@ run_cmd_show_and_capture_output() {
 run_cmd_no_output() {
     # $@: The command and args to run
     if [[ $DRY_RUN -eq 1 ]]; then
-        norun "CMD:" "$@"
+        norun "CMD:" $@
     else
         plain "Running command:" "$@"
-        RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin)
+        RUN_CMD_OUTPUT=$(printf "$@" | source /dev/stdin)
         RUN_CMD_RETURN=$?
         plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
     fi
