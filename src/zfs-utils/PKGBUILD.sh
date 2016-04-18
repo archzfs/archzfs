@@ -8,7 +8,7 @@ pkgver=${AZB_PKGVER}
 pkgrel=${AZB_PKGREL}
 pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=("${AZB_SPL_PKGNAME}")
-arch=("i686" "x86_64")
+arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-${AZB_ZOL_VERSION}.tar.gz"
         "zfs-utils.bash-completion-r1"

@@ -8,7 +8,7 @@ pkgver=${AZB_PKGVER}
 pkgrel=${AZB_PKGREL}
 pkgdesc="Solaris Porting Layer kernel modules."
 depends=("${AZB_SPL_UTILS_PKGNAME}")
-arch=("i686" "x86_64")
+arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-${AZB_ZOL_VERSION}.tar.gz")
 sha256sums=('${AZB_ZFS_SRC_HASH}}')
@@ -21,15 +21,11 @@ build() {
     cd "\${srcdir}/spl-${AZB_ZOL_VERSION}"
     ./autogen.sh
 
-    _at_enable=""
-    [ "\${CARCH}" == "i686" ] && _at_enable="--enable-atomic-spinlocks"
-
     ./configure --prefix=/usr \\
                 --libdir=/usr/lib \\
                 --sbindir=/usr/bin \\
                 --with-linux=/usr/lib/modules/${AZB_KERNEL_VERSION_FULL}/build \\
-                --with-config=kernel \\
-                \${_at_enable}
+                --with-config=kernel
 
     make
 }

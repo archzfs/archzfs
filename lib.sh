@@ -162,7 +162,8 @@ norun() {
     local mesg=$1; shift
     printf "${MAGENTA}XXXX NORUN: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
-        printf "%s\n\n" "$@"
+        printf '%s ' $@
+        printf '\n\n'
     fi
 }
 
@@ -206,7 +207,7 @@ run_cmd_show_and_capture_output() {
         RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
         exec 1>&6 6>&-      # Restore stdout and close file descriptor #6.
         RUN_CMD_RETURN=$?
-        echo -e "\n"
+        echo
         plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
     fi
 }
@@ -270,16 +271,19 @@ kernel_version_has_minor_version() {
 }
 
 
+# Returns the full kernel version. If $1 is "3.14-1" then full_kernel_version returns "3.14.0-1".
 full_kernel_version() {
     # $1: the kernel version
-    # $2: the Arch Linux PKGREL
-    # Determine if the kernel version has the format 3.14 or 3.14.1
+    local arg=$1
     if ! kernel_version_has_minor_version $1; then
         debug "full_kernel_version: Have kernel without minor version!"
         # Kernel version has the format 3.14, so add a 0.
-        AZB_KERNEL_MINOR_VERSION=".0"
+        local arg=$(echo ${arg} | cut -f1 -d-)
+        local rev=$(echo ${1} | cut -f2 -d-)
+        printf "${arg}.0-${rev}"
+        return 0
     fi
-    printf "${1}${AZB_KERNEL_MINOR_VERSION}-${2}"
+    printf ${arg}
 }
 
 
