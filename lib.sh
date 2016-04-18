@@ -20,7 +20,7 @@ readonly ALL_OFF BOLD BLACK BLUE GREEN RED YELLOW WHITE DEFAULT CYAN MAGENTA
 
 plain() {
     local mesg=$1; shift
-    printf "${ALL_OFF}${BLACK}%s${ALL_OFF}\n\n" "${mesg}"
+    printf "${ALL_OFF}%s${ALL_OFF}\n\n" "${mesg}"
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}"
         printf '\n\n'
@@ -30,13 +30,17 @@ plain() {
 
 plain_one_line() {
     local mesg=$1; shift
-    printf "○ ${ALL_OFF}${BLACK}%s${ALL_OFF} %s\n\n" "${mesg}" "${@}"
+    printf "○ ${ALL_OFF}${ALL_OFF} %s\n\n" "${mesg}"
+    if [[ $# -gt 0 ]]; then
+        printf '%s ' "${@}"
+        printf '\n\n'
+    fi
 }
 
 
 msg() {
     local mesg=$1; shift
-    printf "${GREEN}====${ALL_OFF} ${BLACK}${BOLD}%s${ALL_OFF}\n\n" "$mesg"
+    printf "${GREEN}====${ALL_OFF} ${BOLD}%s${ALL_OFF}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}"
         printf '\n\n'
@@ -46,7 +50,7 @@ msg() {
 
 msg2() {
     local mesg=$1; shift
-    printf "${BLUE}++++ ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    printf "${BLUE}++++ ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}"
         printf '\n\n'
@@ -56,7 +60,7 @@ msg2() {
 
 warning() {
     local mesg=$1; shift
-    printf "${YELLOW}==== WARNING: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
+    printf "${YELLOW}==== WARNING: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}" 1>&2
         printf '\n\n'
@@ -78,11 +82,31 @@ debug() {
     # $1: The message to print.
     if [[ $DEBUG -eq 1 ]]; then
         local mesg=$1; shift
-        printf "${MAGENTA}~~~~ DEBUG: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
+        printf "${MAGENTA}~~~~ DEBUG: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
         if [[ $# -gt 0 ]]; then
             printf '%s ' "${@}" 1>&2
             printf '\n\n'
         fi
+    fi
+}
+
+
+test_pass() {
+    local mesg=$1; shift
+    printf "${GREEN}==== PASS: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
+    if [[ $# -gt 0 ]]; then
+        printf '%s ' "${@}" 1>&2
+        printf '\n\n'
+    fi
+}
+
+
+test_fail() {
+    local mesg=$1; shift
+    printf "${RED}==== FAILED: ${ALL_OFF}${RED}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
+    if [[ $# -gt 0 ]]; then
+        printf '%s ' "${@}" 1>&2
+        printf '\n\n'
     fi
 }
 
@@ -136,7 +160,7 @@ function relativePath() {
 
 norun() {
     local mesg=$1; shift
-    printf "${MAGENTA}XXXX NORUN: ${ALL_OFF}${BLACK}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    printf "${MAGENTA}XXXX NORUN: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
         printf "%s\n\n" "$@"
     fi
@@ -233,23 +257,34 @@ package_version_from_syncdb() {
 }
 
 
+kernel_version_has_minor_version() {
+    # $1: the kernel version
+    # returns: 0 if the version contains a minor version and 1 if it does not
+    if [[ ${1} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]; then
+        debug "kernel_version_has_minor_version: Have kernel with minor version!"
+        return 0
+    fi
+    debug "kernel_version_has_minor_version: BASH_REMATCH[1] == '${BASH_REMATCH[1]}'"
+    debug "kernel_version_has_minor_version: Have kernel without minor version!"
+    return 1
+}
+
+
 full_kernel_version() {
+    # $1: the kernel version
+    # $2: the Arch Linux PKGREL
     # Determine if the kernel version has the format 3.14 or 3.14.1
-    if [[ ${AZB_KERNEL_VERSION} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]; then
-        debug "full_kernel_version: Have kernel with minor version!"
-    fi
-    debug "full_kernel_version: BASH_REMATCH[1] == '${BASH_REMATCH[1]}'"
-    if [[ ${BASH_REMATCH[1]} != "" ]]; then
-        AZB_KERNEL_VERSION_FULL_X32=${AZB_KERNEL_VERSION_X32}
-        AZB_KERNEL_VERSION_FULL_X64=${AZB_KERNEL_VERSION_X64}
-        AZB_KERNEL_VERSION_CLEAN_X32=$(echo ${AZB_KERNEL_VERSION_X32} | sed s/-/_/g)
-        AZB_KERNEL_VERSION_CLEAN_X64=$(echo ${AZB_KERNEL_VERSION_X64} | sed s/-/_/g)
-    else
-        debug "full_kernel_git_version: Have kernel without minor version!'"
+    if ! kernel_version_has_minor_version $1; then
+        debug "full_kernel_version: Have kernel without minor version!"
         # Kernel version has the format 3.14, so add a 0.
-        AZB_KERNEL_VERSION_FULL_X32=${AZB_KERNEL_VERSION}.0-${AZB_KERNEL_PKGREL_X32}
-        AZB_KERNEL_VERSION_FULL_X64=${AZB_KERNEL_VERSION}.0-${AZB_KERNEL_PKGREL_X64}
-        AZB_KERNEL_VERSION_CLEAN_X32=$(echo ${AZB_KERNEL_VERSION_FULL_X32} | sed s/-/_/g)
-        AZB_KERNEL_VERSION_CLEAN_X64=$(echo ${AZB_KERNEL_VERSION_FULL_X64} | sed s/-/_/g)
+        AZB_KERNEL_MINOR_VERSION=".0"
     fi
+    printf "${1}${AZB_KERNEL_MINOR_VERSION}-${2}"
+}
+
+
+full_kernel_version_no_hyphen() {
+    # $1: The full kernel version
+    # returns: output is printed to stdout
+    echo $(echo ${1} | sed s/-/_/g)
 }

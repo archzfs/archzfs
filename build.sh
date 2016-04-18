@@ -26,7 +26,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
 if ! source ${SCRIPT_DIR}/lib.sh; then
-    echo "!! ERROR !!: Could not lload lib.sh!"
+    echo "!! ERROR !! -- Could not lload lib.sh!"
 fi
 
 
@@ -194,9 +194,9 @@ check_git_repo() {
 
 update_def_pkgbuilds() {
     # Calculate what the new pkgver would be for the git packages
-    full_kernel_version
-    debug "AZB_NEW_SPL_PKGVER: $AZB_NEW_SPL_X64_PKGVER"
-    debug "AZB_NEW_ZFS_PKGVER: $AZB_NEW_ZFS_X64_PKGVER"
+    full_kernel_version ${AZB_DEF_KERNEL_VERSION} ${AZB_DEF_KERNEL_PKGREL_X32} ${AZB_DEF_KERNEL_PKGREL_X64}
+    AZB_PKGVER=${AZB_ZOL_VERSION}_${AZB_KERNEL_VERSION_CLEAN_X64}
+    debug "AZB_PKGVER: $AZB_PKGVER"
     # Replace the git commit id
     # $AZB_GIT_ZFS_COMMIT
     # $AZB_GIT_SPL_COMMIT
