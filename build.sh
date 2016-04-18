@@ -196,7 +196,7 @@ check_git_repo() {
 update_def_pkgbuilds() {
     # Calculate what the new pkgver would be for the git packages
     # local fkv=$(full_kernel_version ${AZB_DEF_KERNEL_VERSION} ${AZB_DEF_KERNEL_PKGREL_X32} ${AZB_DEF_KERNEL_PKGREL_X64})
-    AZB_KERNEL_VERSION_FULL=${AZB_DEF_KERNEL_VERSION}
+    AZB_KERNEL_VERSION_FULL=$(full_kernel_version ${AZB_DEF_KERNEL_VERSION})
     AZB_PKGVER=${AZB_ZOL_VERSION}_$(full_kernel_version_no_hyphen ${AZB_DEF_KERNEL_VERSION})
     debug "AZB_PKGVER: ${AZB_PKGVER}"
     debug "AZB_ZOL_VERSION: ${AZB_ZOL_VERSION}"

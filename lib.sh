@@ -287,8 +287,9 @@ full_kernel_version() {
 }
 
 
+# Returns the full kernel version. If $1 is "3.14-1" then full_kernel_version returns "3.14.0_1".
 full_kernel_version_no_hyphen() {
     # $1: The full kernel version
     # returns: output is printed to stdout
-    echo $(echo ${1} | sed s/-/_/g)
+    echo $(full_kernel_version ${1} | sed s/-/_/g)
 }
