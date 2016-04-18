@@ -35,10 +35,6 @@ if ! source ${SCRIPT_DIR}/conf.sh; then
 fi
 
 
-trap 'trap_abort' INT QUIT TERM HUP
-trap 'trap_exit' EXIT
-
-
 usage() {
     echo "build.sh - A build script for archzfs"
     echo
@@ -74,7 +70,12 @@ usage() {
     echo "    build.sh lts update               :: Update PKGBUILDS only"
     echo "    build.sh git update make -u       :: Update PKGBUILDs, update the chroot, and make all of the packages"
     echo "    build.sh lts update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
+    trap - EXIT # Prevents exit log output
 }
+
+
+trap 'trap_abort' INT QUIT TERM HUP
+trap 'trap_exit' EXIT
 
 
 build_def_sources() {
