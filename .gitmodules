@@ -30,3 +30,15 @@
 	path = packages/lts/spl-lts
 	url = ssh+git://aur@aur4.archlinux.org/spl-lts.git
 	branch = master
+[submodule "packages/std/zfs"]
+	path = packages/std/zfs
+	url = ssh+git://aur@aur4.archlinux.org/zfs.git
+[submodule "packages/std/zfs-utils"]
+	path = packages/std/zfs-utils
+	url = ssh+git://aur@aur4.archlinux.org/zfs-utils.git
+[submodule "packages/std/spl-utils"]
+	path = packages/std/spl-utils
+	url = ssh+git://aur@aur4.archlinux.org/spl-utils.git
+[submodule "packages/std/spl"]
+	path = packages/std/spl
+	url = ssh+git://aur@aur4.archlinux.org/spl.git
