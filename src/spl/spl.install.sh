@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cat << EOF > ${AZB_SPL_INSTALL_PATH}
+cat << EOF > ${AZB_SPL_PKGBUILD_PATH}/spl.install
 post_install() {
     check_hostid
     run_depmod
@@ -30,6 +30,7 @@ check_hostid() {
 
 run_depmod() {
     echo ">>> Updating SPL module dependencies"
-    depmod -v ${AZB_KERNEL_VERSION_FULL}
+    # depmod -v ${AZB_KERNEL_MOD_PATH}
+    depmod -a -v
 }
 EOF

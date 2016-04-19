@@ -26,12 +26,17 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
 if ! source ${SCRIPT_DIR}/lib.sh; then
-    echo "!! ERROR !! -- Could not lload lib.sh!"
+    echo "!! ERROR !! -- Could not load lib.sh!"
 fi
 
 
 if ! source ${SCRIPT_DIR}/conf.sh; then
     error "Could not load conf.sh!"
+fi
+
+
+if ! source ${SCRIPT_DIR}/src/HEADER.sh; then
+    error "Could not load ./src/HEADER.sh!"
 fi
 
 
@@ -78,32 +83,10 @@ trap 'trap_abort' INT QUIT TERM HUP
 trap 'trap_exit' EXIT
 
 
-build_def_sources() {
-    for PKG in ${AZB_DEF_PKG_LIST}; do
+build_sources() {
+    for PKG in ${AZB_PKG_LIST}; do
         msg "Building source for $PKG";
-        run_cmd "cd \"$PWD/packages/$PKG\""
-        run_cmd "mkaurball -f"
-        run_cmd "cd - > /dev/null"
-    done
-}
-
-
-build_git_sources() {
-    for PKG in ${AZB_GIT_PKG_LIST}; do
-        msg "Building source for $PKG";
-        run_cmd "cd \"$PWD/packages/$PKG\""
-        run_cmd "mkaurball -f"
-        run_cmd "cd - > /dev/null"
-    done
-}
-
-
-build_lts_sources() {
-    for PKG in ${AZB_LTS_PKG_LIST}; do
-        msg "Building source for $PKG";
-        run_cmd "cd \"$PWD/packages/$PKG\""
-        run_cmd "mkaurball -f"
-        run_cmd "cd - > /dev/null"
+        run_cmd "cd \"$PWD/packages/$PKG\" && mkaurball -f"
     done
 }
 
@@ -115,7 +98,7 @@ sign_packages() {
     for F in $FILES; do
         if [[ ! -f "${F}.sig" ]]; then
             msg2 "Signing $F"
-            run_cmd "gpg --batch --yes --detach-sign --use-agent -u $AZB_GPG_SIGN_KEY \"$F\""
+            run_cmd_no_output "gpg --batch --yes --detach-sign --use-agent -u $AZB_GPG_SIGN_KEY \"$F\""
         fi
     done
 }
@@ -134,8 +117,6 @@ get_new_pkgver() {
     git clone ../spl
     cd spl
     git checkout -b azb $AZB_GIT_SPL_COMMIT
-    AZB_NEW_SPL_X32_PKGVER=$(echo $(git describe --long | \
-        sed -r 's/^spl-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_GIT_KERNEL_X32_VERSION_CLEAN})
     AZB_NEW_SPL_X64_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^spl-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_GIT_KERNEL_X64_VERSION_CLEAN})
     cd ../../
@@ -151,8 +132,6 @@ get_new_pkgver() {
     git clone ../zfs
     cd zfs
     git checkout -b azb $AZB_GIT_ZFS_COMMIT
-    AZB_NEW_ZFS_X32_PKGVER=$(echo $(git describe --long | \
-        sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_GIT_KERNEL_X32_VERSION_CLEAN})
     AZB_NEW_ZFS_X64_PKGVER=$(echo $(git describe --long | \
         sed -r 's/^zfs-//;s/([^-]*-g)/r\1/;s/-/_/g')_${AZB_GIT_KERNEL_X64_VERSION_CLEAN})
     cd ../../
@@ -194,13 +173,65 @@ check_git_repo() {
 
 
 update_def_pkgbuilds() {
-    # Calculate what the new pkgver would be for the git packages
-    # local fkv=$(full_kernel_version ${AZB_DEF_KERNEL_VERSION} ${AZB_DEF_KERNEL_PKGREL_X32} ${AZB_DEF_KERNEL_PKGREL_X64})
     AZB_KERNEL_VERSION_FULL=$(full_kernel_version ${AZB_DEF_KERNEL_VERSION})
+    AZB_KERNEL_MOD_PATH="${AZB_KERNEL_VERSION_FULL}-ARCH"
+    AZB_ARCHZFS_PACKAGE_GROUP="archzfs"
     AZB_PKGVER=${AZB_ZOL_VERSION}_$(full_kernel_version_no_hyphen ${AZB_DEF_KERNEL_VERSION})
+    AZB_PKGREL=${AZB_DEF_PKGREL}
+    AZB_SPL_UTILS_PKGNAME="spl-utils"
+    AZB_SPL_PKGNAME="spl"
+    AZB_ZFS_UTILS_PKGNAME="zfs-utils"
+    AZB_ZFS_PKGNAME="zfs"
+    AZB_SPL_UTILS_PKGBUILD_PATH="packages/spl-utils"
+    AZB_SPL_PKGBUILD_PATH="packages/spl"
+    AZB_ZFS_UTILS_PKGBUILD_PATH="packages/zfs-utils"
+    AZB_ZFS_PKGBUILD_PATH="packages/zfs"
+
+    debug "AZB_HEADER: ${AZB_HEADER}"
     debug "AZB_PKGVER: ${AZB_PKGVER}"
     debug "AZB_ZOL_VERSION: ${AZB_ZOL_VERSION}"
     debug "AZB_KERNEL_VERSION_FULL: ${AZB_KERNEL_VERSION_FULL}"
+    debug "AZB_KERNEL_MOD_PATH: ${AZB_KERNEL_MOD_PATH}"
+    debug "AZB_SPL_UTILS_PKGNAME: ${AZB_SPL_UTILS_PKGNAME}"
+    debug "AZB_SPL_PKGNAME: ${AZB_SPL_PKGNAME}"
+    debug "AZB_ZFS_UTILS_PKGNAME: ${AZB_ZFS_UTILS_PKGNAME}"
+    debug "AZB_ZFS_PKGNAME: ${AZB_ZFS_PKGNAME}"
+    debug "AZB_SPL_UTILS_PKGBUILD_PATH: ${AZB_SPL_UTILS_PKGBUILD_PATH}"
+    debug "AZB_SPL_PKGBUILD_PATH: ${AZB_SPL_PKGBUILD_PATH}"
+    debug "AZB_ZFS_UTILS_PKGBUILD_PATH: ${AZB_ZFS_UTILS_PKGBUILD_PATH}"
+    debug "AZB_ZFS_PKGBUILD_PATH: ${AZB_ZFS_PKGBUILD_PATH}"
+    debug "AZB_ZFS_SRC_HASH: ${AZB_ZFS_SRC_HASH}"
+    debug "AZB_SPL_SRC_HASH: ${AZB_SPL_SRC_HASH}"
+    debug "AZB_SPL_HOSTID_HASH: ${AZB_SPL_HOSTID_HASH}"
+    debug "AZB_ZFS_BASH_COMPLETION_HASH: ${AZB_ZFS_BASH_COMPLETION_HASH}"
+    debug "AZB_ZFS_INITCPIO_INSTALL_HASH: ${AZB_ZFS_INITCPIO_INSTALL_HASH}"
+    debug "AZB_ZFS_INITCPIO_HOOK_HASH: ${AZB_ZFS_INITCPIO_HOOK_HASH}"
+    debug "AZB_ARCHZFS_PACKAGE_GROUP: ${AZB_ARCHZFS_PACKAGE_GROUP}"
+
+    # Finally, generate the update packages ...
+    msg2 "Creating spl-utils PKGBUILD"
+    run_cmd_no_output "source ${SCRIPT_DIR}/src/spl-utils/PKGBUILD.sh"
+    msg2 "Copying spl-utils.hostid"
+    run_cmd_no_output "cp ${SCRIPT_DIR}/src/spl-utils/spl-utils.hostid ${AZB_SPL_UTILS_PKGBUILD_PATH}/spl-utils.hostid"
+
+    msg2 "Creating spl PKGBUILD"
+    run_cmd_no_output "source ${SCRIPT_DIR}/src/spl/PKGBUILD.sh"
+    msg2 "Creating spl.install"
+    run_cmd_no_output "source ${SCRIPT_DIR}/src/spl/spl.install.sh"
+
+    msg2 "Creating zfs-utils PKGBUILD"
+    run_cmd_no_output "source ${SCRIPT_DIR}/src/zfs-utils/PKGBUILD.sh"
+    msg2 "Copying zfs-utils.bash-completion"
+    run_cmd_no_output "cp ${SCRIPT_DIR}/src/zfs-utils/zfs-utils.bash-completion-r1 ${AZB_ZFS_UTILS_PKGBUILD_PATH}/zfs-utils.bash-completion-r1"
+    msg2 "Copying zfs-utils.initcpio.hook"
+    run_cmd_no_output "cp ${SCRIPT_DIR}/src/zfs-utils/zfs-utils.initcpio.hook ${AZB_ZFS_UTILS_PKGBUILD_PATH}/zfs-utils.initcpio.hook"
+    msg2 "Copying zfs-utils.initcpio.install"
+    run_cmd_no_output "cp ${SCRIPT_DIR}/src/zfs-utils/zfs-utils.initcpio.install ${AZB_ZFS_UTILS_PKGBUILD_PATH}/zfs-utils.initcpio.install"
+
+    msg2 "Creating zfs PKGBUILD"
+    run_cmd_no_output "source ${SCRIPT_DIR}/src/zfs/PKGBUILD.sh"
+    msg2 "Creating zfs.install"
+    run_cmd_no_output "source ${SCRIPT_DIR}/src/zfs/zfs.install.sh"
 }
 
 
@@ -222,6 +253,18 @@ update_lts_pkgbuilds() {
     debug "AZB_NEW_LTS_PKGVER: $AZB_NEW_LTS_PKGVER"
 }
 
+
+build_packages() {
+    for PKG in ${AZB_PKG_LIST}; do
+        msg "Building $PKG..."
+        run_cmd "cd \"$PWD/packages/$PKG\" && sudo ccm64 s"
+        msg2 "${PKG} package files:"
+        run_cmd "tree ${AZB_CHROOT_PATH}/build/${PKG}/pkg"
+    done
+    build_sources
+    sign_packages
+    run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
+}
 
 if [[ $# -lt 1 ]]; then
     usage;
@@ -290,59 +333,34 @@ if [[ $AZB_UPDPKGSUMS -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
 fi
 
 
-if [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_DEF} -eq 1 ]]; then
-    msg "Updating default pkgbuilds"
-    update_def_pkgbuilds
-elif [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_GIT} -eq 1 ]]; then
-    msg "Updating git pkgbuilds"
-    update_git_pkgbuilds
-elif [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
-    msg "Updating lts pkgbuilds"
-    update_lts_pkgbuilds
-fi
-
-
 if [ -n "$AZB_CHROOT_UPDATE" ]; then
-    msg "Updating the i686 clean chroot..."
-    run_cmd "sudo ccm32 u"
     msg "Updating the x86_64 clean chroot..."
     run_cmd "sudo ccm64 u"
 fi
 
 
-if [[ ${AZB_BUILD} -eq 1 && ${AZB_MODE_DEF} -eq 1 ]]; then
-    for PKG in ${AZB_GIT_PKG_LIST}; do
-        msg "Building $PKG..."
-        run_cmd "cd \"$PWD/packages/$PKG\""
-        run_cmd "sudo ccm32 s"
-        run_cmd "sudo ccm64 s"
-        run_cmd "cd - > /dev/null"
-    done
-    build_def_sources
-    sign_packages
-    run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
-elif [[ ${AZB_BUILD} -eq 1 && ${AZB_MODE_GIT} -eq 1 ]]; then
-    for PKG in ${AZB_GIT_PKG_LIST}; do
-        msg "Building $PKG..."
-        run_cmd "cd \"$PWD/packages/$PKG\""
-        run_cmd "sudo ccm32 s"
-        run_cmd "sudo ccm64 s"
-        run_cmd "cd - > /dev/null"
-    done
-    build_git_sources
-    sign_packages
-    run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
-elif [[ ${AZB_BUILD} -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
-    for PKG in ${AZB_LTS_PKG_LIST}; do
-        msg "Building $PKG..."
-        run_cmd "cd \"$PWD/packages/$PKG\""
-        run_cmd "sudo ccm32 s"
-        run_cmd "sudo ccm64 s"
-        run_cmd "cd - > /dev/null"
-    done
-    build_lts_sources
-    sign_packages
-    run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
+AZB_PKG_LIST=""
+if [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_DEF} -eq 1 ]]; then
+    msg "Updating default pkgbuilds"
+    update_def_pkgbuilds
+    if [[ ${AZB_BUILD} -eq 1 ]]; then
+        AZB_PKG_LIST=${AZB_DEF_PKG_LIST}
+        build_packages
+    fi
+elif [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_GIT} -eq 1 ]]; then
+    msg "Updating git pkgbuilds"
+    update_git_pkgbuilds
+    if [[ ${AZB_BUILD} -eq 1 ]]; then
+        AZB_PKG_LIST=${AZB_GIT_PKG_LIST}
+        build_packages
+    fi
+elif [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
+    msg "Updating lts pkgbuilds"
+    update_lts_pkgbuilds
+    if [[ ${AZB_BUILD} -eq 1 ]]; then
+        AZB_PKG_LIST=${AZB_LTS_PKG_LIST}
+        build_packages
+    fi
 fi
 
 

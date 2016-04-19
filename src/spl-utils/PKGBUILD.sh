@@ -1,8 +1,7 @@
 #!/bin/bash
 
-cat << EOF > ${AZB_PKGBUILD_PATH}
+cat << EOF > ${AZB_SPL_UTILS_PKGBUILD_PATH}/PKGBUILD
 ${AZB_HEADER}
-
 pkgname="${AZB_SPL_UTILS_PKGNAME}"
 pkgver=${AZB_PKGVER}
 pkgrel=${AZB_PKGREL}
@@ -20,19 +19,13 @@ provides=("${AZB_SPL_UTILS_PKGNAME}")
 build() {
     cd "\${srcdir}/spl-${AZB_ZOL_VERSION}"
     ./autogen.sh
-
-    ./configure --prefix=/usr \\
-                --libdir=/usr/lib \\
-                --sbindir=/usr/bin \\
-                --with-config=user
-
+    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin --with-config=user
     make
 }
 
 package() {
     cd "\${srcdir}/spl-${AZB_ZOL_VERSION}"
     make DESTDIR="\${pkgdir}" install
-
     install -D -m644 "\${srcdir}"/spl-utils.hostid "\${pkgdir}"/etc/hostid
 }
 EOF
