@@ -58,6 +58,9 @@ for (( a = 0; a < $#; a++ )); do
 done
 
 
+msg "$(date) :: ${NAME} started..."
+
+
 CHECK_WEBPAGE_RETVAL=0
 
 
@@ -128,9 +131,6 @@ if [[ $(ping -w 1 -c 1 8.8.8.8 &> /dev/null; echo $?) != 0 ]]; then
 fi
 
 
-msg "${NAME} started..."
-
-
 check_archiso() {
     #
     # Check archiso kernel version (this will change when the archiso is updated)
@@ -148,7 +148,7 @@ check_linux_kernel() {
     #
     msg "Checking the online package database for x86_64 linux kernel version changes..."
     check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" \
-        "${AZB_DEF_KERNEL_VERSION}"
+        "${AZB_STD_KERNEL_VERSION}"
     check_result "x86_64 linux kernel package" "linux x86_64"
 }
 

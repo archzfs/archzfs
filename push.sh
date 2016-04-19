@@ -27,11 +27,12 @@ trap 'trap_exit' EXIT
 
 DRY_RUN=0       # Show commands only. Don't do anything.
 DEBUG=0         # Show debug output.
-
-
-AZB_MODE_DEF=0
+AZB_MODE=""
+AZB_MODE_STD=0
 AZB_MODE_GIT=0
 AZB_MODE_LTS=0
+AZB_PKG_LIST=""
+AZB_KERNEL_VERSION=""
 
 
 usage() {
@@ -47,7 +48,7 @@ usage() {
     echo
     echo "Modes:"
     echo
-    echo "    def       Use the default packages."
+    echo "    std       Use the standard packages."
     echo "    git       Use the git packages."
     echo "    lts       Use the lts packages."
     echo
@@ -61,12 +62,15 @@ usage() {
 
 ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "def" ]]; then
-        AZB_MODE_DEF=1
+    if [[ ${ARGS[$a]} == "std" ]]; then
+        AZB_MODE_STD=1
+        AZB_MODE="std"
     elif [[ ${ARGS[$a]} == "git" ]]; then
         AZB_MODE_GIT=1
+        AZB_MODE="git"
     elif [[ ${ARGS[$a]} == "lts" ]]; then
         AZB_MODE_LTS=1
+        AZB_MODE="lts"
     elif [[ ${ARGS[$a]} == "-n" ]]; then
         DRY_RUN=1
     elif [[ ${ARGS[$a]} == "-d" ]]; then
@@ -78,7 +82,13 @@ for (( a = 0; a < $#; a++ )); do
 done
 
 
-if [[ ${AZB_MODE_DEF} -eq 0 && ${AZB_MODE_GIT} -eq 0 && ${AZB_MODE_LTS} -eq 0 ]]; then
+if [[ $# -lt 1 ]]; then
+    usage;
+    exit 0;
+fi
+
+
+if [[ ${AZB_MODE_STD} -eq 0 && ${AZB_MODE_GIT} -eq 0 && ${AZB_MODE_LTS} -eq 0 ]]; then
     echo
     error "A mode must be selected!"
     usage;
@@ -86,29 +96,31 @@ if [[ ${AZB_MODE_DEF} -eq 0 && ${AZB_MODE_GIT} -eq 0 && ${AZB_MODE_LTS} -eq 0 ]]
 fi
 
 
-AZB_PKG_LIST=""
+msg "$(date) :: ${NAME} started..."
 
 
 push_packages() {
     for PKG in ${AZB_PKG_LIST}; do
-        full_kernel_git_version
         msg "Packaging ${PKG}..."
-        run_cmd "cd \"${PWD}/${PKG}\""
-        run_cmd "mksrcinfo"
-        run_cmd "git add . && git commit -m 'Update for kernel $(full_kernel_version ${AZB_DEF_GIT_KERNEL_VERSION})'"
-        run_cmd "git push"
-        run_cmd "cd - > /dev/null"
+        local cmd="cd \"${PWD}/packages/${AZB_MODE}/${PKG}\" && "
+        cmd+="mksrcinfo && "
+        cmd+="git add . && git commit -m 'Update for kernel $(full_kernel_version ${AZB_KERNEL_VERSION})' && "
+        cmd+="git push"
+        run_cmd "${cmd}"
     done
 }
 
 
-if [[ ${AZB_MODE_DEF} -eq 1 ]]; then
-    AZB_PKG_LIST=${AZB_DEF_PKG_LIST}
+if [[ ${AZB_MODE_STD} -eq 1 ]]; then
+    AZB_KERNEL_VERSION=${AZB_STD_KERNEL_VERSION}
+    AZB_PKG_LIST=${AZB_STD_PKG_LIST}
     push_packages
 elif [[ ${AZB_MODE_GIT} -eq 1 ]]; then
+    AZB_KERNEL_VERSION=${AZB_GIT_KERNEL_VERSION}
     AZB_PKG_LIST=${AZB_GIT_PKG_LIST}
     push_packages
 elif [[ ${AZB_MODE_LTS} -eq 1 ]]; then
+    AZB_KERNEL_VERSION=${AZB_LTS_KERNEL_VERSION}
     AZB_PKG_LIST=${AZB_LTS_PKG_LIST}
     push_packages
 fi

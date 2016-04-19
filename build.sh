@@ -8,20 +8,7 @@
 #
 
 
-# Defaults, don't edit these.
-AZB_UPDATE_PKGBUILDS=""
-AZB_UPDPKGSUMS=0
-AZB_UPDATE_TEST_PKGBUILDS=""
-AZB_BUILD=0
-AZB_USE_TEST=0
-AZB_CHROOT_UPDATE=""
-AZB_SIGN=""
-AZB_CLEANUP=0
-AZB_MODE_DEF=0
-AZB_MODE_GIT=0
-AZB_MODE_LTS=0
-
-
+NAME=$(basename $0)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
@@ -36,14 +23,34 @@ fi
 
 
 if ! source ${SCRIPT_DIR}/src/HEADER.sh; then
-    error "Could not load ./src/HEADER.sh!"
+    error "Could not load src/HEADER.sh!"
 fi
 
 
+trap 'trap_abort' INT QUIT TERM HUP
+trap 'trap_exit' EXIT
+
+
+# Defaults, don't edit these.
+AZB_UPDATE_PKGBUILDS=""
+AZB_UPDPKGSUMS=0
+AZB_UPDATE_TEST_PKGBUILDS=""
+AZB_BUILD=0
+AZB_USE_TEST=0
+AZB_CHROOT_UPDATE=""
+AZB_SIGN=""
+AZB_CLEANUP=0
+AZB_COMMAND=""
+AZB_MODE=""
+AZB_MODE_STD=0
+AZB_MODE_GIT=0
+AZB_MODE_LTS=0
+
+
 usage() {
-    echo "build.sh - A build script for archzfs"
+    echo "${NAME} - A build script for archzfs"
     echo
-    echo "Usage: build.sh [options] [mode] [command [command option] [...]"
+    echo "Usage: ${NAME} [options] mode command [command ...]"
     echo
     echo "Options:"
     echo
@@ -56,9 +63,9 @@ usage() {
     echo
     echo "Modes:"
     echo
-    echo "    def    Use default packages."
-    echo "    git    Use the git packages."
-    echo "    lts    Use the lts packages."
+    echo "    std    Build the standard packages."
+    echo "    git    Build the git packages."
+    echo "    lts    Build the lts packages."
     echo
     echo "Commands:"
     echo
@@ -70,23 +77,19 @@ usage() {
     echo
     echo "Examples:"
     echo
-    echo "    build.sh -C                       :: Remove all compiled packages"
-    echo "    build.sh git make -u              :: Update the chroot and build all of the packages"
-    echo "    build.sh lts update               :: Update PKGBUILDS only"
-    echo "    build.sh git update make -u       :: Update PKGBUILDs, update the chroot, and make all of the packages"
-    echo "    build.sh lts update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
+    echo "    ${NAME} -C                       :: Remove all compiled packages"
+    echo "    ${NAME} git make -u              :: Update the chroot and build all of the packages"
+    echo "    ${NAME} lts update               :: Update PKGBUILDS only"
+    echo "    ${NAME} git update make -u       :: Update PKGBUILDs, update the chroot, and make all of the packages"
+    echo "    ${NAME} lts update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
     trap - EXIT # Prevents exit log output
 }
-
-
-trap 'trap_abort' INT QUIT TERM HUP
-trap 'trap_exit' EXIT
 
 
 build_sources() {
     for PKG in ${AZB_PKG_LIST}; do
         msg "Building source for $PKG";
-        run_cmd "cd \"$PWD/packages/$PKG\" && mkaurball -f"
+        run_cmd "cd \"$PWD/packages/${AZB_MODE}/$PKG\" && mkaurball -f"
     done
 }
 
@@ -173,19 +176,19 @@ check_git_repo() {
 
 
 update_def_pkgbuilds() {
-    AZB_KERNEL_VERSION_FULL=$(full_kernel_version ${AZB_DEF_KERNEL_VERSION})
+    AZB_KERNEL_VERSION_FULL=$(full_kernel_version ${AZB_STD_KERNEL_VERSION})
     AZB_KERNEL_MOD_PATH="${AZB_KERNEL_VERSION_FULL}-ARCH"
     AZB_ARCHZFS_PACKAGE_GROUP="archzfs"
-    AZB_PKGVER=${AZB_ZOL_VERSION}_$(full_kernel_version_no_hyphen ${AZB_DEF_KERNEL_VERSION})
-    AZB_PKGREL=${AZB_DEF_PKGREL}
+    AZB_PKGVER=${AZB_ZOL_VERSION}_$(full_kernel_version_no_hyphen ${AZB_STD_KERNEL_VERSION})
+    AZB_PKGREL=${AZB_STD_PKGREL}
     AZB_SPL_UTILS_PKGNAME="spl-utils"
     AZB_SPL_PKGNAME="spl"
     AZB_ZFS_UTILS_PKGNAME="zfs-utils"
     AZB_ZFS_PKGNAME="zfs"
-    AZB_SPL_UTILS_PKGBUILD_PATH="packages/spl-utils"
-    AZB_SPL_PKGBUILD_PATH="packages/spl"
-    AZB_ZFS_UTILS_PKGBUILD_PATH="packages/zfs-utils"
-    AZB_ZFS_PKGBUILD_PATH="packages/zfs"
+    AZB_SPL_UTILS_PKGBUILD_PATH="packages/${AZB_MODE}/spl-utils"
+    AZB_SPL_PKGBUILD_PATH="packages/${AZB_MODE}/spl"
+    AZB_ZFS_UTILS_PKGBUILD_PATH="packages/${AZB_MODE}/zfs-utils"
+    AZB_ZFS_PKGBUILD_PATH="packages/${AZB_MODE}/zfs"
 
     debug "AZB_HEADER: ${AZB_HEADER}"
     debug "AZB_PKGVER: ${AZB_PKGVER}"
@@ -257,7 +260,7 @@ update_lts_pkgbuilds() {
 build_packages() {
     for PKG in ${AZB_PKG_LIST}; do
         msg "Building $PKG..."
-        run_cmd "cd \"$PWD/packages/$PKG\" && sudo ccm64 s"
+        run_cmd "cd \"$PWD/packages/${AZB_MODE}/$PKG\" && sudo ccm64 s"
         msg2 "${PKG} package files:"
         run_cmd "tree ${AZB_CHROOT_PATH}/build/${PKG}/pkg"
     done
@@ -265,6 +268,7 @@ build_packages() {
     sign_packages
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
 }
+
 
 if [[ $# -lt 1 ]]; then
     usage;
@@ -274,28 +278,38 @@ fi
 
 ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "def" ]]; then
-        AZB_MODE_DEF=1
+    if [[ ${ARGS[$a]} == "std" ]]; then
+        AZB_MODE_STD=1
+        AZB_MODE="std"
     elif [[ ${ARGS[$a]} == "git" ]]; then
         AZB_MODE_GIT=1
+        AZB_MODE="git"
     elif [[ ${ARGS[$a]} == "lts" ]]; then
         AZB_MODE_LTS=1
+        AZB_MODE="lts"
     elif [[ ${ARGS[$a]} == "make" ]]; then
         AZB_BUILD=1
+        AZB_COMMAND="make"
     elif [[ ${ARGS[$a]} == "test" ]]; then
         AZB_USE_TEST=1
+        AZB_COMMAND="test"
     elif [[ ${ARGS[$a]} == "update" ]]; then
         AZB_UPDATE_PKGBUILDS=1
+        AZB_COMMAND="update"
     elif [[ ${ARGS[$a]} == "update-test" ]]; then
         AZB_UPDATE_TEST_PKGBUILDS=1
+        AZB_COMMAND="update-test"
     elif [[ ${ARGS[$a]} == "sign" ]]; then
         AZB_SIGN=1
+        AZB_COMMAND="sign"
     elif [[ ${ARGS[$a]} == "-u" ]]; then
         AZB_CHROOT_UPDATE="-u"
     elif [[ ${ARGS[$a]} == "-U" ]]; then
         AZB_UPDPKGSUMS=1
+        AZB_COMMAND="update-pkgsums"
     elif [[ ${ARGS[$a]} == "-C" ]]; then
         AZB_CLEANUP=1
+        AZB_COMMAND="clean"
     elif [[ ${ARGS[$a]} == "-n" ]]; then
         DRY_RUN=1
     elif [[ ${ARGS[$a]} == "-d" ]]; then
@@ -316,16 +330,16 @@ if [[ $AZB_CLEANUP -eq 1 && $# -gt 1 ]]; then
 fi
 
 
-if [[ ${AZB_MODE_DEF} -eq 0 && ${AZB_MODE_GIT} -eq 0 && ${AZB_MODE_LTS} -eq 0 && $AZB_CLEANUP -eq 0 ]]; then
-    echo -e "\n"
-    error "A build mode must be selected!"
-    echo -e "\n"
+if [[ ${AZB_MODE} == "" || ${AZB_COMMAND} == "" ]]; then
+    echo
+    error "A build mode and command must be selected!"
+    echo
     usage;
     exit 0;
 fi
 
 
-msg "$(date) :: build.sh started..."
+msg "$(date) :: ${NAME} started..."
 
 
 if [[ $AZB_UPDPKGSUMS -eq 1 && ${AZB_MODE_LTS} -eq 1 ]]; then
@@ -340,11 +354,11 @@ fi
 
 
 AZB_PKG_LIST=""
-if [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_DEF} -eq 1 ]]; then
+if [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_STD} -eq 1 ]]; then
     msg "Updating default pkgbuilds"
     update_def_pkgbuilds
     if [[ ${AZB_BUILD} -eq 1 ]]; then
-        AZB_PKG_LIST=${AZB_DEF_PKG_LIST}
+        AZB_PKG_LIST=${AZB_STD_PKG_LIST}
         build_packages
     fi
 elif [[ ${AZB_UPDATE_PKGBUILDS} -eq 1 && ${AZB_MODE_GIT} -eq 1 ]]; then

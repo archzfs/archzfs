@@ -10,14 +10,14 @@ AZB_ZFS_INITCPIO_INSTALL_HASH="1e20071fa61a33874505dae0f2d71bb560f43e7faaea735cb
 AZB_ZFS_INITCPIO_HOOK_HASH="438a1399d1df5ef20eff37b4d775595fae9943d0c5c105c7bc286b2babcd759e"
 
 # Kernel versions for default ZFS packages
-AZB_DEF_PKGREL="1"
-AZB_DEF_KERNEL_VERSION="4.5-1"
+AZB_STD_PKGREL="1"
+AZB_STD_KERNEL_VERSION="4.5-1"
 
 # Kernel version for GIT packages
-AZB_DEF_GIT_SPL_COMMIT="5079f5b3"
-AZB_DEF_GIT_ZFS_COMMIT="21f21fe8"
-AZB_DEF_GIT_PKGREL="1"
-AZB_DEF_GIT_KERNEL_VERSION="4.5-1"
+AZB_GIT_SPL_COMMIT="5079f5b3"
+AZB_GIT_ZFS_COMMIT="21f21fe8"
+AZB_GIT_PKGREL="1"
+AZB_GIT_KERNEL_VERSION="4.5-1"
 
 # Kernel versions for LTS packages
 AZB_LTS_PKGREL="1"
@@ -25,7 +25,7 @@ AZB_LTS_KERNEL_VERSION="4.4.7-1"
 
 # Archiso Configuration
 AZB_ARCHISO_PKGREL="1"
-AZB_KERNEL_ARCHISO_VERSION="4.4.5-1"
+AZB_ARCHISO_KERNEL_VERSION="4.4.5"
 
 # Testing repo Linux version dependencies
 # AZB_KERNEL_TEST_VERSION="3.13.8-1"
@@ -47,6 +47,6 @@ AZB_CHROOT_PATH="/opt/chroot/x86_64/$(whoami)"
 # Package backup directory (for adding packages to demz-repo-archiso)
 AZB_PACKAGE_BACKUP_DIR="/data/pacman/repo/archive_archzfs"
 
-AZB_DEF_PKG_LIST="spl-utils spl zfs-utils zfs"
+AZB_STD_PKG_LIST="spl-utils spl zfs-utils zfs"
 AZB_GIT_PKG_LIST="spl-utils-git spl-git zfs-utils-git zfs-git"
 AZB_LTS_PKG_LIST="spl-utils-lts spl-lts zfs-utils-lts zfs-lts"

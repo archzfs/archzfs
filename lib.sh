@@ -30,11 +30,7 @@ plain() {
 
 plain_one_line() {
     local mesg=$1; shift
-    printf "○ ${ALL_OFF}${ALL_OFF} %s\n\n" "${mesg}"
-    if [[ $# -gt 0 ]]; then
-        printf '%s ' "${@}"
-        printf '\n\n'
-    fi
+    printf "${ALL_OFF}${ALL_OFF}%s %s\n\n" "${mesg}" "${@}"
 }
 
 
@@ -162,7 +158,7 @@ norun() {
     local mesg=$1; shift
     printf "${MAGENTA}XXXX NORUN: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
-        printf '%s ' $@
+        printf '%s ' "$@"
         printf '\n\n'
     fi
 }
@@ -188,13 +184,14 @@ run_cmd() {
 
 # Runs a command, capture the output in RUN_CMD_OUTPUT, but also show stdout.
 # To use this function, define the following in your calling script:
+# RUN_CMD_OUTPUT=""
 # RUN_CMD_RETURN=""
 run_cmd_show_and_capture_output() {
     # $@: The command and args to run
     if [[ $DRY_RUN -eq 1 ]]; then
-        norun "CMD:" $@
+        norun "CMD:" "$@"
     else
-        plain "Running command:" $@
+        plain "Running command:" "$@"
         plain_one_line "Output:"
         # The following allows command output to be displayed in jenkins and stored in the variable simultaneously
         # http://www.tldp.org/LDP/abs/html/x17974.html
@@ -213,6 +210,30 @@ run_cmd_show_and_capture_output() {
 }
 
 
+# Runs a command, capture the output in RUN_CMD_OUTPUT, but also show stdout. Ignores DRY_RUN=1.
+# To use this function, define the following in your calling script:
+# RUN_CMD_OUTPUT=""
+# RUN_CMD_RETURN=""
+run_cmd_show_and_capture_output_no_dry_run() {
+    # $@: The command and args to run
+    plain "Running command:" "$@"
+    plain_one_line "Output:"
+    # The following allows command output to be displayed in jenkins and stored in the variable simultaneously
+    # http://www.tldp.org/LDP/abs/html/x17974.html
+
+    # WARNING: This function sometimes results in the following error:
+    # lib.sh: line 145: /usr/bin/tee: Argument list too long
+    # lib.sh: line 145: /bin/cat: Argument list too long
+
+    exec 6>&1 # Link file descriptor 6 with stdout.
+    RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
+    exec 1>&6 6>&-      # Restore stdout and close file descriptor #6.
+    RUN_CMD_RETURN=$?
+    echo
+    plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+}
+
+
 # Runs the command, does not show output to stdout
 # To use this function, define the following in your calling script:
 # RUN_CMD_OUTPUT=""
@@ -220,13 +241,26 @@ run_cmd_show_and_capture_output() {
 run_cmd_no_output() {
     # $@: The command and args to run
     if [[ $DRY_RUN -eq 1 ]]; then
-        norun "CMD:" $@
+        norun "CMD:" "$@"
     else
         plain "Running command:" "$@"
-        RUN_CMD_OUTPUT=$(printf "$@" | source /dev/stdin)
+        RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin)
         RUN_CMD_RETURN=$?
         plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
     fi
+}
+
+
+# Runs the command, does not show output to stdout, ignores DRY_RUN=1
+# To use this function, define the following in your calling script:
+# RUN_CMD_OUTPUT=""
+# RUN_CMD_RETURN=""
+run_cmd_no_output_no_dry_run() {
+    # $@: The command and args to run
+    plain "Running command:" "$@"
+    RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin)
+    RUN_CMD_RETURN=$?
+    plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
 }
 
 
