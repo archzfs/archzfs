@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 
 #
@@ -7,6 +7,7 @@
 #
 
 
+NAME=$(basename $0)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
@@ -20,6 +21,10 @@ if ! source ${SCRIPT_DIR}/conf.sh; then
 fi
 
 
+trap 'trap_abort' INT QUIT TERM HUP
+trap 'trap_exit' EXIT
+
+
 DRY_RUN=0       # Show commands only. Don't do anything.
 DEBUG=0         # Show debug output.
 
@@ -30,9 +35,9 @@ AZB_MODE_LTS=0
 
 
 usage() {
-	echo "push.sh - Pushes the packages sources to AUR using burp."
+    echo "${NAME} - Pushes the packages sources to AUR using burp."
     echo
-	echo "Usage: push.sh [options] [mode]"
+    echo "Usage: ${NAME} [options] [mode]"
     echo
     echo "Options:"
     echo
@@ -48,8 +53,9 @@ usage() {
     echo
     echo "Example Usage:"
     echo
-    echo "    push.sh   git     :: Push the git package sources."
-    echo "    push.sh   lts     :: Push the lts package sources."
+    echo "    ${NAME} git     :: Push the git package sources."
+    echo "    ${NAME} lts     :: Push the lts package sources."
+    trap - EXIT # Prevents exit log output
 }
 
 
@@ -61,59 +67,50 @@ for (( a = 0; a < $#; a++ )); do
         AZB_MODE_GIT=1
     elif [[ ${ARGS[$a]} == "lts" ]]; then
         AZB_MODE_LTS=1
-    elif [[ ${ARGS[$a]} == "-h" ]]; then
-        usage;
-        exit 0;
     elif [[ ${ARGS[$a]} == "-n" ]]; then
         DRY_RUN=1
     elif [[ ${ARGS[$a]} == "-d" ]]; then
         DEBUG=1
+    elif [[ ${ARGS[$a]} == "-h" ]]; then
+        usage;
+        exit 0;
     fi
 done
 
 
-if [[ $AZB_MODE_DEF == 0 && $AZB_MODE_GIT == 0 && $AZB_MODE_LTS == 0 ]]; then
-    echo -e "\n"
+if [[ ${AZB_MODE_DEF} -eq 0 && ${AZB_MODE_GIT} -eq 0 && ${AZB_MODE_LTS} -eq 0 ]]; then
+    echo
     error "A mode must be selected!"
-    echo -e "\n"
     usage;
     exit 0;
 fi
 
 
-FILES=""
+AZB_PKG_LIST=""
 
 
-if [[ $AZB_MODE_DEF == 1 ]]; then
-    for PKG in $AZB_DEF_PKG_LIST; do
+push_packages() {
+    for PKG in ${AZB_PKG_LIST}; do
         full_kernel_git_version
-        msg "Packaging $PKG..."
-        run_cmd "cd \"$PWD/$PKG\""
+        msg "Packaging ${PKG}..."
+        run_cmd "cd \"${PWD}/${PKG}\""
         run_cmd "mksrcinfo"
         run_cmd "git add . && git commit -m 'Update for kernel $(full_kernel_version ${AZB_DEF_GIT_KERNEL_VERSION})'"
         run_cmd "git push"
         run_cmd "cd - > /dev/null"
     done
-elif [[ $AZB_MODE_GIT == 1 ]]; then
-    for PKG in $AZB_GIT_PKG_LIST; do
-        full_kernel_git_version
-        msg "Packaging $PKG..."
-        run_cmd "cd \"$PWD/$PKG\""
-        run_cmd "mksrcinfo"
-        run_cmd "git add . && git commit -m 'Update for kernel $(full_kernel_version ${AZB_DEF_GIT_KERNEL_VERSION})'"
-        run_cmd "git push"
-        run_cmd "cd - > /dev/null"
-    done
-elif [[ $AZB_MODE_LTS == 1 ]]; then
-    for PKG in $AZB_LTS_PKG_LIST; do
-        full_kernel_lts_version
-        msg "Packaging $PKG..."
-        run_cmd "cd \"$PWD/$PKG\""
-        run_cmd "mksrcinfo"
-        run_cmd "git add . && git commit -m 'Update for kernel $AZB_LTS_KERNEL_X64_VERSION_FULL'"
-        run_cmd "git push"
-        run_cmd "cd - > /dev/null"
-    done
+}
+
+
+if [[ ${AZB_MODE_DEF} -eq 1 ]]; then
+    AZB_PKG_LIST=${AZB_DEF_PKG_LIST}
+    push_packages
+elif [[ ${AZB_MODE_GIT} -eq 1 ]]; then
+    AZB_PKG_LIST=${AZB_GIT_PKG_LIST}
+    push_packages
+elif [[ ${AZB_MODE_LTS} -eq 1 ]]; then
+    AZB_PKG_LIST=${AZB_LTS_PKG_LIST}
+    push_packages
 fi
 
 
