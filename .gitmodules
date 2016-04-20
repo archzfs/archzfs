@@ -1,44 +1,44 @@
 [submodule "zfs-git"]
-	path = packages/git/zfs-git
+	path = packages/linux/zfs-git
 	url = ssh+git://aur@aur4.archlinux.org/zfs-git.git
 	branch = master
 [submodule "zfs-lts"]
-	path = packages/lts/zfs-lts
+	path = packages/linux-lts/zfs-lts
 	url = ssh+git://aur@aur4.archlinux.org/zfs-lts.git
 	branch = master
 [submodule "zfs-utils-lts"]
-	path = packages/lts/zfs-utils-lts
+	path = packages/linux-lts/zfs-utils-lts
 	url = ssh+git://aur@aur4.archlinux.org/zfs-utils-lts.git
 	branch = master
 [submodule "zfs-utils-git"]
-	path = packages/git/zfs-utils-git
+	path = packages/linux/zfs-utils-git
 	url = ssh+git://aur@aur4.archlinux.org/zfs-utils-git.git
 	branch = master
 [submodule "spl-git"]
-	path = packages/git/spl-git
+	path = packages/linux/spl-git
 	url = ssh+git://aur@aur4.archlinux.org/spl-git.git
 	branch = master
 [submodule "spl-utils-git"]
-	path = packages/git/spl-utils-git
+	path = packages/linux/spl-utils-git
 	url = ssh+git://aur@aur4.archlinux.org/spl-utils-git.git
 	branch = master
 [submodule "spl-utils-lts"]
-	path = packages/lts/spl-utils-lts
+	path = packages/linux-lts/spl-utils-lts
 	url = ssh+git://aur@aur4.archlinux.org/spl-utils-lts.git
 	branch = master
 [submodule "spl-lts"]
-	path = packages/lts/spl-lts
+	path = packages/linux-lts/spl-lts
 	url = ssh+git://aur@aur4.archlinux.org/spl-lts.git
 	branch = master
 [submodule "packages/std/zfs"]
-	path = packages/std/zfs
+	path = packages/linux/zfs
 	url = ssh+git://aur@aur4.archlinux.org/zfs.git
 [submodule "packages/std/zfs-utils"]
-	path = packages/std/zfs-utils
+	path = packages/linux/zfs-utils
 	url = ssh+git://aur@aur4.archlinux.org/zfs-utils.git
 [submodule "packages/std/spl-utils"]
-	path = packages/std/spl-utils
+	path = packages/linux/spl-utils
 	url = ssh+git://aur@aur4.archlinux.org/spl-utils.git
 [submodule "packages/std/spl"]
-	path = packages/std/spl
+	path = packages/linux/spl
 	url = ssh+git://aur@aur4.archlinux.org/spl.git
