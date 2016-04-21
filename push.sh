@@ -13,26 +13,25 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if ! source ${SCRIPT_DIR}/lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
+    exit 1
 fi
+source_safe "${SCRIPT_DIR}/conf.sh"
 
 
-if ! source ${SCRIPT_DIR}/conf.sh; then
-    error "Could not load conf.sh!"
-fi
-
-
-trap 'trap_abort' INT QUIT TERM HUP
-trap 'trap_exit' EXIT
+# setup signal traps
+trap 'clean_up' 0
+for signal in TERM HUP QUIT; do
+    trap "trap_exit $signal \"$(msg "$signal signal caught. Exiting...")\"" "$signal"
+done
+trap "trap_exit INT \"$(msg "Aborted by user! Exiting...")\"" INT
+trap "trap_exit USR1 \"$(error "An unknown error has occurred. Exiting..." 2>&1 )\"" ERR
 
 
 DRY_RUN=0       # Show commands only. Don't do anything.
 DEBUG=0         # Show debug output.
-AZB_MODE=""
-AZB_MODE_STD=0
-AZB_MODE_GIT=0
-AZB_MODE_LTS=0
-AZB_PKG_LIST=""
-AZB_KERNEL_VERSION=""
+MODE=""
+MODE_NAME=""
+MODE_LIST=()
 
 
 usage() {
@@ -48,9 +47,11 @@ usage() {
     echo
     echo "Modes:"
     echo
-    echo "    std       Use the standard packages."
-    echo "    git       Use the git packages."
-    echo "    lts       Use the lts packages."
+    for mode in "${MODE_LIST[@]}"; do
+        mode_name=$(echo ${mode} | cut -f2 -d:)
+        mode_desc=$(echo ${mode} | cut -f3 -d:)
+        echo -e "    ${mode_name}    ${mode_desc}"
+    done
     echo
     echo "Example Usage:"
     echo
@@ -62,22 +63,15 @@ usage() {
 
 ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "std" ]]; then
-        AZB_MODE_STD=1
-        AZB_MODE="std"
-    elif [[ ${ARGS[$a]} == "git" ]]; then
-        AZB_MODE_GIT=1
-        AZB_MODE="git"
-    elif [[ ${ARGS[$a]} == "lts" ]]; then
-        AZB_MODE_LTS=1
-        AZB_MODE="lts"
-    elif [[ ${ARGS[$a]} == "-n" ]]; then
+    if [[ ${ARGS[$a]} == "-n" ]]; then
         DRY_RUN=1
     elif [[ ${ARGS[$a]} == "-d" ]]; then
         DEBUG=1
     elif [[ ${ARGS[$a]} == "-h" ]]; then
         usage;
         exit 0;
+    else
+        check_mode
     fi
 done
 
@@ -88,7 +82,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 
-if [[ ${AZB_MODE_STD} -eq 0 && ${AZB_MODE_GIT} -eq 0 && ${AZB_MODE_LTS} -eq 0 ]]; then
+if [[ ${MODE} == "" ]]; then
     echo
     error "A mode must be selected!"
     usage;
@@ -100,29 +94,26 @@ msg "$(date) :: ${NAME} started..."
 
 
 push_packages() {
-    for PKG in ${AZB_PKG_LIST}; do
-        msg "Packaging ${PKG}..."
-        local cmd="cd \"${PWD}/packages/${AZB_MODE}/${PKG}\" && "
+    for pkg in ${pkg_list}; do
+        msg "Packaging ${pkg}..."
+        local cmd="cd \"${PWD}/packages/${MODE_NAME}/${pkg}\" && "
         cmd+="mksrcinfo && "
-        cmd+="git add . && git commit -m 'Update for kernel $(full_kernel_version ${AZB_KERNEL_VERSION})' && "
+        cmd+="git add . && git commit -m 'Update for kernel $(kernel_version_full ${kernel_version})' && "
         cmd+="git push"
         run_cmd "${cmd}"
     done
 }
 
 
-if [[ ${AZB_MODE_STD} -eq 1 ]]; then
-    AZB_KERNEL_VERSION=${AZB_STD_KERNEL_VERSION}
-    AZB_PKG_LIST=${AZB_STD_PKG_LIST}
-    push_packages
-elif [[ ${AZB_MODE_GIT} -eq 1 ]]; then
-    AZB_KERNEL_VERSION=${AZB_GIT_KERNEL_VERSION}
-    AZB_PKG_LIST=${AZB_GIT_PKG_LIST}
-    push_packages
-elif [[ ${AZB_MODE_LTS} -eq 1 ]]; then
-    AZB_KERNEL_VERSION=${AZB_LTS_KERNEL_VERSION}
-    AZB_PKG_LIST=${AZB_LTS_PKG_LIST}
-    push_packages
+if [[ ${MODE} != "" ]]; then
+    get_kernel_update_funcs
+    export SCRIPT_DIR MODE MODE_NAME BUILD SIGN SOURCES UPDATE_PKGBUILDS
+    source_safe "src/kernels/${MODE_NAME}.sh"
+    for func in "${UPDATE_FUNCS[@]}"; do
+        debug "Evaluating '${func}'"
+        "${func}"
+        push_packages
+    done
 fi
 
 

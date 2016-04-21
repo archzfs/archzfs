@@ -14,16 +14,18 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if ! source ${SCRIPT_DIR}/lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
+    exit 1
 fi
+source_safe "${SCRIPT_DIR}/conf.sh"
 
 
-if ! source ${SCRIPT_DIR}/conf.sh; then
-    error "Could not load conf.sh!"
-fi
-
-
-trap 'trap_abort' INT QUIT TERM HUP
-trap 'trap_exit' EXIT
+# setup signal traps
+trap 'clean_up' 0
+for signal in TERM HUP QUIT; do
+    trap "trap_exit $signal \"$(msg "$signal signal caught. Exiting...")\"" "$signal"
+done
+trap "trap_exit INT \"$(msg "Aborted by user! Exiting...")\"" INT
+trap "trap_exit USR1 \"$(error "An unknown error has occurred. Exiting..." 2>&1 )\"" ERR
 
 
 usage() {
@@ -137,7 +139,7 @@ check_archiso() {
     #
     msg "Checking archiso download page for linux kernel version changes..."
     check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" \
-        "${AZB_ARCHISO_KERNEL_VERSION}"
+        "${ARCHISO_KERNEL_VERSION}"
     check_result "archiso kernel version" "archiso"
 }
 
@@ -148,7 +150,7 @@ check_linux_kernel() {
     #
     msg "Checking the online package database for x86_64 linux kernel version changes..."
     check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" \
-        "${AZB_STD_KERNEL_VERSION}"
+        "${STD_KERNEL_VERSION}"
     check_result "x86_64 linux kernel package" "linux x86_64"
 }
 
@@ -159,7 +161,7 @@ check_linux_lts_kernel() {
     #
     msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
     check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" \
-        "${AZB_LTS_KERNEL_VERSION}"
+        "${LTS_KERNEL_VERSION}"
     check_result "x86_64 linux-lts kernel package" "linux-lts x86_64"
 }
 
@@ -169,7 +171,7 @@ check_zol_version() {
     # Check ZFSonLinux.org
     #
     msg "Checking zfsonlinux.org for new versions..."
-    check_webpage "http://zfsonlinux.org/" "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "${AZB_ZOL_VERSION}"
+    check_webpage "http://zfsonlinux.org/" "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "${ZOL_VERSION}"
     check_result "ZOL stable version" "ZOL stable version"
 }
 

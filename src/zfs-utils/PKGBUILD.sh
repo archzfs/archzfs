@@ -1,38 +1,41 @@
 #!/bin/bash
 
-cat << EOF > ${AZB_ZFS_UTILS_PKGBUILD_PATH}/PKGBUILD
-${AZB_HEADER}
-pkgname="${AZB_ZFS_UTILS_PKGNAME}"
-pkgver=${AZB_PKGVER}
-pkgrel=${AZB_PKGREL}
+cat << EOF > ${zfs_utils_pkgbuild_path}/PKGBUILD
+${header}
+pkgname="${zfs_utils_pkgname}"
+pkgver=${zfs_pkgver}
+pkgrel=${zfs_pkgrel}
 pkgdesc="Kernel module support files for the Zettabyte File System."
-depends=("${AZB_SPL_PKGNAME}")
+depends=("${spl_pkgname}"
+         ${linux_depends}
+         ${linux_headers_depends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-${AZB_ZOL_VERSION}.tar.gz"
+source=("${zfs_src_target}"
         "zfs-utils.bash-completion-r1"
         "zfs-utils.initcpio.install"
         "zfs-utils.initcpio.hook")
-sha256sums=('${AZB_ZFS_SRC_HASH}'
-            '${AZB_ZFS_BASH_COMPLETION_HASH}'
-            '${AZB_ZFS_INITCPIO_INSTALL_HASH}'
-            '${AZB_ZFS_INITCPIO_HOOK_HASH}')
+sha256sums=("${zfs_src_hash}"
+            "${zfs_bash_completion_hash}"
+            "${zfs_initcpio_install_hash}"
+            "${zfs_initcpio_hook_hash}")
 license=("CDDL")
-groups=("${AZB_ARCHZFS_PACKAGE_GROUP}")
-provides=("${AZB_ZFS_UTILS_PKGNAME}")
+groups=("${archzfs_package_group}")
+provides=("${zfs_utils_pkgname}")
+${zfs_makedepends}
 
 build() {
-    cd "\${srcdir}/zfs-${AZB_ZOL_VERSION}"
+    cd "${zfs_workdir}"
     ./autogen.sh
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
-                --with-udevdir=/lib/udev --libexecdir=/usr/lib/zfs-${AZB_ZOL_VERSION} \\
+                --with-udevdir=/lib/udev --libexecdir=/usr/lib/zfs-${zol_version} \\
                 --with-config=user
     make
 }
 
 package() {
-    cd "\${srcdir}/zfs-${AZB_ZOL_VERSION}"
+    cd "${zfs_workdir}"
     make DESTDIR="\${pkgdir}" install
 
     # Remove uneeded files

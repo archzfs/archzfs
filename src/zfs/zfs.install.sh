@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cat << EOF > ${AZB_ZFS_PKGBUILD_PATH}/zfs.install
+cat << EOF > ${zfs_pkgbuild_path}/zfs.install
 post_install() {
     check_initramfs
 }
@@ -15,8 +15,7 @@ post_upgrade() {
 
 check_initramfs() {
     echo ">>> Updating ZFS module dependencies"
-    # depmod -v ${AZB_KERNEL_MOD_PATH}
-    depmod -a -v
+    depmod ${kernel_mod_path}
     MK_CONF=\$(grep -v '#' /etc/mkinitcpio.conf | grep zfs >/dev/null; echo \$?);
     if [[ \${MK_CONF} == '0' ]]; then
         if [[ \$1 == 'remove' ]]; then

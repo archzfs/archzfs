@@ -107,28 +107,24 @@ test_fail() {
 }
 
 
-cleanup() {
+clean_up() {
     exit $1 || true
 }
 
 
-abort() {
-    msg 'Aborting...'
-    cleanup 0
-}
-
-
-trap_abort() {
-    trap - INT QUIT TERM HUP
-    msg "Got INT QUIT TERM HUP signal!"
-    abort
-}
-
-
 trap_exit() {
-    trap - EXIT
-    msg "$(date) :: All Done!"
-    cleanup
+	local signal=$1; shift
+    if [[ "$signal" == INT ]]; then
+        echo
+    fi
+    debug "trap_exit: have signal '$signal'"
+    if [[ "$signal" != "" ]]; then
+        msg "$(date) :: Done"
+    fi
+    clean_up
+	# unset the trap for this signal, and then call the default handler
+	trap -- "$signal"
+	kill "-$signal" "$$"
 }
 
 
@@ -179,6 +175,20 @@ run_cmd() {
         echo
         plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
     fi
+}
+
+
+# Runs a command. Ouput is not captured. DRY_RUN=1 is ignored.
+# To use this function, define the following in your calling script:
+# RUN_CMD_RETURN=""
+run_cmd_no_dry_run() {
+    # $@: The command and args to run
+    plain "Running command:" "$@"
+    plain_one_line "Output:"
+    echo -e "$@" | source /dev/stdin
+    RUN_CMD_RETURN=$?
+    echo
+    plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
 }
 
 
@@ -299,18 +309,17 @@ kernel_version_has_minor_version() {
         debug "kernel_version_has_minor_version: Have kernel with minor version!"
         return 0
     fi
-    debug "kernel_version_has_minor_version: BASH_REMATCH[1] == '${BASH_REMATCH[1]}'"
     debug "kernel_version_has_minor_version: Have kernel without minor version!"
     return 1
 }
 
 
-# Returns the full kernel version. If $1 is "3.14-1" then full_kernel_version returns "3.14.0-1".
-full_kernel_version() {
+# Returns the full kernel version. If $1 is "3.14-1" then kernel_version_full returns "3.14.0-1".
+kernel_version_full() {
     # $1: the kernel version
     local arg=$1
     if ! kernel_version_has_minor_version $1; then
-        debug "full_kernel_version: Have kernel without minor version!"
+        debug "kernel_version_full: Have kernel without minor version!"
         # Kernel version has the format 3.14, so add a 0.
         local arg=$(echo ${arg} | cut -f1 -d-)
         local rev=$(echo ${1} | cut -f2 -d-)
@@ -321,9 +330,65 @@ full_kernel_version() {
 }
 
 
-# Returns the full kernel version. If $1 is "3.14-1" then full_kernel_version returns "3.14.0_1".
-full_kernel_version_no_hyphen() {
+# Returns the full kernel version. If $1 is "3.14-1" then kernel_version_full returns "3.14.0_1".
+kernel_version_full_no_hyphen() {
     # $1: The full kernel version
     # returns: output is printed to stdout
-    echo $(full_kernel_version ${1} | sed s/-/_/g)
+    echo $(kernel_version_full ${1} | sed s/-/_/g)
+}
+
+# from makepkg
+source_safe() {
+	shopt -u extglob
+	if ! source "$@"; then
+		error "Failed to source $1"
+		exit 1
+	fi
+	shopt -s extglob
+}
+
+
+check_mode() {
+    # $1 the mode to check for
+    for mode in "${MODE_LIST[@]}"; do
+        debug "check_mode: on '${mode}'"
+        local moden=$(echo ${mode} | cut -f2 -d:)
+        if [[ "${moden}" == "$1" ]]; then
+            if [[ ${MODE} != "" ]]; then
+                error "Already have mode '${MODE}', only one mode can be used at a time!"
+                usage
+                exit 1
+            fi
+            MODE="$1"
+            MODE_NAME=$(echo ${mode} | cut -f1 -d:)
+            return
+        fi
+    done
+    error "Unrecognized argument '$1'"
+    usage
+    exit 1
+}
+
+have_command() {
+    # $1: The command to check for
+    # returns 0 if true, and 1 for false
+    debug "have_command: checking '$1'"
+    for cmd in "${COMMANDS[@]}"; do
+        debug "have_command: loop '$cmd'"
+        if [[ ${cmd} == $1 ]]; then
+            debug "have_command: '$1' is defined"
+            return 0
+        fi
+    done
+    return 1
+}
+
+check_debug() {
+    # Returns 0 if DEBUG argument is defined and 1 if not
+    for (( a = 0; a < $#; a++ )); do
+        if [[ ${ARGS[$a]} == "-d" ]]; then
+            return 0
+        fi
+    done
+    return 1
 }

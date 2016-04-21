@@ -1,30 +1,31 @@
 #!/bin/bash
 
-cat << EOF > ${AZB_SPL_UTILS_PKGBUILD_PATH}/PKGBUILD
-${AZB_HEADER}
-pkgname="${AZB_SPL_UTILS_PKGNAME}"
-pkgver=${AZB_PKGVER}
-pkgrel=${AZB_PKGREL}
+cat << EOF > ${spl_utils_pkgbuild_path}/PKGBUILD
+${header}
+pkgname="${spl_utils_pkgname}"
+pkgver=${spl_pkgver}
+pkgrel=${spl_pkgrel}
 pkgdesc="Solaris Porting Layer kernel module support files."
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-${AZB_ZOL_VERSION}.tar.gz"
+source=("${spl_src_target}"
         "spl-utils.hostid")
-sha256sums=('${AZB_SPL_SRC_HASH}'
-            '${AZB_SPL_HOSTID_HASH}')
-groups=("${AZB_ARCHZFS_PACKAGE_GROUP}")
+sha256sums=("${spl_src_hash}"
+            "${spl_hostid_hash}")
+groups=("${archzfs_package_group}")
 license=("GPL")
-provides=("${AZB_SPL_UTILS_PKGNAME}")
+provides=("${spl_utils_pkgname}")
+${spl_makedepends}
 
 build() {
-    cd "\${srcdir}/spl-${AZB_ZOL_VERSION}"
+    cd "${spl_workdir}"
     ./autogen.sh
     ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin --with-config=user
     make
 }
 
 package() {
-    cd "\${srcdir}/spl-${AZB_ZOL_VERSION}"
+    cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install
     install -D -m644 "\${srcdir}"/spl-utils.hostid "\${pkgdir}"/etc/hostid
 }

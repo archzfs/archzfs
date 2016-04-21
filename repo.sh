@@ -12,27 +12,29 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if ! source ${SCRIPT_DIR}/lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
+    exit 1
 fi
+source_safe "${SCRIPT_DIR}/conf.sh"
 
 
-if ! source ${SCRIPT_DIR}/conf.sh; then
-    error "Could not load conf.sh!"
-fi
-
-
-trap 'trap_abort' INT QUIT TERM HUP
-trap 'trap_exit' EXIT
+# setup signal traps
+trap 'clean_up' 0
+for signal in TERM HUP QUIT; do
+    trap "trap_exit $signal \"$(msg "$signal signal caught. Exiting...")\"" "$signal"
+done
+trap "trap_exit INT \"$(msg "Aborted by user! Exiting...")\"" INT
+trap "trap_exit USR1 \"$(error "An unknown error has occurred. Exiting..." 2>&1 )\"" ERR
 
 
 DRY_RUN=0   # Show commands only. Don't do anything.
-AZB_REPO="" # The destination repo for the packages
-AZB_KERNEL_VERSION=""
-AZB_KERNEL_VERSION_NO_HYPHEN=""
-AZB_PKGVER_MATCH=""
-AZB_MODE=""
-AZB_MODE_STD=0
-AZB_MODE_GIT=0
-AZB_MODE_LTS=0
+REPO="" # The destination repo for the packages
+KERNEL_VERSION=""
+KERNEL_VERSION_NO_HYPHEN=""
+PKGVER_MATCH=""
+MODE=""
+MODE_STD=0
+MODE_GIT=0
+MODE_LTS=0
 
 
 usage() {
@@ -70,20 +72,20 @@ usage() {
 ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
     if [[ ${ARGS[$a]} == "std" ]]; then
-        AZB_MODE_STD=1
-        AZB_MODE="std"
+        MODE_STD=1
+        MODE="std"
     elif [[ ${ARGS[$a]} == "git" ]]; then
-        AZB_MODE_STD=0
-        AZB_MODE_GIT=1
-        AZB_MODE="git"
+        MODE_STD=0
+        MODE_GIT=1
+        MODE="git"
     elif [[ ${ARGS[$a]} == "lts" ]]; then
-        AZB_MODE_STD=0
-        AZB_MODE_LTS=1
-        AZB_MODE="lts"
+        MODE_STD=0
+        MODE_LTS=1
+        MODE="lts"
     elif [[ ${ARGS[$a]} == "azfs" ]]; then
-        AZB_REPO="archzfs"
+        REPO="archzfs"
     elif [[ ${ARGS[$a]} == "test" ]]; then
-        AZB_REPO="archzfs-testing"
+        REPO="archzfs-testing"
     elif [[ ${ARGS[$a]} == "-n" ]]; then
         DRY_RUN=1
     elif [[ ${ARGS[$a]} == "-d" ]]; then
@@ -101,16 +103,15 @@ if [[ $# -lt 1 ]]; then
 fi
 
 
-if [[ ${AZB_REPO} == "" ]]; then
+if [[ ${REPO} == "" ]]; then
     error "No destination repo specified!"
     exit 1
 fi
 
 
-if [[ ${AZB_MODE} == "" ]]; then
+if [[ ${MODE} == "" ]]; then
     echo
     error "A mode must be selected!"
-    echo
     usage;
     exit 0;
 fi
@@ -120,31 +121,31 @@ msg "$(date) :: ${NAME} started..."
 
 
 # The abs path to the repo
-AZB_REPO_TARGET=${AZB_REPO_BASEPATH}/${AZB_REPO}
+REPO_TARGET=${REPO_BASEPATH}/${REPO}
 
 
 # Set the kernel version
-if [[ ${AZB_MODE_STD} -eq 1 ]]; then
-    AZB_KERNEL_VERSION=$(full_kernel_version ${AZB_STD_KERNEL_VERSION})
-    AZB_KERNEL_VERSION_NO_HYPHEN=$(full_kernel_version_no_hyphen ${AZB_STD_KERNEL_VERSION})
-    AZB_PKGVER_MATCH="${AZB_ZOL_VERSION}_${AZB_KERNEL_VERSION_NO_HYPHEN}-${AZB_STD_PKGREL}"
-elif [[ ${AZB_MODE_GIT} -eq 1 ]]; then
-    AZB_KERNEL_VERSION=$(full_kernel_version ${AZB_GIT_KERNEL_VERSION})
-    AZB_KERNEL_VERSION_NO_HYPHEN=$(full_kernel_version_no_hyphen ${AZB_GIT_KERNEL_VERSION})
-    AZB_PKGVER_MATCH="${AZB_ZOL_VERSION}_${AZB_KERNEL_VERSION_NO_HYPHEN}-${AZB_GIT_PKGREL}"
-elif [[ ${AZB_MODE_LTS} -eq 1 ]]; then
-    AZB_KERNEL_VERSION=$(full_kernel_version ${AZB_LTS_KERNEL_VERSION})
-    AZB_KERNEL_VERSION_NO_HYPHEN=$(full_kernel_version_no_hyphen ${AZB_LTS_KERNEL_VERSION})
-    AZB_PKGVER_MATCH="${AZB_ZOL_VERSION}_${AZB_KERNEL_VERSION_NO_HYPHEN}-${AZB_LTS_PKGREL}"
+if [[ ${MODE_STD} -eq 1 ]]; then
+    KERNEL_VERSION=$(kernel_version_full ${STD_KERNEL_VERSION})
+    KERNEL_VERSION_NO_HYPHEN=$(kernel_version_full_no_hyphen ${STD_KERNEL_VERSION})
+    PKGVER_MATCH="${ZOL_VERSION}_${KERNEL_VERSION_NO_HYPHEN}-${STD_PKGREL}"
+elif [[ ${MODE_LTS} -eq 1 ]]; then
+    KERNEL_VERSION=$(kernel_version_full ${LTS_KERNEL_VERSION})
+    KERNEL_VERSION_NO_HYPHEN=$(kernel_version_full_no_hyphen ${LTS_KERNEL_VERSION})
+    PKGVER_MATCH="${ZOL_VERSION}_${KERNEL_VERSION_NO_HYPHEN}-${LTS_PKGREL}"
+elif [[ ${MODE_GIT} -eq 1 ]]; then
+    KERNEL_VERSION=$(kernel_version_full ${GIT_KERNEL_VERSION})
+    KERNEL_VERSION_NO_HYPHEN=$(kernel_version_full_no_hyphen ${GIT_KERNEL_VERSION})
+    PKGVER_MATCH="${ZOL_VERSION}.*${KERNEL_VERSION_NO_HYPHEN}-${GIT_PKGREL}"
 fi
 
 
 debug "DRY_RUN: "${DRY_RUN}
-debug "AZB_REPO: "${AZB_REPO}
-debug "AZB_REPO_TARGET: ${AZB_REPO_TARGET}"
-debug "AZB_KERNEL_VERSION: ${AZB_KERNEL_VERSION}"
-debug "AZB_KERNEL_VERSION_NO_HYPHEN: ${AZB_KERNEL_VERSION_NO_HYPHEN}"
-debug "AZB_PKGVER_MATCH: ${AZB_PKGVER_MATCH}"
+debug "REPO: "${REPO}
+debug "REPO_TARGET: ${REPO_TARGET}"
+debug "KERNEL_VERSION: ${KERNEL_VERSION}"
+debug "KERNEL_VERSION_NO_HYPHEN: ${KERNEL_VERSION_NO_HYPHEN}"
+debug "PKGVER_MATCH: ${PKGVER_MATCH}"
 
 
 # A list of packages to install. Pulled from the command line.
@@ -159,13 +160,13 @@ for arg in "$@"; do
 done
 
 
-if [[ ${AZB_REPO} != "" ]]; then
+if [[ ${REPO} != "" ]]; then
     msg "Creating a list of packages to add..."
 
     # Get the local packages if no packages were passed to the script
     if [[ "${#pkgs[@]}" -eq 0 ]]; then
         # Get packages from the backup directory if the repo is demz-repo-archiso
-        run_cmd_show_and_capture_output_no_dry_run "find packages/${AZB_MODE}/ -iname '*${AZB_KERNEL_VERSION_NO_HYPHEN}*.pkg.tar.xz'"
+        run_cmd_show_and_capture_output_no_dry_run "find packages/${MODE}/ -iname '*${KERNEL_VERSION_NO_HYPHEN}*.pkg.tar.xz'"
         for pkg in ${RUN_CMD_OUTPUT}; do
             pkgs+=(${pkg})
         done
@@ -183,28 +184,28 @@ if [[ ${AZB_REPO} != "" ]]; then
         name=$(package_name_from_path ${pkg})
         vers=$(package_version_from_path ${pkg})
 
-        debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} AZB_PKGVER_MATCH: ${AZB_PKGVER_MATCH}"
+        debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} PKGVER_MATCH: ${PKGVER_MATCH}"
 
-        if [[ ${vers} != ${AZB_PKGVER_MATCH} ]]; then
+        if ! [[ ${vers} =~ ^${PKGVER_MATCH} ]]; then
             debug "Version mismatch!"
             continue
         fi
 
         if [[ ${arch} == "any" ]]; then
-            repos=`realpath ${AZB_REPO_TARGET}/x86_64`
+            repos=`realpath ${REPO_TARGET}/x86_64`
             for repo in ${repos}; do
-                debug "Package: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${AZB_REPO_TARGET}/${arch}"
+                debug "Package: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${REPO_TARGET}/${arch}"
                 # Each index is [name, version, pkgpath, pkgdest]
                 pkg_list+=("${name};${vers};${pkg};${repo}")
             done
             continue
         fi
 
-        debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${AZB_REPO_TARGET}/${arch}"
-        pkg_list+=("${name};${vers};${pkg};${AZB_REPO_TARGET}/${arch}")
+        debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${REPO_TARGET}/${arch}"
+        pkg_list+=("${name};${vers};${pkg};${REPO_TARGET}/${arch}")
 
-        litem="packages/${AZB_MODE}/${name}/${name}-${vers}.src.tar.gz;${AZB_REPO_TARGET}/${arch}"
-        debug "Source: srcname: ${name}-${vers}.src.tar.gz srcdest: ${AZB_REPO_TARGET}/${arch}"
+        litem="packages/${MODE}/${name}/${name}-${vers}.src.tar.gz;${REPO_TARGET}/${arch}"
+        debug "Source: srcname: ${name}-${vers}.src.tar.gz srcdest: ${REPO_TARGET}/${arch}"
 
         pkg_src_list+=(${litem})
     done
@@ -237,6 +238,7 @@ if [[ ${AZB_REPO} != "" ]]; then
             if [[ ${ename} == ${name} && ${evers} != ${vers} ]]; then
                 # The '*' globs the signatures and package sources
                 epkg="${repo}/${ename}-${evers}*"
+                debug "epkg: ${epkg}"
                 exist_pkg_mv_list+=(${epkg})
             fi
         done
@@ -287,7 +289,7 @@ if [[ ${AZB_REPO} != "" ]]; then
         fi
 
         run_cmd "cp -fv ${cp_list} ${repo}/"
-        run_cmd "repo-add -k ${AZB_GPG_SIGN_KEY} -s -v ${repo}/${AZB_REPO}.db.tar.xz ${ra_list}"
+        run_cmd "repo-add -k ${GPG_SIGN_KEY} -s -v ${repo}/${REPO}.db.tar.xz ${ra_list}"
         if [[ ${RUN_CMD_RETURN} -ne 0 ]]; then
             error "An error occurred adding the package to the repo!"
             exit 1

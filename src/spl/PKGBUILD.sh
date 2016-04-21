@@ -1,36 +1,38 @@
 #!/bin/bash
 
-cat << EOF > ${AZB_SPL_PKGBUILD_PATH}/PKGBUILD
-${AZB_HEADER}
-pkgname="${AZB_SPL_PKGNAME}"
-pkgver=${AZB_PKGVER}
-pkgrel=${AZB_PKGREL}
+cat << EOF > ${spl_pkgbuild_path}/PKGBUILD
+${header}
+pkgname="${spl_pkgname}"
+pkgver=${spl_pkgver}
+pkgrel=${spl_pkgrel}
 pkgdesc="Solaris Porting Layer kernel modules."
-depends=("${AZB_SPL_UTILS_PKGNAME}" "linux-headers" "kmod")
+depends=("${spl_utils_pkgname}" "kmod"
+         ${linux_depends}
+         ${linux_headers_depends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-${AZB_ZOL_VERSION}.tar.gz")
-sha256sums=('${AZB_SPL_SRC_HASH}')
-groups=("${AZB_ARCHZFS_PACKAGE_GROUP}")
+source=("${spl_src_target}")
+sha256sums=("${spl_src_hash}")
+groups=("${archzfs_package_group}")
 license=("GPL")
 install=spl.install
-provides=("${AZB_SPL_PKGNAME}")
+provides=("${spl_pkgname}")
+${spl_makedepends}
 
 build() {
-    cd "\${srcdir}/spl-${AZB_ZOL_VERSION}"
+    cd "${spl_workdir}"
     ./autogen.sh
     ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \\
-                --with-linux=/usr/lib/modules/${AZB_KERNEL_MOD_PATH}/build \\
+                --with-linux=/usr/lib/modules/${kernel_mod_path}/build \\
                 --with-config=kernel
     make
 }
 
 package() {
-    cd "\${srcdir}/spl-${AZB_ZOL_VERSION}"
+    cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install
     mv "\${pkgdir}/lib" "\${pkgdir}/usr/"
-
-    # TODO: Not sure what this does, or if it is needed anymore. It breaks compatibility with non-stock kernels...
-    # sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/spl-*/${AZB_KERNEL_MOD_PATH}/Module.symvers
+    # Remove reference to \${srcdir}
+    sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/spl-*/${kernel_mod_path}/Module.symvers
 }
 EOF

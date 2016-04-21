@@ -12,16 +12,18 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if ! source ${SCRIPT_DIR}/lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
+    exit 1
 fi
+source_safe "${SCRIPT_DIR}/conf.sh"
 
 
-if ! source ${SCRIPT_DIR}/conf.sh; then
-    error "Could not load conf.sh!"
-fi
-
-
-trap 'trap_abort' INT QUIT TERM HUP
-trap 'trap_exit' EXIT
+# setup signal traps
+trap 'clean_up' 0
+for signal in TERM HUP QUIT; do
+    trap "trap_exit $signal \"$(msg "$signal signal caught. Exiting...")\"" "$signal"
+done
+trap "trap_exit INT \"$(msg "Aborted by user! Exiting...")\"" INT
+trap "trap_exit USR1 \"$(error "An unknown error has occurred. Exiting..." 2>&1 )\"" ERR
 
 
 usage() {
@@ -57,7 +59,7 @@ compute_local_repo_hash() {
     # Sets LOCAL_REPO_HASH
     msg2 "Computing local $1 repository hashes..."
 
-    run_cmd "cd $AZB_REPO_BASEPATH; sha256sum $1/*/*"
+    run_cmd "cd $REPO_BASEPATH; sha256sum $1/*/*"
     if [[ ${RUN_CMD_RETURN} != 0 ]]; then
         error "Could not run local hash!"
         exit 1
@@ -75,7 +77,7 @@ compute_remote_repo_hash() {
     # Sets REMOTE_REPO_HASH
     msg2 "Computing remote $1 repository hashes..."
 
-    run_cmd "ssh $AZB_REMOTE_LOGIN 'cd webapps/default; sha256sum $1/*/*'"
+    run_cmd "ssh $REMOTE_LOGIN 'cd webapps/default; sha256sum $1/*/*'"
     if [[ ${RUN_CMD_RETURN} != 0 ]]; then
         error "Could not run remote hash!"
         exit 1
