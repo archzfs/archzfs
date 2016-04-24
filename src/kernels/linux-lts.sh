@@ -3,7 +3,7 @@ mode_name="lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
-pkgrel="1"
+pkgrel="3"
 kernel_version="4.4.8-1"
 kernel_version_next="4.5"
 
@@ -29,11 +29,12 @@ header="\
 update_linux_lts_pkgbuilds() {
     pkg_list="spl-utils-linux-lts spl-linux-lts zfs-utils-linux-lts zfs-linux-lts"
     kernel_version_full=$(kernel_version_full ${kernel_version})
+    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
     kernel_mod_path="${kernel_version_full}-lts"
     archzfs_package_group="archzfs-linux-lts"
-    spl_pkgver=${zol_version}_$(kernel_version_full_no_hyphen ${kernel_version})
-    zfs_pkgver=${zol_version}_$(kernel_version_full_no_hyphen ${kernel_version})
+    spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_utils_pkgname="spl-utils-linux-lts"

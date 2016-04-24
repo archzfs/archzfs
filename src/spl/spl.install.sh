@@ -30,6 +30,6 @@ check_hostid() {
 
 run_depmod() {
     echo ">>> Updating SPL module dependencies"
-    depmod ${kernel_mod_path}
+    depmod -a ${kernel_mod_path}
 }
 EOF

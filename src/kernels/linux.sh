@@ -3,7 +3,7 @@ mode_name="std"
 mode_desc="Select and use the packages for the default linux kernel"
 
 # Kernel versions for default ZFS packages
-pkgrel="1"
+pkgrel="3"
 kernel_version="4.5.1-1"
 kernel_version_next="4.6"
 
@@ -42,11 +42,12 @@ header="\
 update_linux_pkgbuilds() {
     pkg_list="spl-utils-linux spl-linux zfs-utils-linux zfs-linux"
     kernel_version_full=$(kernel_version_full ${kernel_version})
+    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
     kernel_mod_path="${kernel_version_full}-ARCH"
     archzfs_package_group="archzfs-linux"
-    spl_pkgver=${zol_version}_$(kernel_version_full_no_hyphen ${kernel_version})
-    zfs_pkgver=${zol_version}_$(kernel_version_full_no_hyphen ${kernel_version})
+    spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_utils_pkgname="spl-utils-linux"
@@ -70,12 +71,15 @@ update_linux_git_pkgbuilds() {
     pkg_list="spl-utils-linux-git spl-linux-git zfs-utils-linux-git zfs-linux-git"
     kernel_version=${kernel_version_git}
     kernel_version_full=$(kernel_version_full ${kernel_version_git})
+    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version_git})
     kernel_version_major=${kernel_version_git%-*}
     kernel_version_next=${kernel_version_git_next}
     kernel_mod_path="${kernel_version_full}-ARCH"
     archzfs_package_group="archzfs-linux-git"
-    spl_pkgver=""
-    zfs_pkgver=""
+    spl_pkgver="" # Set later by call to git_calc_pkgver
+    zfs_pkgver="" # Set later by call to git_calc_pkgver
+    spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel_git}
     zfs_pkgrel=${pkgrel_git}
     spl_utils_pkgname="spl-utils-linux-git"
