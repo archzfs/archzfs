@@ -54,10 +54,10 @@ update_linux_pkgbuilds() {
     zfs_utils_pkgname="zfs-utils-linux"
     zfs_pkgname="zfs-linux"
     # Paths are relative to build.sh
-    spl_utils_pkgbuild_path="packages/linux/spl-utils-linux"
-    spl_pkgbuild_path="packages/linux/spl-linux"
-    zfs_utils_pkgbuild_path="packages/linux/zfs-utils-linux"
-    zfs_pkgbuild_path="packages/linux/zfs-linux"
+    spl_utils_pkgbuild_path="packages/${MODE_NAME}/${spl_utils_pkgname}"
+    spl_pkgbuild_path="packages/${MODE_NAME}/${spl_pkgname}"
+    zfs_utils_pkgbuild_path="packages/${MODE_NAME}/${zfs_utils_pkgname}"
+    zfs_pkgbuild_path="packages/${MODE_NAME}/${zfs_pkgname}"
     spl_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-${zol_version}.tar.gz"
     zfs_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
@@ -67,7 +67,6 @@ update_linux_pkgbuilds() {
 }
 
 update_linux_git_pkgbuilds() {
-    # CAUTION: Watch out for variable shadowing!
     pkg_list="spl-utils-linux-git spl-linux-git zfs-utils-linux-git zfs-linux-git"
     kernel_version=${kernel_version_git}
     kernel_version_full=$(kernel_version_full ${kernel_version_git})
@@ -83,10 +82,10 @@ update_linux_git_pkgbuilds() {
     spl_pkgname="spl-linux-git"
     zfs_utils_pkgname="zfs-utils-linux-git"
     zfs_pkgname="zfs-linux-git"
-    spl_utils_pkgbuild_path="packages/linux/spl-utils-linux-git"
-    spl_pkgbuild_path="packages/linux/spl-linux-git"
-    zfs_utils_pkgbuild_path="packages/linux/zfs-utils-linux-git"
-    zfs_pkgbuild_path="packages/linux/zfs-linux-git"
+    spl_utils_pkgbuild_path="packages/${MODE_NAME}/${spl_utils_pkgname}"
+    spl_pkgbuild_path="packages/${MODE_NAME}/${spl_pkgname}"
+    zfs_utils_pkgbuild_path="packages/${MODE_NAME}/${zfs_utils_pkgname}"
+    zfs_pkgbuild_path="packages/${MODE_NAME}/${zfs_pkgname}"
     spl_src_target="git+${spl_git_url}"
     if [[ ${spl_git_commit} != "" ]]; then
         spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
