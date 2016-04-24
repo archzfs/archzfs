@@ -107,26 +107,34 @@ test_fail() {
 }
 
 
-clean_up() {
-    exit $1 || true
-}
-
-
 trap_exit() {
-	local signal=$1; shift
-    if [[ "$signal" == INT ]]; then
-        echo
-    fi
-    debug "trap_exit: have signal '$signal'"
-    if [[ "$signal" != "" ]]; then
+    local sig=$?
+    debug "trap_exit: args \$?=$?"
+    if [[ ${sig} -eq 0 ]]; then
         msg "$(date) :: Done"
+    # 155 is set when command args are not met, we don't need to print anything in that case
+    elif [[ ${sig} -eq 1 && ${sig} -ne 155 ]]; then
+        msg "$(date) :: EXIT"
     fi
-    clean_up
-	# unset the trap for this signal, and then call the default handler
-	trap -- "$signal"
-	kill "-$signal" "$$"
 }
 
+
+trap_abort() {
+    debug "trap_abort: args \$?=$?"
+    msg "$(date) :: EXIT (abort)"
+}
+
+
+trap_quit() {
+    debug "trap_quit: args \$?=$?"
+    msg "$(date) :: EXIT (TERM, HUP, QUIT)"
+}
+
+
+trap_usr1() {
+    debug "trap_usr1: args \$?=$?"
+    error "$(date) :: EXIT: An unkown error has occurred."
+}
 
 # Check a symlink, re-create it if the target is not correct
 function check_symlink() {
@@ -382,6 +390,7 @@ have_command() {
     done
     return 1
 }
+
 
 check_debug() {
     # Returns 0 if DEBUG argument is defined and 1 if not

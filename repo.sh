@@ -18,23 +18,10 @@ source_safe "${SCRIPT_DIR}/conf.sh"
 
 
 # setup signal traps
-trap 'clean_up' 0
-for signal in TERM HUP QUIT; do
-    trap "trap_exit $signal \"$(msg "$signal signal caught. Exiting...")\"" "$signal"
-done
-trap "trap_exit INT \"$(msg "Aborted by user! Exiting...")\"" INT
-trap "trap_exit USR1 \"$(error "An unknown error has occurred. Exiting..." 2>&1 )\"" ERR
-
-
-DRY_RUN=0   # Show commands only. Don't do anything.
-REPO="" # The destination repo for the packages
-KERNEL_VERSION=""
-KERNEL_VERSION_NO_HYPHEN=""
-PKGVER_MATCH=""
-MODE=""
-MODE_STD=0
-MODE_GIT=0
-MODE_LTS=0
+trap "trap_quit" TERM HUP QUIT
+trap "trap_abort" INT
+trap "trap_usr1" USR1
+trap "trap_exit" EXIT
 
 
 usage() {
