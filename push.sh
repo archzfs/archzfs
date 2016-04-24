@@ -18,20 +18,6 @@ fi
 source_safe "${SCRIPT_DIR}/conf.sh"
 
 
-# setup signal traps
-trap "trap_quit" TERM HUP QUIT
-trap "trap_abort" INT
-trap "trap_usr1" USR1
-trap "trap_exit" EXIT
-
-
-DRY_RUN=0       # Show commands only. Don't do anything.
-DEBUG=0         # Show debug output.
-MODE=""
-MODE_NAME=""
-MODE_LIST=()
-
-
 usage() {
     echo "${NAME} - Pushes the packages sources to AUR using burp."
     echo
@@ -53,10 +39,19 @@ usage() {
     echo
     echo "Example Usage:"
     echo
-    echo "    ${NAME} git     :: Push the git package sources."
+    echo "    ${NAME} std     :: Push the default package sources."
     echo "    ${NAME} lts     :: Push the lts package sources."
     trap - EXIT # Prevents exit log output
 }
+
+
+generate_mode_list
+
+
+if [[ $# -lt 1 ]]; then
+    usage;
+    exit 1
+fi
 
 
 ARGS=("$@")
@@ -69,22 +64,17 @@ for (( a = 0; a < $#; a++ )); do
         usage;
         exit 0;
     else
-        check_mode
+        check_mode "${ARGS[$a]}"
+        debug "have mode '${MODE}'"
     fi
 done
-
-
-if [[ $# -lt 1 ]]; then
-    usage;
-    exit 0;
-fi
 
 
 if [[ ${MODE} == "" ]]; then
     echo
     error "A mode must be selected!"
-    usage;
-    exit 0;
+    usage
+    exit 155
 fi
 
 
@@ -96,24 +86,26 @@ push_packages() {
         msg "Packaging ${pkg}..."
         local cmd="cd \"${PWD}/packages/${MODE_NAME}/${pkg}\" && "
         cmd+="mksrcinfo && "
-        cmd+="git add . && git commit -m 'Update for kernel $(kernel_version_full ${kernel_version})' && "
+        cmd+="git add . && git commit -m 'Semi-automated update for ${zfs_pkgver}-${zfs_pkgrel}' && "
         cmd+="git push"
         run_cmd "${cmd}"
     done
 }
 
 
-if [[ ${MODE} != "" ]]; then
-    get_kernel_update_funcs
-    export SCRIPT_DIR MODE MODE_NAME BUILD SIGN SOURCES UPDATE_PKGBUILDS
-    source_safe "src/kernels/${MODE_NAME}.sh"
-    for func in "${UPDATE_FUNCS[@]}"; do
-        debug "Evaluating '${func}'"
-        "${func}"
-        push_packages
-    done
-fi
+get_kernel_update_funcs
+debug_print_default_vars
 
+
+export SCRIPT_DIR MODE MODE_NAME BUILD SIGN SOURCES UPDATE_PKGBUILDS
+source_safe "src/kernels/${MODE_NAME}.sh"
+
+
+for func in "${UPDATE_FUNCS[@]}"; do
+    debug "Evaluating '${func}'"
+    "${func}"
+    push_packages
+done
 
 # Build the documentation and push it to the remote host
 # msg "Building the documentation..."
