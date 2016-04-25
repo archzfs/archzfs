@@ -25,5 +25,5 @@ gpg_sign_key='0EE7A126'
 
 chroot_path="/opt/chroot/x86_64/$(whoami)"
 
-# Package backup directory (for adding packages to demz-repo-archiso)
+# Package backup directory
 package_backup_dir="/data/pacman/repo/archive_archzfs"

@@ -127,7 +127,7 @@ check_archiso() {
     #
     msg "Checking archiso download page for linux kernel version changes..."
     check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" \
-        "${ARCHISO_KERNEL_VERSION}"
+        "${kernel_version_archiso}"
     check_result "archiso kernel version" "archiso"
 }
 
@@ -138,7 +138,7 @@ check_linux_kernel() {
     #
     msg "Checking the online package database for x86_64 linux kernel version changes..."
     check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" \
-        "${STD_KERNEL_VERSION}"
+        "${kernel_version}"
     check_result "x86_64 linux kernel package" "linux x86_64"
 }
 
@@ -149,7 +149,7 @@ check_linux_lts_kernel() {
     #
     msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
     check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" \
-        "${LTS_KERNEL_VERSION}"
+        "${kernel_version}"
     check_result "x86_64 linux-lts kernel package" "linux-lts x86_64"
 }
 
@@ -164,9 +164,23 @@ check_zol_version() {
 }
 
 
-check_archiso
+get_kernel_update_funcs
+debug_print_default_vars
+
+
+export script_dir mode kernel_name
+source_safe "src/kernels/linux.sh"
+
+
 check_linux_kernel
+check_archiso
+
+
+source_safe "src/kernels/linux-lts.sh"
 check_linux_lts_kernel
+
+
+# check_archiso
 check_zol_version
 
 

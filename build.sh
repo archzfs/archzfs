@@ -301,8 +301,10 @@ fi
 get_kernel_update_funcs
 debug_print_default_vars
 
+
 export script_dir mode kernel_name
 source_safe "src/kernels/${kernel_name}.sh"
+
 
 for func in "${update_funcs[@]}"; do
     debug "Evaluating '${func}'"
@@ -320,6 +322,7 @@ for func in "${update_funcs[@]}"; do
         build_sources
     fi
 done
+
 
 if have_command "sign"; then
     sign_packages
