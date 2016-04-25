@@ -6,28 +6,22 @@
 #
 
 
-NAME=$(basename $0)
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+args=("$@")
+script_name=$(basename $0)
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
-if ! source ${SCRIPT_DIR}/lib.sh; then
+if ! source ${script_dir}/lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
-    exit 1
+    exit 155
 fi
-source_safe "${SCRIPT_DIR}/conf.sh"
-
-
-# setup signal traps
-trap "trap_quit" TERM HUP QUIT
-trap "trap_abort" INT
-trap "trap_usr1" USR1
-trap "trap_exit" EXIT
+source_safe "${script_dir}/conf.sh"
 
 
 usage() {
-    echo "${NAME} - Compares repository hashes."
+    echo "${script_name} - Compares repository hashes."
     echo
-    echo "Usage: ${NAME} [options]"
+    echo "Usage: ${script_name} [options]"
     echo
     echo "Options:"
     echo
@@ -36,59 +30,51 @@ usage() {
     echo
     echo "Examples:"
     echo
-    echo "    ${NAME} -d    :: Show debug output."
-    trap - EXIT # Prevents exit log output
+    echo "    ${script_name} -d    :: Show debug output."
+    exit 155
 }
 
 
-ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "-d" ]]; then
-        DEBUG=1
-    elif [[ ${ARGS[$a]} == "-h" ]]; then
-        usage;
-        exit 0;
+    if [[ ${args[$a]} == "-d" ]]; then
+        debug_flag=1
+    elif [[ ${args[$a]} == "-h" ]]; then
+        usage
     fi
 done
 
 
 compute_local_repo_hash() {
     # $1: The repository to compute
-    # Sets LOCAL_REPO_HASH
+    # Sets local_repo_hash
     msg2 "Computing local $1 repository hashes..."
-
-    run_cmd "cd $REPO_BASEPATH; sha256sum $1/*/*"
-    if [[ ${RUN_CMD_RETURN} != 0 ]]; then
+    run_cmd "cd ${repo_basepath}; sha256sum $1/*/*"
+    if [[ ${run_cmd_return} != 0 ]]; then
         error "Could not run local hash!"
         exit 1
     fi
-
-    LFILES=$(echo ${RUN_CMD_OUTPUT} | sort -r)
-
-    LOCAL_REPO_HASH=$(echo "$LFILES" | sha256sum | cut -f 1 -d' ')
-    msg2 "Local hash: $LOCAL_REPO_HASH"
+    lfiles=$(echo ${run_cmd_output} | sort -r)
+    local_repo_hash=$(echo "${lfiles}" | sha256sum | cut -f 1 -d' ')
+    msg2 "Local hash: ${local_repo_hash}"
 }
 
 
 compute_remote_repo_hash() {
     # $1: The repository to compute
-    # Sets REMOTE_REPO_HASH
+    # Sets remote_repo_hash
     msg2 "Computing remote $1 repository hashes..."
-
-    run_cmd "ssh $REMOTE_LOGIN 'cd webapps/default; sha256sum $1/*/*'"
-    if [[ ${RUN_CMD_RETURN} != 0 ]]; then
+    run_cmd "ssh ${REMOTE_LOGIN} 'cd webapps/default; sha256sum $1/*/*'"
+    if [[ ${run_cmd_return} != 0 ]]; then
         error "Could not run remote hash!"
         exit 1
     fi
-
-    RFILES=$(echo ${RUN_CMD_OUTPUT} | sort -r)
-
-    REMOTE_REPO_HASH=$(echo "$RFILES" | sha256sum | cut -f 1 -d' ')
-    msg2 "Remote hash: $REMOTE_REPO_HASH"
+    rfiles=$(echo ${run_cmd_output} | sort -r)
+    remote_repo_hash=$(echo "${rfiles}" | sha256sum | cut -f 1 -d' ')
+    msg2 "Remote hash: $remote_repo_hash"
 }
 
 
-msg "$(date) :: ${NAME} started..."
+msg "$(date) :: ${script_name} started..."
 
 
 # Bail if no internet
@@ -98,23 +84,25 @@ if [[ $(ping -w 1 -c 1 8.8.8.8 &> /dev/null; echo $?) != 0 ]]; then
 fi
 
 
-HAS_ERROR=0
+has_error=0
+local_repo_hash=""
+remote_repo_hash=""
 
 
-for REPO in 'archzfs'; do
-    msg "Checking ${REPO}..."
-    # compare_repo $REPO
-    compute_local_repo_hash $REPO
-    compute_remote_repo_hash $REPO
-    if [[ $LOCAL_REPO_HASH != $REMOTE_REPO_HASH ]]; then
-        error "The $REPO is out of sync!"
-        HAS_ERROR=1
+for repo in 'archzfs'; do
+    msg "Checking ${repo}..."
+    # compare_repo $repo
+    compute_local_repo_hash ${repo}
+    compute_remote_repo_hash ${repo}
+    if [[ ${local_repo_hash} != ${remote_repo_hash} ]]; then
+        error "The ${repo} is out of sync!"
+        has_error=1
         continue
     fi
-    msg2 "$REPO is in sync"
+    msg2 "${repo} is in sync"
 done
 
 
-if [[ $HAS_ERROR -eq 1 ]]; then
-    exit 1;
+if [[ ${has_error} -eq 1 ]]; then
+    exit 1
 fi

@@ -2,25 +2,42 @@
 
 shopt -s nullglob
 
+
+dry_run=0
+debug_flag=0
+mode=""
+kernel_name="" # set by generate_mode_list
+mode_list=() # set by generate_mode_list
+update_funcs=() # set by generate_mode_list
+commands=()
+
+
+# setup signal traps
+trap "trap_quit" TERM HUP QUIT
+trap "trap_abort" INT
+trap "trap_usr1" USR1
+trap "trap_exit" EXIT
+
+
 # check if messages are to be printed using color
-unset ALL_OFF BOLD BLACK BLUE GREEN RED YELLOW WHITE DEFAULT CYAN MAGENTA
-ALL_OFF="\e[0m"
-BOLD="\e[1m"
-BLACK="${BOLD}\e[30m"
-RED="${BOLD}\e[31m"
-GREEN="${BOLD}\e[32m"
-YELLOW="${BOLD}\e[33m"
-BLUE="${BOLD}\e[34m"
-MAGENTA="${BOLD}\e[35m"
-CYAN="${BOLD}\e[36m"
-WHITE="${BOLD}\e[37m"
-DEFAULT="${BOLD}\e[39m"
-readonly ALL_OFF BOLD BLACK BLUE GREEN RED YELLOW WHITE DEFAULT CYAN MAGENTA
+unset all_off bold black blue green red yellow white default cyan magenta
+all_off="\e[0m"
+bold="\e[1m"
+black="${bold}\e[30m"
+red="${bold}\e[31m"
+green="${bold}\e[32m"
+yellow="${bold}\e[33m"
+blue="${bold}\e[34m"
+magenta="${bold}\e[35m"
+cyan="${bold}\e[36m"
+white="${bold}\e[37m"
+default="${bold}\e[39m"
+readonly all_off bold black blue green red yellow white default cyan magenta
 
 
 plain() {
     local mesg=$1; shift
-    printf "${ALL_OFF}%s${ALL_OFF}\n\n" "${mesg}"
+    printf "${all_off}%s${all_off}\n\n" "${mesg}"
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}"
         printf '\n\n'
@@ -30,13 +47,13 @@ plain() {
 
 plain_one_line() {
     local mesg=$1; shift
-    printf "${ALL_OFF}${ALL_OFF}%s %s\n\n" "${mesg}" "${@}"
+    printf "${all_off}${all_off}%s %s\n\n" "${mesg}" "${@}"
 }
 
 
 msg() {
     local mesg=$1; shift
-    printf "${GREEN}====${ALL_OFF} ${BOLD}%s${ALL_OFF}\n\n" "$mesg"
+    printf "${green}====${all_off} ${bold}%s${all_off}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}"
         printf '\n\n'
@@ -46,7 +63,7 @@ msg() {
 
 msg2() {
     local mesg=$1; shift
-    printf "${BLUE}++++ ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    printf "${blue}++++ ${all_off}${bold}${mesg}${all_off}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}"
         printf '\n\n'
@@ -56,7 +73,7 @@ msg2() {
 
 warning() {
     local mesg=$1; shift
-    printf "${YELLOW}==== WARNING: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
+    printf "${yellow}==== WARNING: ${all_off}${bold}${mesg}${all_off}\n\n" "$mesg" 1>&2
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}" 1>&2
         printf '\n\n'
@@ -66,7 +83,7 @@ warning() {
 
 error() {
     local mesg=$1; shift
-    printf "${RED}==== ERROR: ${ALL_OFF}${RED}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
+    printf "${red}==== ERROR: ${all_off}${red}${bold}${mesg}${all_off}\n\n" "$mesg" 1>&2
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}" 1>&2
         printf '\n\n'
@@ -76,9 +93,9 @@ error() {
 
 debug() {
     # $1: The message to print.
-    if [[ $DEBUG -eq 1 ]]; then
+    if [[ ${debug_flag} -eq 1 ]]; then
         local mesg=$1; shift
-        printf "${MAGENTA}~~~~ DEBUG: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
+        printf "${magenta}~~~~ DEBUG: ${all_off}${bold}${mesg}${all_off}\n\n" "$mesg" 1>&2
         if [[ $# -gt 0 ]]; then
             printf '%s ' "${@}" 1>&2
             printf '\n\n'
@@ -89,7 +106,7 @@ debug() {
 
 test_pass() {
     local mesg=$1; shift
-    printf "${GREEN}==== PASS: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
+    printf "${green}==== PASS: ${all_off}${bold}${mesg}${all_off}\n\n" "$mesg" 1>&2
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}" 1>&2
         printf '\n\n'
@@ -99,7 +116,7 @@ test_pass() {
 
 test_fail() {
     local mesg=$1; shift
-    printf "${RED}==== FAILED: ${ALL_OFF}${RED}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg" 1>&2
+    printf "${red}==== FAILED: ${all_off}${red}${bold}${mesg}${all_off}\n\n" "$mesg" 1>&2
     if [[ $# -gt 0 ]]; then
         printf '%s ' "${@}" 1>&2
         printf '\n\n'
@@ -160,7 +177,7 @@ function relativePath() {
 
 norun() {
     local mesg=$1; shift
-    printf "${MAGENTA}XXXX NORUN: ${ALL_OFF}${BOLD}${mesg}${ALL_OFF}\n\n" "$mesg"
+    printf "${magenta}XXXX NORUN: ${all_off}${bold}${mesg}${all_off}\n\n" "$mesg"
     if [[ $# -gt 0 ]]; then
         printf '%s ' "$@"
         printf '\n\n'
@@ -170,43 +187,43 @@ norun() {
 
 # Runs a command. Ouput is not captured
 # To use this function, define the following in your calling script:
-# RUN_CMD_RETURN=""
+# run_cmd_return=""
 run_cmd() {
     # $@: The command and args to run
-    if [[ $DRY_RUN -eq 1 ]]; then
+    if [[ ${dry_run} -eq 1 ]]; then
         norun "CMD:" "$@"
     else
         plain "Running command:" "$@"
         plain_one_line "Output:"
         echo -e "$@" | source /dev/stdin
-        RUN_CMD_RETURN=$?
+        run_cmd_return=$?
         echo
-        plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+        plain_one_line "Command returned:" "${run_cmd_return}"
     fi
 }
 
 
-# Runs a command. Ouput is not captured. DRY_RUN=1 is ignored.
+# Runs a command. Ouput is not captured. dry_run=1 is ignored.
 # To use this function, define the following in your calling script:
-# RUN_CMD_RETURN=""
+# run_cmd_return=""
 run_cmd_no_dry_run() {
     # $@: The command and args to run
     plain "Running command:" "$@"
     plain_one_line "Output:"
     echo -e "$@" | source /dev/stdin
-    RUN_CMD_RETURN=$?
+    run_cmd_return=$?
     echo
-    plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+    plain_one_line "Command returned:" "${run_cmd_return}"
 }
 
 
-# Runs a command, capture the output in RUN_CMD_OUTPUT, but also show stdout.
+# Runs a command, capture the output in run_cmd_output, but also show stdout.
 # To use this function, define the following in your calling script:
-# RUN_CMD_OUTPUT=""
-# RUN_CMD_RETURN=""
+# run_cmd_output=""
+# run_cmd_return=""
 run_cmd_show_and_capture_output() {
     # $@: The command and args to run
-    if [[ $DRY_RUN -eq 1 ]]; then
+    if [[ ${dry_run} -eq 1 ]]; then
         norun "CMD:" "$@"
     else
         plain "Running command:" "$@"
@@ -219,19 +236,19 @@ run_cmd_show_and_capture_output() {
         # lib.sh: line 145: /bin/cat: Argument list too long
 
         exec 6>&1 # Link file descriptor 6 with stdout.
-        RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
+        run_cmd_output=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
         exec 1>&6 6>&-      # Restore stdout and close file descriptor #6.
-        RUN_CMD_RETURN=$?
+        run_cmd_return=$?
         echo
-        plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+        plain_one_line "Command returned:" "${run_cmd_return}"
     fi
 }
 
 
-# Runs a command, capture the output in RUN_CMD_OUTPUT, but also show stdout. Ignores DRY_RUN=1.
+# Runs a command, capture the output in run_cmd_output, but also show stdout. Ignores dry_run=1.
 # To use this function, define the following in your calling script:
-# RUN_CMD_OUTPUT=""
-# RUN_CMD_RETURN=""
+# run_cmd_output=""
+# run_cmd_return=""
 run_cmd_show_and_capture_output_no_dry_run() {
     # $@: The command and args to run
     plain "Running command:" "$@"
@@ -244,41 +261,41 @@ run_cmd_show_and_capture_output_no_dry_run() {
     # lib.sh: line 145: /bin/cat: Argument list too long
 
     exec 6>&1 # Link file descriptor 6 with stdout.
-    RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
+    run_cmd_output=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
     exec 1>&6 6>&-      # Restore stdout and close file descriptor #6.
-    RUN_CMD_RETURN=$?
+    run_cmd_return=$?
     echo
-    plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+    plain_one_line "Command returned:" "${run_cmd_return}"
 }
 
 
 # Runs the command, does not show output to stdout
 # To use this function, define the following in your calling script:
-# RUN_CMD_OUTPUT=""
-# RUN_CMD_RETURN=""
+# run_cmd_output=""
+# run_cmd_return=""
 run_cmd_no_output() {
     # $@: The command and args to run
-    if [[ $DRY_RUN -eq 1 ]]; then
+    if [[ ${dry_run} -eq 1 ]]; then
         norun "CMD:" "$@"
     else
         plain "Running command:" "$@"
-        RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin)
-        RUN_CMD_RETURN=$?
-        plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+        run_cmd_output=$(echo -e "$@" | source /dev/stdin)
+        run_cmd_return=$?
+        plain_one_line "Command returned:" "${run_cmd_return}"
     fi
 }
 
 
-# Runs the command, does not show output to stdout, ignores DRY_RUN=1
+# Runs the command, does not show output to stdout, ignores dry_run=1
 # To use this function, define the following in your calling script:
-# RUN_CMD_OUTPUT=""
-# RUN_CMD_RETURN=""
+# run_cmd_output=""
+# run_cmd_return=""
 run_cmd_no_output_no_dry_run() {
     # $@: The command and args to run
     plain "Running command:" "$@"
-    RUN_CMD_OUTPUT=$(echo -e "$@" | source /dev/stdin)
-    RUN_CMD_RETURN=$?
-    plain_one_line "Command returned:" "${RUN_CMD_RETURN}"
+    run_cmd_output=$(echo -e "$@" | source /dev/stdin)
+    run_cmd_return=$?
+    plain_one_line "Command returned:" "${run_cmd_return}"
 }
 
 
@@ -347,57 +364,120 @@ kernel_version_full_no_hyphen() {
 
 # from makepkg
 source_safe() {
-	shopt -u extglob
-	if ! source "$@"; then
-		error "Failed to source $1"
-		exit 1
-	fi
-	shopt -s extglob
+    export script_dir mode kernel_name
+    shopt -u extglob
+    if ! source "$@"; then
+        error "Failed to source $1"
+        exit 1
+    fi
+    shopt -s extglob
 }
 
 
 check_mode() {
     # $1 the mode to check for
-    for mode in "${MODE_LIST[@]}"; do
-        debug "check_mode: on '${mode}'"
-        local moden=$(echo ${mode} | cut -f2 -d:)
+    debug "check_mode: checking '$1'"
+    for m in "${mode_list[@]}"; do
+        debug "check_mode: on '${m}'"
+        local moden=$(echo ${m} | cut -f2 -d:)
+        # debug "moden: ${moden}"
         if [[ "${moden}" == "$1" ]]; then
-            if [[ ${MODE} != "" ]]; then
-                error "Already have mode '${MODE}', only one mode can be used at a time!"
+            if [[ ${mode} != "" ]]; then
+                error "Already have mode '${moden}', only one mode can be used at a time!"
                 usage
-                exit 1
+                exit 155
             fi
-            MODE="$1"
-            MODE_NAME=$(echo ${mode} | cut -f1 -d:)
+            mode="$1"
+            kernel_name=$(echo ${m} | cut -f1 -d:)
             return
         fi
     done
     error "Unrecognized argument '$1'"
     usage
-    exit 1
+    exit 155
 }
 
 have_command() {
     # $1: The command to check for
     # returns 0 if true, and 1 for false
     debug "have_command: checking '$1'"
-    for cmd in "${COMMANDS[@]}"; do
-        debug "have_command: loop '$cmd'"
+    for cmd in "${commands[@]}"; do
+        # debug "have_command: loop '$cmd'"
         if [[ ${cmd} == $1 ]]; then
             debug "have_command: '$1' is defined"
             return 0
         fi
     done
+    debug "have_command: '$1' is not defined"
     return 1
 }
 
 
 check_debug() {
-    # Returns 0 if DEBUG argument is defined and 1 if not
-    for (( a = 0; a < $#; a++ )); do
-        if [[ ${ARGS[$a]} == "-d" ]]; then
+    # args must be defined in the source script that loads lib.sh!
+    # Returns 0 if debug argument is defined and 1 if not
+    for (( a = 0; a < "${#args[@]}"; a++ )); do
+        if [[ ${args[$a]} == "-d" ]]; then
             return 0
         fi
     done
     return 1
 }
+
+
+generate_mode_list() {
+    for m in $(ls ${script_dir}/src/kernels); do
+        mn=$(source ${script_dir}/src/kernels/${m}; echo ${mode_name})
+        md=$(source ${script_dir}/src/kernels/${m}; echo ${mode_desc})
+        mode_list+=("${m%.*}:${mn}:${md}")
+    done
+}
+
+
+get_kernel_update_funcs() {
+    for kernel in $(ls ${script_dir}/src/kernels); do
+        if [[ ${kernel%.*} != ${kernel_name} ]]; then
+            continue
+        fi
+        updatefuncs=$(cat "${script_dir}/src/kernels/${kernel}" | grep -oh "update_.*_pkgbuilds")
+        for func in ${updatefuncs}; do update_funcs+=("${func}"); done
+    done
+}
+
+
+debug_print_default_vars() {
+    debug "dry_run: "${dry_run}
+    debug "debug_flag: "${debug_flag}
+    debug "mode: ${mode}"
+    debug "kernel_name: ${kernel_name}"
+    if [[ ${#mode_list[@]} -gt 0 ]]; then
+        debug_print_array "mode_list" "${mode_list[@]}"
+    fi
+    if [[ ${#update_funcs[@]} -gt 0 ]]; then
+        debug_print_array "update_funcs" "${update_funcs[@]}"
+    fi
+    if [[ ${#commands[@]} -gt 0 ]]; then
+        debug_print_array "commands" "${commands[@]}"
+    fi
+}
+
+
+debug_print_array() {
+    # $1 array name
+    # $2 array
+    if [[ $# -lt 2 ]]; then
+        warning "debug_print_array: Array '$1' is empty"
+        return
+    fi
+    local name=$1; shift
+    for item in "${@}"; do
+        debug "${name} (array item): ${item}"
+    done
+}
+
+
+# Do this early so it is possible to see the output
+if check_debug; then
+    debug_flag=1
+    debug "debug mode is enabled"
+fi

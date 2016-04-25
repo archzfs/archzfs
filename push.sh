@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 
 #
@@ -7,41 +7,47 @@
 #
 
 
-NAME=$(basename $0)
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+args=("$@")
+script_name=$(basename $0)
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+push=0
+push_repo=0
 
 
-if ! source ${SCRIPT_DIR}/lib.sh; then
+if ! source ${script_dir}/lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
-    exit 1
+    exit 155
 fi
-source_safe "${SCRIPT_DIR}/conf.sh"
+source_safe "${script_dir}/conf.sh"
 
 
 usage() {
-    echo "${NAME} - Pushes the packages sources to AUR using burp."
+    echo "${script_name} - Pushes the packages sources to AUR using burp."
     echo
-    echo "Usage: ${NAME} [options] [mode]"
+    echo "Usage: ${script_name} [options] [mode]"
     echo
     echo "Options:"
     echo
     echo "    -h:       Show help information."
     echo "    -n:       Dryrun; Output commands, but don't do anything."
     echo "    -d:       Show debug info."
+    echo "    -r:       Push the archzfs repositories."
+    echo "    -p:       Commit changes and push."
     echo
     echo "Modes:"
     echo
-    for mode in "${MODE_LIST[@]}"; do
-        mode_name=$(echo ${mode} | cut -f2 -d:)
-        mode_desc=$(echo ${mode} | cut -f3 -d:)
-        echo -e "    ${mode_name}    ${mode_desc}"
+    for ml in "${mode_list[@]}"; do
+        mn=$(echo ${ml} | cut -f2 -d:)
+        md=$(echo ${ml} | cut -f3 -d:)
+        echo -e "    ${mn}    ${md}"
     done
     echo
     echo "Example Usage:"
     echo
-    echo "    ${NAME} std     :: Push the default package sources."
-    echo "    ${NAME} lts     :: Push the lts package sources."
-    trap - EXIT # Prevents exit log output
+    echo "    ${script_name} std     :: Show package changes."
+    echo "    ${script_name} std -p  :: Push the default package sources."
+    echo "    ${script_name} lts -p  :: Push the lts package sources."
+    exit 155
 }
 
 
@@ -49,63 +55,82 @@ generate_mode_list
 
 
 if [[ $# -lt 1 ]]; then
-    usage;
-    exit 1
+    usage
 fi
 
 
-ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "-n" ]]; then
-        DRY_RUN=1
-    elif [[ ${ARGS[$a]} == "-d" ]]; then
-        DEBUG=1
-    elif [[ ${ARGS[$a]} == "-h" ]]; then
-        usage;
-        exit 0;
+    if [[ ${args[$a]} == "-n" ]]; then
+        dry_run=1
+    elif [[ ${args[$a]} == "-d" ]]; then
+        debug_flag=1
+    elif [[ ${args[$a]} == "-p" ]]; then
+        push=1
+    elif [[ ${args[$a]} == "-r" ]]; then
+        push_repo=1
+    elif [[ ${args[$a]} == "-h" ]]; then
+        usage
     else
-        check_mode "${ARGS[$a]}"
-        debug "have mode '${MODE}'"
+        check_mode "${args[$a]}"
+        debug "have mode '${mode}'"
     fi
 done
 
 
-if [[ ${MODE} == "" ]]; then
+if [[ ${mode} == "" && ${push_repo} -eq 0 ]]; then
     echo
     error "A mode must be selected!"
     usage
-    exit 155
 fi
 
 
-msg "$(date) :: ${NAME} started..."
+msg "$(date) :: ${script_name} started..."
 
 
 push_packages() {
-    for pkg in ${pkg_list}; do
+    for pkg in "${pkg_list[@]}"; do
         msg "Packaging ${pkg}..."
-        local cmd="cd \"${PWD}/packages/${MODE_NAME}/${pkg}\" && "
-        cmd+="mksrcinfo && "
-        cmd+="git add . && git commit -m 'Semi-automated update for ${zfs_pkgver}-${zfs_pkgrel}' && "
-        cmd+="git push"
+        local cmd="cd \"${PWD}/packages/${kernel_name}/${pkg}\" && "
+        if [[ ${push} -eq 1 ]]; then
+            cmd+="git diff && echo && echo && git add . && git commit -m 'Semi-automated update for ${zfs_pkgver}-${zfs_pkgrel}'; "
+            cmd+="git push"
+        else
+            cmd+="git diff"
+        fi
         run_cmd "${cmd}"
     done
 }
+
+
+push_repo() {
+    if [[ ${dry_run} -eq 1 ]]; then
+        dry="-n"
+    elif [[ ${push_repo} -ne 1 ]]; then
+        return
+    fi
+    run_cmd "rsync -vrtlh --delete-before ${repo_basepath}/${repo_name} ${package_backup_dir} webfaction:/home/jalvarez/webapps/default/ ${dry}"
+}
+
+
+push_repo
+if [[ ${mode} == "" ]]; then
+    exit
+fi
 
 
 get_kernel_update_funcs
 debug_print_default_vars
 
 
-export SCRIPT_DIR MODE MODE_NAME BUILD SIGN SOURCES UPDATE_PKGBUILDS
-source_safe "src/kernels/${MODE_NAME}.sh"
+export script_dir mode kernel_name
+source_safe "src/kernels/${kernel_name}.sh"
 
-
-for func in "${UPDATE_FUNCS[@]}"; do
+for func in "${update_funcs[@]}"; do
     debug "Evaluating '${func}'"
     "${func}"
     push_packages
 done
+
 
 # Build the documentation and push it to the remote host
 # msg "Building the documentation..."

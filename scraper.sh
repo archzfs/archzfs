@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 
 #
@@ -8,28 +8,22 @@
 #
 
 
-NAME=$(basename $0)
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+args=("$@")
+script_name=$(basename $0)
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
-if ! source ${SCRIPT_DIR}/lib.sh; then
+if ! source ${script_dir}/lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
-    exit 1
+    exit 155
 fi
-source_safe "${SCRIPT_DIR}/conf.sh"
-
-
-# setup signal traps
-trap "trap_quit" TERM HUP QUIT
-trap "trap_abort" INT
-trap "trap_usr1" USR1
-trap "trap_exit" EXIT
+source_safe "${script_dir}/conf.sh"
 
 
 usage() {
-    echo "${NAME} - A cheap webpage scraper."
+    echo "${script_name} - A cheap webpage scraper."
     echo
-    echo "Usage: ${NAME} [options]"
+    echo "Usage: ${script_name} [options]"
     echo
     echo "Options:"
     echo
@@ -39,29 +33,28 @@ usage() {
     echo
     echo "Examples:"
     echo
-    echo "    ${NAME} -d     :: Show debug output."
-    echo "    ${NAME} -n     :: Don't run commands, but show output."
-    trap - EXIT # Prevents exit log output
+    echo "    ${script_name} -d     :: Show debug output."
+    echo "    ${script_name} -n     :: Don't run commands, but show output."
+    exit 155
 }
 
 
-ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "-n" ]]; then
-        DRY_RUN=1
-    elif [[ ${ARGS[$a]} == "-d" ]]; then
-        DEBUG=1
-    elif [[ ${ARGS[$a]} == "-h" ]]; then
-        usage;
-        exit 0;
+    if [[ ${args[$a]} == "-n" ]]; then
+        dry_run=1
+    elif [[ ${args[$a]} == "-d" ]]; then
+        debug_flag=1
+    elif [[ ${args[$a]} == "-h" ]]; then
+        usage
     fi
 done
 
 
-msg "$(date) :: ${NAME} started..."
+msg "$(date) :: ${script_name} started..."
 
 
-CHECK_WEBPAGE_RETVAL=0
+check_webpage_retval=0
+has_error=0
 
 
 check_webpage() {
@@ -74,32 +67,32 @@ check_webpage() {
 
     run_cmd_no_output "curl -sL ${1}"
 
-    if [[ ${DRY_RUN} -eq 1 ]]; then
+    if [[ ${dry_run} -eq 1 ]]; then
         return
     fi
 
-    if [[ $(echo ${RUN_CMD_OUTPUT} | \grep -q "504 Gateway Timeout"; echo $?) -eq 0 ]]; then
-        CHECK_WEBPAGE_RETVAL=-1
+    if [[ $(echo ${run_cmd_output} | \grep -q "504 Gateway Timeout"; echo $?) -eq 0 ]]; then
+        check_webpage_retval=-1
         return
-    elif [[ $(echo ${RUN_CMD_OUTPUT} | \grep -q "503 Service Unavailable"; echo $?) -eq 0 ]]; then
-        CHECK_WEBPAGE_RETVAL=-1
+    elif [[ $(echo ${run_cmd_output} | \grep -q "503 Service Unavailable"; echo $?) -eq 0 ]]; then
+        check_webpage_retval=-1
         return
-    elif [[ ${RUN_CMD_OUTPUT} == "RETVAL: 7" ]]; then
-        CHECK_WEBPAGE_RETVAL=-1
+    elif [[ ${run_cmd_output} == "RETVAL: 7" ]]; then
+        check_webpage_retval=-1
         return
     fi
 
-    SCRAPED_STRING=$(echo "${RUN_CMD_OUTPUT}" | \grep -Po -m 1 "${2}")
-    debug "Got \"${SCRAPED_STRING}\" from webpage."
+    local scraped_string=$(echo "${run_cmd_output}" | \grep -Po -m 1 "${2}")
+    debug "Got \"${scraped_string}\" from webpage."
 
-    if [[ ${SCRAPED_STRING} != "$3" ]]; then
-        error "Checking '$1' expected '$3' got '${SCRAPED_STRING}'"
+    if [[ ${scraped_string} != "$3" ]]; then
+        error "Checking '$1' expected '$3' got '${scraped_string}'"
         debug "Returning 1 from check_webpage()"
-        CHECK_WEBPAGE_RETVAL=1
+        check_webpage_retval=1
         return
     fi
 
-    CHECK_WEBPAGE_RETVAL=0
+    check_webpage_retval=0
     return
 }
 
@@ -107,21 +100,18 @@ check_webpage() {
 check_result() {
     # $1 current line
     # $2 changed line
-    if [[ ${CHECK_WEBPAGE_RETVAL} -eq 0 ]]; then
+    if [[ ${check_webpage_retval} -eq 0 ]]; then
         msg2 "The $1 version is current."
-    elif [[ ${CHECK_WEBPAGE_RETVAL} -eq 1 ]]; then
+    elif [[ ${check_webpage_retval} -eq 1 ]]; then
         error "The $2 is out-of-date!"
-        HAS_ERROR=1
-    elif [[ ${CHECK_WEBPAGE_RETVAL} -eq -1 ]]; then
+        has_error=1
+    elif [[ ${check_webpage_retval} -eq -1 ]]; then
         warning "The $2 package page was unreachable!"
     else
-        error "Check returned ${CHECK_WEBPAGE_RETVAL}"
-        HAS_ERROR=1
+        error "Check returned ${check_webpage_retval}"
+        has_error=1
     fi
 }
-
-
-HAS_ERROR=0
 
 
 # Bail if no internet
@@ -169,7 +159,7 @@ check_zol_version() {
     # Check ZFSonLinux.org
     #
     msg "Checking zfsonlinux.org for new versions..."
-    check_webpage "http://zfsonlinux.org/" "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "${ZOL_VERSION}"
+    check_webpage "http://zfsonlinux.org/" "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "${zol_version}"
     check_result "ZOL stable version" "ZOL stable version"
 }
 
@@ -186,6 +176,6 @@ check_zol_version
 # This is the end
 # My only friend, the end
 #
-if [[ ${HAS_ERROR} -eq 1 ]]; then
+if [[ ${has_error} -eq 1 ]]; then
     exit 1;
 fi

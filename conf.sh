@@ -13,6 +13,8 @@ zfs_initcpio_hook_hash="67a96169d36853d8f18ee5a2443ecfcd2461a20f9109f4b281bee394
 email="jeezusjr@gmail.com"
 
 # Repository path and name
+repo_name="archzfs"
+repo_name_test="archzfs-testing"
 repo_basepath="/data/pacman/repo"
 
 # SSH login address (can use ssh config Hosts)

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 
 #
@@ -6,28 +6,26 @@
 #
 
 
-NAME=$(basename $0)
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+args=("$@")
+script_name=$(basename $0)
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+repo_name="" # The destination repo for the packages
+package_list=() # A list of packages to add. Array items are in the form of "name;pkg.tar.xz;repo_path".
+package_src_list=() # A list of package sources to move
+package_exist_list=()
 
 
-if ! source ${SCRIPT_DIR}/lib.sh; then
+if ! source ${script_dir}/lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
-    exit 1
+    exit 155
 fi
-source_safe "${SCRIPT_DIR}/conf.sh"
-
-
-# setup signal traps
-trap "trap_quit" TERM HUP QUIT
-trap "trap_abort" INT
-trap "trap_usr1" USR1
-trap "trap_exit" EXIT
+source_safe "${script_dir}/conf.sh"
 
 
 usage() {
-    echo "${NAME} - Adds the compiled packages to the archzfs repo."
+    echo "${script_name} - Adds the compiled packages to the archzfs repo."
     echo
-    echo "Usage: ${NAME} [options] [mode] [repo] [package [...]]"
+    echo "Usage: ${script_name} [options] (mode) (repo)"
     echo
     echo "Options:"
     echo
@@ -37,9 +35,11 @@ usage() {
     echo
     echo "Modes:"
     echo
-    echo "    std       Use the standard packages. Used by default."
-    echo "    git       Use the git packages."
-    echo "    lts       Use the lts packages."
+    for ml in "${mode_list[@]}"; do
+        mn=$(echo ${ml} | cut -f2 -d:)
+        md=$(echo ${ml} | cut -f3 -d:)
+        echo -e "    ${mn}    ${md}"
+    done
     echo
     echo "Repository target:"
     echo
@@ -48,252 +48,178 @@ usage() {
     echo
     echo "Example Usage:"
     echo
-    echo "    ${NAME}                       :: Add standard packages to the archzfs repo."
-    echo "    ${NAME} lts -n -d             :: Show output commands and debug info."
-    echo "    ${NAME} git package.tar.xz    :: Add package.tar.xz to the archzfs repo."
-    echo "    ${NAME} gts *.tar.xz          :: Add *.tar.xz to the archzfs repo."
-    trap - EXIT # Prevents exit log output
+    echo "    ${script_name} lts azfs -n -d             :: Show output commands and debug info."
+    exit 155
 }
 
 
-ARGS=("$@")
+generate_mode_list
+
+
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "std" ]]; then
-        MODE_STD=1
-        MODE="std"
-    elif [[ ${ARGS[$a]} == "git" ]]; then
-        MODE_STD=0
-        MODE_GIT=1
-        MODE="git"
-    elif [[ ${ARGS[$a]} == "lts" ]]; then
-        MODE_STD=0
-        MODE_LTS=1
-        MODE="lts"
-    elif [[ ${ARGS[$a]} == "azfs" ]]; then
-        REPO="archzfs"
-    elif [[ ${ARGS[$a]} == "test" ]]; then
-        REPO="archzfs-testing"
-    elif [[ ${ARGS[$a]} == "-n" ]]; then
-        DRY_RUN=1
-    elif [[ ${ARGS[$a]} == "-d" ]]; then
-        DEBUG=1
-    elif [[ ${ARGS[$a]} == "-h" ]]; then
-        usage;
-        exit 0;
+    if [[ ${args[$a]} == "azfs" ]]; then
+        repo_name="archzfs"
+    elif [[ ${args[$a]} == "test" ]]; then
+        # TODO: NOT IMPLMENTED YET
+        repo_name="archzfs-testing"
+    elif [[ ${args[$a]} == "-n" ]]; then
+        dry_run=1
+    elif [[ ${args[$a]} == "-d" ]]; then
+        debug_flag=1
+    elif [[ ${args[$a]} == "-h" ]]; then
+        usage
+    else
+        check_mode "${args[$a]}"
+        debug "have mode '${mode}'"
     fi
 done
 
 
 if [[ $# -lt 1 ]]; then
-    usage;
-    exit 0;
+    usage
 fi
 
 
-if [[ ${REPO} == "" ]]; then
-    error "No destination repo specified!"
-    exit 1
-fi
-
-
-if [[ ${MODE} == "" ]]; then
+if [[ ${mode} == "" ]]; then
     echo
     error "A mode must be selected!"
-    usage;
-    exit 0;
+    usage
 fi
 
 
-msg "$(date) :: ${NAME} started..."
-
-
-# The abs path to the repo
-REPO_TARGET=${REPO_BASEPATH}/${REPO}
-
-
-# Set the kernel version
-if [[ ${MODE_STD} -eq 1 ]]; then
-    KERNEL_VERSION=$(kernel_version_full ${STD_KERNEL_VERSION})
-    KERNEL_VERSION_NO_HYPHEN=$(kernel_version_full_no_hyphen ${STD_KERNEL_VERSION})
-    PKGVER_MATCH="${ZOL_VERSION}_${KERNEL_VERSION_NO_HYPHEN}-${STD_PKGREL}"
-elif [[ ${MODE_LTS} -eq 1 ]]; then
-    KERNEL_VERSION=$(kernel_version_full ${LTS_KERNEL_VERSION})
-    KERNEL_VERSION_NO_HYPHEN=$(kernel_version_full_no_hyphen ${LTS_KERNEL_VERSION})
-    PKGVER_MATCH="${ZOL_VERSION}_${KERNEL_VERSION_NO_HYPHEN}-${LTS_PKGREL}"
-elif [[ ${MODE_GIT} -eq 1 ]]; then
-    KERNEL_VERSION=$(kernel_version_full ${GIT_KERNEL_VERSION})
-    KERNEL_VERSION_NO_HYPHEN=$(kernel_version_full_no_hyphen ${GIT_KERNEL_VERSION})
-    PKGVER_MATCH="${ZOL_VERSION}.*${KERNEL_VERSION_NO_HYPHEN}-${GIT_PKGREL}"
+if [[ ${repo_name} == "" ]]; then
+    error "No destination repo specified!"
+    exit 155
 fi
 
 
-debug "DRY_RUN: "${DRY_RUN}
-debug "REPO: "${REPO}
-debug "REPO_TARGET: ${REPO_TARGET}"
-debug "KERNEL_VERSION: ${KERNEL_VERSION}"
-debug "KERNEL_VERSION_NO_HYPHEN: ${KERNEL_VERSION_NO_HYPHEN}"
-debug "PKGVER_MATCH: ${PKGVER_MATCH}"
+repo_package_list() {
+    msg "Generating a list of packages to add..."
+    debug_print_array "pkg_list" "${pkg_list[@]}"
 
+    local pkgs=()
 
-# A list of packages to install. Pulled from the command line.
-pkgs=()
-
-
-# Extract any packages from the arguments passed to the script
-for arg in "$@"; do
-    if [[ ${arg} =~ pkg.tar.xz$ ]]; then
-        pkgs+=("${pkgs[@]}" ${arg})
-    fi
-done
-
-
-if [[ ${REPO} != "" ]]; then
-    msg "Creating a list of packages to add..."
-
-    # Get the local packages if no packages were passed to the script
-    if [[ "${#pkgs[@]}" -eq 0 ]]; then
-        # Get packages from the backup directory if the repo is demz-repo-archiso
-        run_cmd_show_and_capture_output_no_dry_run "find packages/${MODE}/ -iname '*${KERNEL_VERSION_NO_HYPHEN}*.pkg.tar.xz'"
-        for pkg in ${RUN_CMD_OUTPUT}; do
-            pkgs+=(${pkg})
-        done
-    fi
-
-    # A list of packages to add. The strings are in the form of
-    # "name;pkg.tar.xz;repo_path". There must be no spaces.
-    pkg_list=()
-
-    # A list of package sources to move
-    pkg_src_list=()
+    # Get packages from the backup directory
+    path="packages/${kernel_name}/{$(printf '%s,' ${pkg_list[@]} | cut -d ',' -f 1-${#pkg_list[@]})}/"
+    run_cmd_show_and_capture_output_no_dry_run "find ${path} -iname '*${kernel_version_full_pkgver}*.pkg.tar.xz'"
+    for pkg in ${run_cmd_output}; do
+        pkgs+=(${pkg})
+    done
 
     for pkg in ${pkgs[@]}; do
         arch=$(package_arch_from_path ${pkg})
         name=$(package_name_from_path ${pkg})
         vers=$(package_version_from_path ${pkg})
 
-        debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} PKGVER_MATCH: ${PKGVER_MATCH}"
+        match="${zol_version::-1}.*${kernel_version_full_pkgver}-${zfs_pkgrel}"
+        debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} vers_match: ${match}"
 
-        if ! [[ ${vers} =~ ^${PKGVER_MATCH} ]]; then
+        if ! [[ ${vers} =~ ^${match} ]]; then
             debug "Version mismatch!"
             continue
         fi
 
-        if [[ ${arch} == "any" ]]; then
-            repos=`realpath ${REPO_TARGET}/x86_64`
-            for repo in ${repos}; do
-                debug "Package: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${REPO_TARGET}/${arch}"
-                # Each index is [name, version, pkgpath, pkgdest]
-                pkg_list+=("${name};${vers};${pkg};${repo}")
-            done
-            continue
-        fi
-
-        debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${REPO_TARGET}/${arch}"
-        pkg_list+=("${name};${vers};${pkg};${REPO_TARGET}/${arch}")
-
-        litem="packages/${MODE}/${name}/${name}-${vers}.src.tar.gz;${REPO_TARGET}/${arch}"
-        debug "Source: srcname: ${name}-${vers}.src.tar.gz srcdest: ${REPO_TARGET}/${arch}"
-
-        pkg_src_list+=(${litem})
+        debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${repo_target}/${arch}"
+        package_list+=("${name};${vers};${pkg};${repo_target}/${arch}")
+        package_src_list+=("packages/${kernel_name}/${name}/${name}-${vers}.src.tar.gz")
     done
 
-    if [[ ${#pkg_list[@]} == 0 ]]; then
+    debug_print_array "package_list" ${package_list[@]}
+}
+
+
+repo_package_backup() {
+    run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f -iname '${name}*.pkg.tar.xz'"
+    for x in ${run_cmd_output}; do
+        ename=$(package_name_from_path ${x})}
+        evers=$(package_version_from_path ${x})}
+        if [[ ${ename} == ${name} && ${evers} != ${vers} ]]; then
+            # The '*' globs the signatures and package sources
+            epkg="${repo_name}/${ename}-${evers}*"
+            package_exist_list+=(${epkg})
+        fi
+    done
+    debug_print_array "package_exist_list" ${package_exist_list[@]}
+}
+
+
+repo_add() {
+    if [[ ${#package_list[@]} == 0 ]]; then
         error "No packages to process!"
         exit 1
     fi
 
-    exist_pkg_mv_list=()
-    new_pkg_cp_list=()
-    pkg_add_list=()
-    src_mv_list=()
+    local pkg_cp_list=()
+    local pkg_add_list=()
+    local dest=""
+    local arch="x86_64"
 
-    for ipkg in ${pkg_list[@]}; do
+    for ipkg in ${package_list[@]}; do
         IFS=';' read -a pkgopt <<< "${ipkg}"
 
         name="${pkgopt[0]}"
         vers="${pkgopt[1]}"
         pkgp="${pkgopt[2]}"
-        repo="${pkgopt[3]}"
+        dest="${pkgopt[3]}"
 
-        msg2 "Processing package ${name}-${vers} to ${repo}"
-        [[ ! -d ${repo} ]] && run_cmd "mkdir -p ${repo}"
+        msg2 "Processing package ${name}-${vers} to ${dest}"
+        [[ ! -d ${dest} ]] && run_cmd "mkdir -p ${dest}"
 
-        # Move the old packages to backup
-        for x in $(find ${repo} -type f -iname "${name}*.pkg.tar.xz"); do
-            ename=$(package_name_from_path ${x})}
-            evers=$(package_version_from_path ${x})}
-            if [[ ${ename} == ${name} && ${evers} != ${vers} ]]; then
-                # The '*' globs the signatures and package sources
-                epkg="${repo}/${ename}-${evers}*"
-                debug "epkg: ${epkg}"
-                exist_pkg_mv_list+=(${epkg})
-            fi
-        done
+        debug "name: ${name} vers: ${vers} pkgp: ${pkgp} dest: ${dest}"
 
         # The * is to catch the signature
-        new_pkg_cp_list+=("${pkgp}*;${repo}")
+        pkg_cp_list+=("${pkgp}*")
         bname=$(basename ${pkgp})
-        pkg_add_list+=("${repo}/${bname};${repo}")
+        pkg_add_list+=("${dest}/${bname}")
     done
 
-    # Build mv list with unique source packages since i686 and x86_64 both have identical source packages. If we attempt to
-    # move with identical file names, cp will fail with the "cp: will not overwrite just-created" error.
-    exist_pkg_mv_list_uniq=()
-    for ((i = 0; i < ${#exist_pkg_mv_list[@]}; i++)); do
-        if [[ ${exist_pkg_mv_list[$i]} != *src.tar.gz ]]; then
-            exist_pkg_mv_list_uniq+=(${exist_pkg_mv_list[$i]})
-            continue
-        fi
-    done
+    debug_print_array "pkg_cp_list" "${pkg_cp_list[@]}"
+    debug_print_array "pkg_add_list" "${pkg_add_list[@]}"
 
-    msg "Performing file operations..."
+    msg "Copying the new ${arch} packages to the repo..."
 
-    # Remove the existing packages in the repo path
-    if [[ ${exist_pkg_mv_list[@]} -ne 0 ]]; then
-        run_cmd "rm -f ${exist_pkg_mv_list[*]}"
+    run_cmd "cp -fv ${pkg_cp_list[@]} ${package_src_list[@]} ${repo_target}/${arch}/"
+    if [[ ${run_cmd_return} -ne 0 ]]; then
+        error "An error occurred copying the packages to the repo!"
+        exit 1
     fi
 
-    for arch in "x86_64"; do
-        msg "Copying the new ${arch} packages to the repo..."
+    run_cmd "repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_add_list[@]}"
+    if [[ ${run_cmd_return} -ne 0 ]]; then
+        error "An error occurred adding the package to the repo!"
+        exit 1
+    fi
+}
 
-        cp_list=""  # The packages to copy in one string
-        ra_list=""  # The packages to add to the repo in one string
-        repo=""     # The destination repo
 
-        # Create the command file lists from the arrays
-        for pkg in "${new_pkg_cp_list[@]}"; do
-            if [[ "${pkg}" == *${arch}* ]]; then
-                cp_list="$cp_list "$(echo "${pkg}" | cut -d \; -f 1)
-                repo=$(echo "${pkg}" | cut -d \; -f 2)
-                ra=$(echo "${pkg}" | cut -d \; -f 1 | xargs basename)
-                ra_list="${ra_list} ${repo}/${ra%?}"
-            fi
-        done
+msg "$(date) :: ${script_name} started..."
 
-        if [[ ${cp_list} == "" ]]; then
-            warning "No packages to copy!"
-            continue
-        fi
 
-        run_cmd "cp -fv ${cp_list} ${repo}/"
-        run_cmd "repo-add -k ${GPG_SIGN_KEY} -s -v ${repo}/${REPO}.db.tar.xz ${ra_list}"
-        if [[ ${RUN_CMD_RETURN} -ne 0 ]]; then
-            error "An error occurred adding the package to the repo!"
-            exit 1
-        fi
-    done
+# The abs path to the repo
+repo_target=${repo_basepath}/${repo_name}
 
-    # Copy package sources
-    msg "Copy package sources"
-    for arch in "x86_64"; do
-        src_cp_list=()
-        for src in "${pkg_src_list[@]}"; do
-            if [[ "${src}" == *${arch}* ]]; then
-                debug "SRC='${src}'"
-                src_cp_list="${src_cp_list} "$(echo "${src}" | cut -d \; -f 1)
-                repo=$(echo "${src}" | cut -d \; -f 2)
-            fi
-        done
-        run_cmd "cp -fv ${src_cp_list} ${repo}/"
-    done
-fi
+
+get_kernel_update_funcs
+debug_print_default_vars
+debug "repo_name: ${repo_name}"
+debug "repo_target: ${repo_target}"
+
+
+source_safe "src/kernels/${kernel_name}.sh"
+
+
+for func in "${update_funcs[@]}"; do
+    debug "Evaluating '${func}'"
+    "${func}"
+    repo_package_list
+done
+
+
+# These can be commented out individually
+# repo_package_backup
+repo_add

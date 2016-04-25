@@ -8,33 +8,22 @@
 #
 
 
-NAME=$(basename $0)
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-COMMANDS=()
-MODE=""
-MODE_NAME=""
-MODE_LIST=()
-UPDATE_FUNCS=()
+args=("$@")
+script_name=$(basename $0)
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
-if ! source ${SCRIPT_DIR}/lib.sh; then
+if ! source ${script_dir}/lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
-    exit 1
+    exit 155
 fi
-source_safe "${SCRIPT_DIR}/conf.sh"
-
-
-# setup signal traps
-trap "trap_quit" TERM HUP QUIT
-trap "trap_abort" INT
-trap "trap_usr1" USR1
-trap "trap_exit" EXIT
+source_safe "${script_dir}/conf.sh"
 
 
 usage() {
-    echo "${NAME} - A build script for archzfs"
+    echo "${script_name} - A build script for archzfs"
     echo
-    echo "Usage: ${NAME} [options] mode command [command ...]"
+    echo "Usage: ${script_name} [options] mode command [command ...]"
     echo
     echo "Options:"
     echo
@@ -46,10 +35,10 @@ usage() {
     echo
     echo "Modes:"
     echo
-    for mode in "${MODE_LIST[@]}"; do
-        mode_name=$(echo ${mode} | cut -f2 -d:)
-        mode_desc=$(echo ${mode} | cut -f3 -d:)
-        echo -e "    ${mode_name}    ${mode_desc}"
+    for ml in "${mode_list[@]}"; do
+        mn=$(echo ${ml} | cut -f2 -d:)
+        md=$(echo ${ml} | cut -f3 -d:)
+        echo -e "    ${mn}    ${md}"
     done
     echo
     echo "Commands:"
@@ -63,25 +52,25 @@ usage() {
     echo
     echo "Examples:"
     echo
-    echo "    ${NAME} -C                       :: Remove all compiled packages"
-    echo "    ${NAME} git make -u              :: Update the chroot and build all of the packages"
-    echo "    ${NAME} lts update               :: Update PKGBUILDS only"
-    echo "    ${NAME} git update make -u       :: Update PKGBUILDs, update the chroot, and make all of the packages"
-    echo "    ${NAME} lts update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
-    trap - EXIT # Prevents exit log output
+    echo "    ${script_name} std -C                   :: Remove all compiled packages for the standard kernels"
+    echo "    ${script_name} std make -u              :: Update the chroot and build all of the packages"
+    echo "    ${script_name} lts update               :: Update PKGBUILDS only"
+    echo "    ${script_name} std update make -u       :: Update PKGBUILDs, update the chroot, and make all of the packages"
+    echo "    ${script_name} lts update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
+    exit 155
 }
 
 
 build_sources() {
-    for pkg in ${pkg_list}; do
+    for pkg in "${pkg_list[@]}"; do
         msg "Building source for ${pkg}";
-        run_cmd "cd \"${SCRIPT_DIR}/packages/${MODE_NAME}/${pkg}\" && mkaurball -f"
+        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f"
     done
 }
 
 
 sign_packages() {
-    files=$(find ${SCRIPT_DIR} -iname "*.pkg.tar.xz")
+    files=$(find ${script_dir} -iname "*.pkg.tar.xz")
     debug "Found files: ${files}"
     msg "Signing the packages with GPG"
     for f in ${files}; do
@@ -94,14 +83,14 @@ sign_packages() {
 
 
 git_check_repo() {
-    for pkg in ${pkg_list}; do
+    for pkg in "${pkg_list[@]}"; do
         local reponame="spl"
         local url="${spl_git_url}"
         if [[ ${pkg} =~ ^zfs ]]; then
             url="${zfs_git_url}"
             reponame="zfs"
         fi
-        local repopath="${SCRIPT_DIR}/packages/${MODE_NAME}/${pkg}/${reponame}"
+        local repopath="${script_dir}/packages/${kernel_name}/${pkg}/${reponame}"
 
         debug "GIT URL: ${url}"
         debug "GIT REPO: ${repopath}"
@@ -109,14 +98,14 @@ git_check_repo() {
         if [[ ! -d "${repopath}"  ]]; then
             msg2 "Cloning repo '${repopath}'"
             run_cmd_no_dry_run "git clone --mirror '${url}' '${repopath}'"
-            if [[ ${RUN_CMD_RETURN} -ne 0 ]]; then
+            if [[ ${run_cmd_return} -ne 0 ]]; then
                 error "Failure while cloning ${url} repo"
                 exit 1
             fi
         else
             msg2 "Updating repo '${repopath}'"
             run_cmd_no_dry_run "cd ${repopath} && git fetch --all -p"
-            if [[ ${RUN_CMD_RETURN} -ne 0 ]]; then
+            if [[ ${run_cmd_return} -ne 0 ]]; then
                 error "Failure while fetching ${url} repo"
                 exit 1
             fi
@@ -129,7 +118,7 @@ git_calc_pkgver() {
     for repo in "spl" "zfs"; do
         msg2 "Cloning working copy for ${repo}"
         local sha=${spl_git_commit}
-        local kernvers=$(kernel_version_full_no_hyphen ${kernel_version})
+        local kernvers=${kernel_version_full_pkgver}
         if [[ ${repo} =~ ^zfs ]]; then
             sha=${zfs_git_commit}
         fi
@@ -141,7 +130,7 @@ git_calc_pkgver() {
         local cmd="/usr/bin/bash -s << EOF 2>/dev/null\\n"
         cmd+="[[ -d temp ]] && rm -r temp\\n"
         cmd+="mkdir temp && cd temp\\n"
-        cmd+="git clone ../packages/${MODE_NAME}/${pkg}/${repo} && cd ${repo}\\n"
+        cmd+="git clone ../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
         cmd+="git checkout -b azb ${sha}\\n"
         cmd+="EOF\\n"
         run_cmd_no_output_no_dry_run "${cmd}"
@@ -153,10 +142,10 @@ git_calc_pkgver() {
         run_cmd_no_output_no_dry_run "${cmd}"
 
         if [[ ${repo} =~ ^spl ]]; then
-            spl_pkgver=${RUN_CMD_OUTPUT}
+            spl_pkgver=${run_cmd_output}
             debug "spl_pkgver: ${spl_pkgver}"
         elif [[ ${repo} =~ ^zfs ]]; then
-            zfs_pkgver=${RUN_CMD_OUTPUT}
+            zfs_pkgver=${run_cmd_output}
             debug "zfs_pkgver: ${zfs_pkgver}"
         fi
 
@@ -205,45 +194,36 @@ generate_package_files() {
 
     # Finally, generate the update packages ...
     msg2 "Creating spl-utils PKGBUILD"
-    run_cmd_no_output "source ${SCRIPT_DIR}/src/spl-utils/PKGBUILD.sh"
+    run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
     msg2 "Copying spl-utils.hostid"
-    run_cmd_no_output "cp ${SCRIPT_DIR}/src/spl-utils/spl-utils.hostid ${spl_utils_pkgbuild_path}/spl-utils.hostid"
+    run_cmd_no_output "cp ${script_dir}/src/spl-utils/spl-utils.hostid ${spl_utils_pkgbuild_path}/spl-utils.hostid"
 
     msg2 "Creating spl PKGBUILD"
-    run_cmd_no_output "source ${SCRIPT_DIR}/src/spl/PKGBUILD.sh"
+    run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
     msg2 "Creating spl.install"
-    run_cmd_no_output "source ${SCRIPT_DIR}/src/spl/spl.install.sh"
+    run_cmd_no_output "source ${script_dir}/src/spl/spl.install.sh"
 
     msg2 "Creating zfs-utils PKGBUILD"
-    run_cmd_no_output "source ${SCRIPT_DIR}/src/zfs-utils/PKGBUILD.sh"
+    run_cmd_no_output "source ${script_dir}/src/zfs-utils/PKGBUILD.sh"
     msg2 "Copying zfs-utils.bash-completion"
-    run_cmd_no_output "cp ${SCRIPT_DIR}/src/zfs-utils/zfs-utils.bash-completion-r1 ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
+    run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1 ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
     msg2 "Copying zfs-utils.initcpio.hook"
-    run_cmd_no_output "cp ${SCRIPT_DIR}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
+    run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
     msg2 "Copying zfs-utils.initcpio.install"
-    run_cmd_no_output "cp ${SCRIPT_DIR}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
+    run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
 
     msg2 "Creating zfs PKGBUILD"
-    run_cmd_no_output "source ${SCRIPT_DIR}/src/zfs/PKGBUILD.sh"
+    run_cmd_no_output "source ${script_dir}/src/zfs/PKGBUILD.sh"
     msg2 "Creating zfs.install"
-    run_cmd_no_output "source ${SCRIPT_DIR}/src/zfs/zfs.install.sh"
-}
-
-
-generate_mode_list() {
-    for mode in $(ls ${SCRIPT_DIR}/src/kernels); do
-        mode_name=$(source ${SCRIPT_DIR}/src/kernels/${mode}; echo ${mode_name})
-        mode_desc=$(source ${SCRIPT_DIR}/src/kernels/${mode}; echo ${mode_desc})
-        MODE_LIST+=("${mode%.*}:${mode_name}:${mode_desc}")
-    done
+    run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
 }
 
 
 build_packages() {
-    for pkg in ${pkg_list}; do
+    for pkg in "${pkg_list[@]}"; do
         msg "Building ${pkg}..."
-        run_cmd "cd \"${SCRIPT_DIR}/packages/${MODE_NAME}/${pkg}\" && sudo ccm64 s && mksrcinfo"
-        if [[ ${RUN_CMD_RETURN} -ne 0 ]]; then
+        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && sudo ccm64 s && mksrcinfo"
+        if [[ ${run_cmd_return} -ne 0 ]]; then
             error "A problem occurred building the package"
             exit 1
         fi
@@ -254,90 +234,62 @@ build_packages() {
 }
 
 
-get_kernel_update_funcs() {
-    for kernel in $(ls ${SCRIPT_DIR}/src/kernels); do
-        if [[ ${kernel%.*} != ${MODE_NAME} ]]; then
-            continue
-        fi
-        updatefuncs=$(cat "${SCRIPT_DIR}/src/kernels/${kernel}" | grep -oh "update_.*_pkgbuilds")
-        for func in ${updatefuncs}; do UPDATE_FUNCS+=("${func}"); done
-    done
-}
-
-
-# Do this early so it is possible to see the output
-if check_debug; then
-    DEBUG=1
-fi
-
-
 generate_mode_list
 
 
 if [[ $# -lt 1 ]]; then
-    usage;
-    exit 0;
+    usage
 fi
 
 
-ARGS=("$@")
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${ARGS[$a]} == "make" ]]; then
-        COMMANDS+=("make")
-    elif [[ ${ARGS[$a]} == "test" ]]; then
-        COMMANDS+=("test")
-    elif [[ ${ARGS[$a]} == "update" ]]; then
-        COMMANDS+=("update")
-    elif [[ ${ARGS[$a]} == "update-test" ]]; then
-        COMMANDS+=("update-test")
-    elif [[ ${ARGS[$a]} == "sources" ]]; then
-        COMMANDS+=("sources")
-    elif [[ ${ARGS[$a]} == "sign" ]]; then
-        COMMANDS+=("sign")
-    elif [[ ${ARGS[$a]} == "-C" ]]; then
-        COMMANDS+=("cleanup")
-    elif [[ ${ARGS[$a]} == "-u" ]]; then
-        COMMANDS+=("update_chroot")
-    elif [[ ${ARGS[$a]} == "-n" ]]; then
-        DRY_RUN=1
-    elif [[ ${ARGS[$a]} == "-d" ]]; then
-        DEBUG=1
-    elif [[ ${ARGS[$a]} == "-h" ]]; then
-        usage;
-        exit 0;
+    if [[ ${args[$a]} == "make" ]]; then
+        commands+=("make")
+    elif [[ ${args[$a]} == "test" ]]; then
+        commands+=("test")
+    elif [[ ${args[$a]} == "update" ]]; then
+        commands+=("update")
+    elif [[ ${args[$a]} == "update-test" ]]; then
+        commands+=("update-test")
+    elif [[ ${args[$a]} == "sources" ]]; then
+        commands+=("sources")
+    elif [[ ${args[$a]} == "sign" ]]; then
+        commands+=("sign")
+    elif [[ ${args[$a]} == "-C" ]]; then
+        commands+=("cleanup")
+    elif [[ ${args[$a]} == "-u" ]]; then
+        commands+=("update_chroot")
+    elif [[ ${args[$a]} == "-n" ]]; then
+        dry_run=1
+    elif [[ ${args[$a]} == "-d" ]]; then
+        debug_flag=1
+    elif [[ ${args[$a]} == "-h" ]]; then
+        usage
     else
-        check_mode "${ARGS[$a]}"
-        debug "have mode '${MODE}'"
+        check_mode "${args[$a]}"
+        debug "have mode '${mode}'"
     fi
 done
 
 
-if have_command "cleanup" && [[ $# -gt 1 ]]; then
-    echo
-    error "-C should be used by itself!"
-    usage;
-    exit 0;
-fi
-
-
-if ! have_command "cleanup" && [[ ${#COMMANDS[@]} -eq 0 || ${MODE} == "" ]]; then
+if [[ ${#commands[@]} -eq 0 || ${mode} == "" ]]; then
     echo
     error "A build mode and command must be selected!"
-    usage;
-    exit 0;
+    usage
 fi
 
 
 if have_command "cleanup"; then
     msg "Cleaning up work files..."
-    run_cmd "find . \( -iname \"*.log\" -o -iname \"*.pkg.tar.xz*\" -o -iname \"*.src.tar.gz\" \) -print -exec rm -rf {} \\;"
+    fincs='-iname "*.log" -o -iname "*.pkg.tar.xz*" -o -iname "*.src.tar.gz"'
+    run_cmd "find ${script_dir}/packages/${kernel_name}/ \( ${fincs} \) -print -exec rm -rf {} \\;"
     run_cmd "rm -rf  */src"
     run_cmd "rm -rf */*.tar.gz"
     exit
 fi
 
 
-msg "$(date) :: ${NAME} started..."
+msg "$(date) :: ${script_name} started..."
 
 
 if have_command "update_chroot"; then
@@ -346,30 +298,29 @@ if have_command "update_chroot"; then
 fi
 
 
-if [[ ${MODE} != "" ]]; then
-    get_kernel_update_funcs
+get_kernel_update_funcs
+debug_print_default_vars
 
-    export SCRIPT_DIR MODE MODE_NAME BUILD SIGN SOURCES UPDATE_PKGBUILDS
-    source_safe "src/kernels/${MODE_NAME}.sh"
+export script_dir mode kernel_name
+source_safe "src/kernels/${kernel_name}.sh"
 
-    for func in "${UPDATE_FUNCS[@]}"; do
-        debug "Evaluating '${func}'"
-        "${func}"
-        if have_command "update"; then
-            msg "Updating PKGBUILDs for kernel '${MODE_NAME}'"
-            generate_package_files
-        fi
-        if have_command "make"; then
-            build_packages
-            sign_packages
-            build_sources
-        fi
-        if have_command "sources"; then
-            build_sources
-        fi
-    done
-
-    if have_command "sign"; then
-        sign_packages
+for func in "${update_funcs[@]}"; do
+    debug "Evaluating '${func}'"
+    "${func}"
+    if have_command "update"; then
+        msg "Updating PKGBUILDs for kernel '${kernel_name}'"
+        generate_package_files
     fi
+    if have_command "make"; then
+        build_packages
+        sign_packages
+        build_sources
+    fi
+    if have_command "sources"; then
+        build_sources
+    fi
+done
+
+if have_command "sign"; then
+    sign_packages
 fi
