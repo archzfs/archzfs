@@ -92,8 +92,8 @@ push_packages() {
         msg "Packaging ${pkg}..."
         local cmd="cd \"${PWD}/packages/${kernel_name}/${pkg}\" && "
         if [[ ${push} -eq 1 ]]; then
-            cmd+="git diff && echo && echo && git add . && git commit -m 'Semi-automated update for ${zfs_pkgver}-${zfs_pkgrel}'; "
-            cmd+="git push"
+            cmd+="git diff && echo && echo && git checkout master && git add . && "
+            cmd+="git commit -m 'Semi-automated update for ${zfs_pkgver}-${zfs_pkgrel}'; git push"
         else
             cmd+="git diff"
         fi
