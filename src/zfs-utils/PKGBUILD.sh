@@ -52,3 +52,5 @@ package() {
     install -D -m644 "\${srcdir}"/zfs-utils.bash-completion-r1 "\${pkgdir}"/usr/share/bash-completion/completions/zfs
 }
 EOF
+
+pkgbuild_cleanup "${zfs_utils_pkgbuild_path}/PKGBUILD"

@@ -481,3 +481,12 @@ if check_debug; then
     debug_flag=1
     debug "debug mode is enabled"
 fi
+
+pkgbuild_cleanup() {
+    # $1 the file to process
+    # Strip all blanklines
+    sed -i '/^\s*$/d' $1
+    # Readd blanklines above build and package
+    sed -i '/^build\(\)/{x;p;x;}' $1
+    sed -i '/^package\(\)/{x;p;x;}' $1
+}

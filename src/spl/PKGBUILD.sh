@@ -36,3 +36,5 @@ package() {
     sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/spl-*/${kernel_mod_path}/Module.symvers
 }
 EOF
+
+pkgbuild_cleanup "${spl_pkgbuild_path}/PKGBUILD"

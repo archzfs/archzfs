@@ -30,3 +30,5 @@ package() {
     install -D -m644 "\${srcdir}"/spl-utils.hostid "\${pkgdir}"/etc/hostid
 }
 EOF
+
+pkgbuild_cleanup "${spl_utils_pkgbuild_path}/PKGBUILD"

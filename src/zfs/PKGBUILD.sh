@@ -38,3 +38,5 @@ package() {
     sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/zfs-*/${kernel_mod_path}/Module.symvers
 }
 EOF
+
+pkgbuild_cleanup "${zfs_pkgbuild_path}/PKGBUILD"
