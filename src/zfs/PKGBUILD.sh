@@ -16,8 +16,9 @@ sha256sums=("${zfs_src_hash}")
 groups=("${archzfs_package_group}")
 license=("CDDL")
 install=zfs.install
-provides=("${zfs_pkgname}")
+provides=("zfs")
 ${zfs_makedepends}
+${zfs_replaces}
 
 build() {
     cd "${zfs_workdir}"

@@ -16,8 +16,9 @@ sha256sums=("${spl_src_hash}")
 groups=("${archzfs_package_group}")
 license=("GPL")
 install=spl.install
-provides=("${spl_pkgname}")
+provides=("spl")
 ${spl_makedepends}
+${spl_replaces}
 
 build() {
     cd "${spl_workdir}"

@@ -21,8 +21,9 @@ sha256sums=("${zfs_src_hash}"
             "${zfs_initcpio_hook_hash}")
 license=("CDDL")
 groups=("${archzfs_package_group}")
-provides=("${zfs_utils_pkgname}")
+provides=("zfs-utils")
 ${zfs_makedepends}
+${zfs_utils_replaces}
 
 build() {
     cd "${zfs_workdir}"

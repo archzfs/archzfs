@@ -3,7 +3,7 @@ mode_name="std"
 mode_desc="Select and use the packages for the default linux kernel"
 
 # Kernel versions for default ZFS packages
-pkgrel="4"
+pkgrel="5"
 kernel_version="4.5.1-1"
 kernel_version_next="4.6"
 
@@ -65,6 +65,10 @@ update_linux_pkgbuilds() {
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
     linux_depends="\"linux>=${kernel_version_major}\" \"linux<${kernel_version_next}\""
     linux_headers_depends="\"linux-headers>=${kernel_version_major}\" \"linux-headers<${kernel_version_next}\""
+    spl_replaces='replaces=("spl-git")'
+    spl_utils_replaces='replaces=("spl-utils-git")'
+    zfs_replaces='replaces=("zfs-git")'
+    zfs_utils_replaces='replaces=("zfs-utils-git")'
 }
 
 update_linux_git_pkgbuilds() {
