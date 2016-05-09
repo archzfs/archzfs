@@ -55,10 +55,12 @@ zfs_mount_handler () {
 }
 
 run_hook() {
+    local zfs_wait=10
     # Force import the pools, useful if the pool has not properly been exported
     # using 'zpool export <pool>'
     [[ "${zfs_force}" == 1 ]] && ZPOOL_FORCE='-f'
     [[ "${zfs_import_dir}" != "" ]] && ZPOOL_IMPORT_FLAGS="${ZPOOL_IMPORT_FLAGS} -d ${zfs_import_dir}"
+    [[ "${zfs_wait}" != "" ]] && zfs_wait="${zfs_wait}"
 
     if [[ "${root}" == zfs=* ]]; then
         ZFS_DATASET="${root#zfs=}"
@@ -70,7 +72,7 @@ run_hook() {
     fi
 
     # Allow up to 10 seconds for zfs device to show up
-    for i in {1..10}; do
+    for i in {1..${zfs_wait}}; do
         [[ -c /dev/zfs ]] && break
         sleep 1
     done
