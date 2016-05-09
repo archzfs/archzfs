@@ -3,7 +3,7 @@ ZPOOL_IMPORT_FLAGS=""
 
 zfs_get_bootfs () {
     for zfs_dataset in $(/usr/bin/zpool list -H -o bootfs); do
-        case ${zfs_dataset} in
+        case "${zfs_dataset}" in
             "" | "-")
                 # skip this line/dataset
                 ;;
@@ -11,7 +11,7 @@ zfs_get_bootfs () {
                 return 1
                 ;;
             *)
-                ZFS_DATASET=${zfs_dataset}
+                ZFS_DATASET="${zfs_dataset}"
                 return 0
                 ;;
         esac
