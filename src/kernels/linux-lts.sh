@@ -3,7 +3,7 @@ mode_name="lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
-pkgrel="1"
+pkgrel="2"
 kernel_version="4.4.9-1"
 kernel_version_next="4.5"
 
@@ -49,6 +49,6 @@ update_linux_lts_pkgbuilds() {
     zfs_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux-lts>=${kernel_version_major}\" \"linux-lts<${kernel_version_next}\""
-    linux_headers_depends="\"linux-lts-headers>=${kernel_version_major}\" \"linux-lts-headers<${kernel_version_next}\""
+    linux_depends="\"linux-lts=${kernel_version_major}\""
+    linux_headers_depends="\"linux-lts-headers=${kernel_version_major}\""
 }

@@ -6,9 +6,8 @@ pkgname="${zfs_utils_pkgname}"
 pkgver=${zfs_pkgver}
 pkgrel=${zfs_pkgrel}
 pkgdesc="Kernel module support files for the Zettabyte File System."
-depends=("${spl_pkgname}"
-         ${linux_depends}
-         ${linux_headers_depends})
+depends=("${spl_pkgname}" ${linux_depends})
+makedepends=(${linux_headers_depends} ${zfs_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("${zfs_src_target}"
@@ -22,7 +21,6 @@ sha256sums=("${zfs_src_hash}"
 license=("CDDL")
 groups=("${archzfs_package_group}")
 provides=("zfs-utils")
-${zfs_makedepends}
 ${zfs_utils_replaces}
 
 build() {

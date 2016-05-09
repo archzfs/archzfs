@@ -486,6 +486,7 @@ pkgbuild_cleanup() {
     # $1 the file to process
     # Strip all blanklines
     sed -i '/^\s*$/d' $1
+    sed -i 's/"\ )$/")/g' $1
     # Readd blanklines above build and package
     sed -i '/^build\(\)/{x;p;x;}' $1
     sed -i '/^package\(\)/{x;p;x;}' $1

@@ -15,7 +15,7 @@ sha256sums=("${spl_src_hash}"
 groups=("${archzfs_package_group}")
 license=("GPL")
 provides=("spl-utils")
-${spl_makedepends}
+makedepends=(${linux_headers_depends} ${spl_makedepends})
 ${spl_utils_replaces}
 
 build() {

@@ -216,6 +216,12 @@ generate_package_files() {
     run_cmd_no_output "source ${script_dir}/src/zfs/PKGBUILD.sh"
     msg2 "Creating zfs.install"
     run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
+
+    msg "Update diffs ..."
+    run_cmd "cd ${spl_utils_pkgbuild_path} && git --no-pager diff"
+    run_cmd "cd ${spl_pkgbuild_path} && git --no-pager diff"
+    run_cmd "cd ${zfs_utils_pkgbuild_path} && git --no-pager diff"
+    run_cmd "cd ${zfs_pkgbuild_path} && git --no-pager diff"
 }
 
 

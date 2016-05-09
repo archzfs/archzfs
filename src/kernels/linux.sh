@@ -3,8 +3,8 @@ mode_name="std"
 mode_desc="Select and use the packages for the default linux kernel"
 
 # Kernel versions for default ZFS packages
-pkgrel="5"
-kernel_version="4.5.1-1"
+pkgrel="1"
+kernel_version="4.5.2-1"
 kernel_version_next="4.6"
 
 # Kernel version for GIT packages
@@ -63,8 +63,8 @@ update_linux_pkgbuilds() {
     zfs_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux>=${kernel_version_major}\" \"linux<${kernel_version_next}\""
-    linux_headers_depends="\"linux-headers>=${kernel_version_major}\" \"linux-headers<${kernel_version_next}\""
+    linux_depends="\"linux=${kernel_version_major}\""
+    linux_headers_depends="\"linux-headers=${kernel_version_major}\""
     spl_replaces='replaces=("spl-git")'
     spl_utils_replaces='replaces=("spl-utils-git")'
     zfs_replaces='replaces=("zfs-git")'
@@ -99,17 +99,17 @@ update_linux_git_pkgbuilds() {
         spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
     fi
     spl_src_hash="SKIP"
-    spl_makedepends='makedepends=("git")'
+    linux_depends="\"linux=${kernel_version_major}\""
+    linux_headers_depends="\"linux-headers=${kernel_version_major}\""
+    spl_makedepends="\"git\""
     zfs_src_target="git+${zfs_git_url}"
     if [[ ${zfs_git_commit} != "" ]]; then
         spl_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
     fi
     zfs_src_hash="SKIP"
-    zfs_makedepends='makedepends=("git")'
+    zfs_makedepends="\"git\""
     spl_workdir="\${srcdir}/spl"
     zfs_workdir="\${srcdir}/zfs"
-    linux_depends="\"linux>=${kernel_version_major}\" \"linux<${kernel_version_next}\""
-    linux_headers_depends="\"linux-headers>=${kernel_version_major}\" \"linux-headers<${kernel_version_next}\""
     if have_command "update"; then
         git_check_repo
         git_calc_pkgver
