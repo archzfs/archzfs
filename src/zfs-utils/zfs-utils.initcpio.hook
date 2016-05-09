@@ -46,12 +46,13 @@ zfs_mount_handler () {
         fi
     fi
 
-    # Support legacy mountpoints
-    local mountpoint=$(/usr/bin/zfs get -H -o value mountpoint "${ZFS_DATASET}")
-    if [[ "${mountpoint}" == legacy ]]; then
-        rwopt_exp="zfsutil,${rwopt_exp}"
-    fi
-    mount -t zfs -o "${rwopt_exp}" "${ZFS_DATASET}" "$1"
+    # Support child datasets of the root
+    local datasets=$(/usr/bin/zfs list -Ho name -t filesystem -r "${ZFS_DATASET}")
+    
+    for ds in ${datasets}; do
+        local mountpoint=$(/usr/bin/zfs get -H -o value mountpoint "${ZFS_DATASET}")
+        mount -t zfs -o "${rwopt_exp}" "${ZFS_DATASET}" "$1${mountpoint}"
+    done
 }
 
 run_hook() {
