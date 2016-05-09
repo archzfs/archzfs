@@ -60,36 +60,26 @@ zfs_mount_handler () {
 run_hook() {
     # Force import the pools, useful if the pool has not properly been exported
     # using 'zpool export <pool>'
-    [[ $zfs_force == 1 ]] && ZPOOL_FORCE='-f'
-    [[ "$zfs_import_dir" != "" ]] && ZPOOL_IMPORT_FLAGS="$ZPOOL_IMPORT_FLAGS -d $zfs_import_dir"
+    [[ "${zfs_force}" == 1 ]] && ZPOOL_FORCE='-f'
+    [[ "${zfs_import_dir}" != "" ]] && ZPOOL_IMPORT_FLAGS="${ZPOOL_IMPORT_FLAGS} -d ${zfs_import_dir}"
 
-    if [ "$root" = 'zfs' ]; then
-        mount_handler='zfs_mount_handler'
+    if [[ "${root}" == zfs=* ]]; then
+        ZFS_DATASET="${root#zfs=}"
+        mount_handler="zfs_mount_handler"
     fi
 
-    case $zfs in
-        "")
-            # skip this line/dataset
-            ;;
-        auto|bootfs)
-            ZFS_DATASET='bootfs'
-            mount_handler="zfs_mount_handler"
-            ;;
-        *)
-            ZFS_DATASET=$zfs
-            mount_handler="zfs_mount_handler"
-            ;;
-    esac
-
-    if [ ! -f "/etc/hostid" ] ; then
-        echo "ZFS: No hostid found on kernel command line or /etc/hostid. ZFS pools may not import correctly."
+    if [[ ! -f /etc/hostid ]] ; then
+        warning 'ZFS: No hostid found on kernel command line or /etc/hostid. ZFS pools may not import correctly.'
     fi
 
     # Allow up to 10 seconds for zfs device to show up
-    for i in 1 2 3 4 5 6 7 8 9 10; do
-        [ -c "/dev/zfs" ] && break
+    for i in {1..10}; do
+        [[ -c /dev/zfs ]] && break
         sleep 1
     done
+    if [[ ! -c /dev/zfs ]]; then
+        die 'ZFS: The /dev/zfs device did not show up in time.'
+    fi
 }
 
 run_latehook () {
