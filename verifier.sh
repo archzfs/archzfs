@@ -48,7 +48,7 @@ compute_local_repo_hash() {
     # $1: The repository to compute
     # Sets local_repo_hash
     msg2 "Computing local $1 repository hashes..."
-    run_cmd "cd ${repo_basepath}; sha256sum $1/*/*"
+    run_cmd_show_and_capture_output "cd ${repo_basepath}; sha256sum $1/*/*"
     if [[ ${run_cmd_return} != 0 ]]; then
         error "Could not run local hash!"
         exit 1
@@ -63,7 +63,7 @@ compute_remote_repo_hash() {
     # $1: The repository to compute
     # Sets remote_repo_hash
     msg2 "Computing remote $1 repository hashes..."
-    run_cmd "ssh ${remote_login} 'cd webapps/default; sha256sum $1/*/*'"
+    run_cmd_show_and_capture_output "ssh ${remote_login} 'cd webapps/default; sha256sum $1/*/*'"
     if [[ ${run_cmd_return} != 0 ]]; then
         error "Could not run remote hash!"
         exit 1
