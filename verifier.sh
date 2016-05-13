@@ -48,13 +48,12 @@ compute_local_repo_hash() {
     # $1: The repository to compute
     # Sets local_repo_hash
     msg2 "Computing local $1 repository hashes..."
-    run_cmd_show_and_capture_output "cd ${repo_basepath}; sha256sum $1/*/*"
+    run_cmd_show_and_capture_output "cd ${repo_basepath}; sha256sum $1/*/* | sort"
     if [[ ${run_cmd_return} != 0 ]]; then
         error "Could not run local hash!"
         exit 1
     fi
-    lfiles=$(echo ${run_cmd_output} | sort -r)
-    local_repo_hash=$(echo "${lfiles}" | sha256sum | cut -f 1 -d' ')
+    local_repo_hash=$(echo "${run_cmd_output}" | sha256sum | cut -f 1 -d' ')
     msg2 "Local hash: ${local_repo_hash}"
 }
 
@@ -63,13 +62,12 @@ compute_remote_repo_hash() {
     # $1: The repository to compute
     # Sets remote_repo_hash
     msg2 "Computing remote $1 repository hashes..."
-    run_cmd_show_and_capture_output "ssh ${remote_login} 'cd webapps/default; sha256sum $1/*/*'"
+    run_cmd_show_and_capture_output "ssh ${remote_login} 'cd webapps/default; sha256sum $1/*/*' | sort"
     if [[ ${run_cmd_return} != 0 ]]; then
         error "Could not run remote hash!"
         exit 1
     fi
-    rfiles=$(echo ${run_cmd_output} | sort -r)
-    remote_repo_hash=$(echo "${rfiles}" | sha256sum | cut -f 1 -d' ')
+    remote_repo_hash=$(echo "${run_cmd_output}" | sha256sum | cut -f 1 -d' ')
     msg2 "Remote hash: $remote_repo_hash"
 }
 
