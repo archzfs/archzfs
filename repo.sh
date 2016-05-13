@@ -134,17 +134,23 @@ repo_package_list() {
 
 
 repo_package_backup() {
-    run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f -iname '${name}*.pkg.tar.xz'"
+    msg "Getting a list of packages to backup..."
+    run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f -iname '^.*\(spl-linux\|zfs-linux\).*' -not -regex '.*${kernel_version_full_pkgver}.*'"
     for x in ${run_cmd_output}; do
-        ename=$(package_name_from_path ${x})}
-        evers=$(package_version_from_path ${x})}
-        if [[ ${ename} == ${name} && ${evers} != ${vers} ]]; then
-            # The '*' globs the signatures and package sources
-            epkg="${repo_name}/${ename}-${evers}*"
-            package_exist_list+=(${epkg})
-        fi
+        ename=$(package_name_from_path ${x})
+        evers=$(package_version_from_path ${x})
+        # The '*' globs the signatures and package sources
+        epkg="${repo_target}/x86_64/${ename}-${evers}*"
+        debug "repo_package_backup epkg: ${epkg}"
+        package_exist_list+=("${epkg}")
     done
-    debug_print_array "package_exist_list" ${package_exist_list[@]}
+    if [[ ${#package_exist_list[@]} -eq 0 ]]; then
+        msg2 "No packages found for backup."
+        return
+    fi
+    debug_print_array "package_exist_list" "${package_exist_list[@]}"
+    msg "Backing up existing packages..."
+    run_cmd "mv ${package_exist_list[@]} ${package_backup_dir}/"
 }
 
 
@@ -221,5 +227,5 @@ done
 
 
 # These can be commented out individually
-# repo_package_backup
+repo_package_backup
 repo_add
