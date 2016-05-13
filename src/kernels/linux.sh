@@ -4,7 +4,7 @@ mode_desc="Select and use the packages for the default linux kernel"
 
 # Kernel versions for default ZFS packages
 pkgrel="1"
-kernel_version="4.5.3-1"
+kernel_version="4.5.4-1"
 kernel_version_next="4.6"
 
 # Kernel version for GIT packages
