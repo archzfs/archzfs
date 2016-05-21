@@ -135,7 +135,15 @@ repo_package_list() {
 
 repo_package_backup() {
     msg "Getting a list of packages to backup..."
-    run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f -iname '^.*\(spl-linux\|zfs-linux\).*' -not -regex '.*${kernel_version_full_pkgver}.*'"
+    local pkgs=()
+    for pkg in ${pkg_list[@]}; do
+        local o=""
+        if [[ ${#pkgs[@]} -ne 0 ]]; then
+            local o="-o"
+        fi
+        pkgs+=("${o} -iname '*${pkg}-[0-9]*.pkg.tar.xz'")
+    done
+    run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f ${pkgs[@]}"
     for x in ${run_cmd_output}; do
         ename=$(package_name_from_path ${x})
         evers=$(package_version_from_path ${x})
@@ -223,9 +231,6 @@ for func in "${update_funcs[@]}"; do
     debug "Evaluating '${func}'"
     "${func}"
     repo_package_list
+    repo_package_backup
+    repo_add
 done
-
-
-# These can be commented out individually
-repo_package_backup
-repo_add
