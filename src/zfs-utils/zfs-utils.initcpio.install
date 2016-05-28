@@ -75,6 +75,10 @@ Command Line Setup:
         If set to 1, this will use "zpool import -f" when attempting to import
         pools.
 
+    To change the seconds of time to wait for ZFS devices to show up at boot:
+
+        zfs_wait=30
+
     To search for devices in a directory other than "/dev":
 
         zfs_import_dir=/dev/disk/by-uuid
