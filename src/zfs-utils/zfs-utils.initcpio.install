@@ -43,7 +43,7 @@ build() {
     add_runscript
 
     # allow mount(8) to "autodetect" ZFS
-    echo 'zfs' >>"$BUILDROOT/etc/filesystems"
+    echo 'zfs' >>"${BUILDROOT}/etc/filesystems"
 
     [[ -f /etc/zfs/zpool.cache ]] && add_file "/etc/zfs/zpool.cache"
     [[ -f /etc/modprobe.d/zfs.conf ]] && add_file "/etc/modprobe.d/zfs.conf"

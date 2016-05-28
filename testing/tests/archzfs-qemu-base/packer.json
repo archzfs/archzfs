@@ -1,0 +1,32 @@
+{
+    "variables": {
+        "http_dir": "{{env `packer_work_dir`}}",
+        "iso_url": "{{env `archiso_url`}}",
+        "iso_checksum": "{{env `archiso_sha`}}",
+        "iso_checksum_type": "sha1",
+        "base_image_name": "{{env `base_image_basename`}}"
+    },
+    "builders": [
+        {
+            "type": "qemu",
+            "iso_url": "{{user `iso_url`}}",
+            "iso_checksum": "{{user `iso_checksum`}}",
+            "iso_checksum_type": "{{user `iso_checksum_type`}}",
+            "http_directory": "{{user `http_dir`}}",
+            "boot_wait": "5s",
+            "headless": false,
+            "boot_command": [
+                "<enter><wait10>",
+                "curl -O http://{{.HTTPIP}}:{{.HTTPPort}}/b.tar && tar -xvf b.tar<enter><wait>",
+                "bash ./setup.sh<enter>"
+            ],
+            "disk_size": 122880,
+            "ssh_username": "root",
+            "ssh_password": "azfstest",
+            "ssh_wait_timeout": "7200s",
+            "shutdown_command": "systemctl start poweroff.timer",
+            "vm_name": "{{user `base_image_name`}}",
+            "output_directory": "{{user `base_image_output_dir`}}"
+        }
+    ]
+}

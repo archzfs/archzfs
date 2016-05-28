@@ -65,7 +65,6 @@ for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "azfs" ]]; then
         repo_name="archzfs"
     elif [[ ${args[$a]} == "test" ]]; then
-        # TODO: NOT IMPLMENTED YET
         repo_name="archzfs-testing"
     elif [[ ${args[$a]} == "-n" ]]; then
         dry_run=1

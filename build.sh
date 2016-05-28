@@ -226,7 +226,7 @@ generate_package_files() {
 build_packages() {
     for pkg in "${pkg_list[@]}"; do
         msg "Building ${pkg}..."
-        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && sudo ~/bin/ccm64 s && mksrcinfo"
+        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ~/bin/ccm64 s && mksrcinfo"
         if [[ ${run_cmd_return} -ne 0 ]]; then
             error "A problem occurred building the package"
             exit 1
@@ -239,6 +239,12 @@ build_packages() {
 
 
 generate_mode_list
+
+
+if [[ ${EUID} -ne 0 ]]; then
+    error "This script must be run as root."
+    exit 1;
+fi
 
 
 if [[ $# -lt 1 ]]; then
@@ -306,17 +312,17 @@ if have_command "update_sums"; then
 
     run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook"
     azsha2=$(echo ${run_cmd_output} | awk '{ print $1 }')
-    run_cmd "sed -e 's/^zfs_initcpio_hook_hash.*/zfs_initcpio_hook_hash=\"${azsha1}\"/g' -i ${script_dir}/conf.sh"
+    run_cmd "sed -e 's/^zfs_initcpio_hook_hash.*/zfs_initcpio_hook_hash=\"${azsha2}\"/g' -i ${script_dir}/conf.sh"
 
     run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install"
     azsha3=$(echo ${run_cmd_output} | awk '{ print $1 }')
-    run_cmd "sed -e 's/^zfs_initcpio_install_hash.*/zfs_initcpio_install_hash=\"${azsha1}\"/g' -i ${script_dir}/conf.sh"
+    run_cmd "sed -e 's/^zfs_initcpio_install_hash.*/zfs_initcpio_install_hash=\"${azsha3}\"/g' -i ${script_dir}/conf.sh"
 fi
 
 
 if have_command "update_chroot"; then
     msg "Updating the x86_64 clean chroot..."
-    run_cmd "sudo ~/bin/ccm64 u"
+    run_cmd "~/bin/ccm64 u"
 fi
 
 
@@ -337,7 +343,6 @@ for func in "${update_funcs[@]}"; do
     fi
     if have_command "make"; then
         build_packages
-        sign_packages
         build_sources
     fi
     if have_command "sources"; then

@@ -6,8 +6,10 @@ shopt -s nullglob
 dry_run=0
 debug_flag=0
 mode=""
+test_mode=""
 kernel_name="" # set by generate_mode_list
 mode_list=() # set by generate_mode_list
+test_commands_list=() # set by generate_test_commands_list
 update_funcs=() # set by generate_mode_list
 commands=()
 
@@ -397,6 +399,47 @@ check_mode() {
     exit 155
 }
 
+
+check_test_mode() {
+    # $1 the mode to check for
+    debug "check_test_mode: checking for mode in '$1'"
+    for m in "${mode_list[@]}"; do
+        debug "check_test_mode: on '${m}'"
+        local moden=$(echo ${m} | cut -f2 -d:)
+        # debug "moden: ${moden}"
+        if [[ "${moden}" == "$1" ]]; then
+            if [[ ${mode} != "" ]]; then
+                error "Already have mode '${moden}', only one mode can be used at a time!"
+                usage
+                exit 155
+            fi
+            mode="$1"
+            kernel_name=$(echo ${m} | cut -f1 -d:)
+            return
+        fi
+    done
+    debug "check_test_mode: checking for test mode in '$1'"
+    for m in "${test_commands_list[@]}"; do
+        debug "check_test_mode: on '${m}'"
+        local moden=$(echo ${m})
+        if [[ ${moden} =~ $1 ]]; then
+            debug "Found match! moden: ${moden} \$1: $1"
+            if [[ ${test_mode} != "" ]]; then
+                error "Already have test mode '${moden}', only one test mode can be used at a time!"
+                usage
+                exit 155
+            fi
+            test_mode="${moden}"
+            return
+        fi
+    done
+    error "Unrecognized argument '$1'"
+    usage
+    exit 155
+}
+
+
+
 have_command() {
     # $1: The command to check for
     # returns 0 if true, and 1 for false
@@ -409,6 +452,22 @@ have_command() {
         fi
     done
     debug "have_command: '$1' is not defined"
+    return 1
+}
+
+
+have_test_command() {
+    # $1: The command to check for
+    # returns 0 if true, and 1 for false
+    debug "have_test_command: checking '$1'"
+    for cmd in "${test_commands_list[@]}"; do
+        # debug "have_test_command: loop '$cmd'"
+        if [[ ${cmd} == $1 ]]; then
+            debug "have_test_command: '$1' is defined"
+            return 0
+        fi
+    done
+    debug "have_test_command: '$1' is not defined"
     return 1
 }
 
@@ -426,10 +485,28 @@ check_debug() {
 
 
 generate_mode_list() {
-    for m in $(ls ${script_dir}/src/kernels); do
-        mn=$(source ${script_dir}/src/kernels/${m}; echo ${mode_name})
-        md=$(source ${script_dir}/src/kernels/${m}; echo ${mode_desc})
+    # $1: The path where the kernel things can be found, must have trailing slash
+    path="$1"
+    if [[ ${path} == "" ]]; then
+        path="${script_dir}/src/kernels"
+    fi
+    for m in $(ls ${path}); do
+        mn=$(source ${path}/${m}; echo ${mode_name})
+        md=$(source ${path}/${m}; echo ${mode_desc})
         mode_list+=("${m%.*}:${mn}:${md}")
+    done
+}
+
+
+generate_test_commands_list() {
+    # $1: The path where the kernel things can be found, must have trailing slash
+    path="$1"
+    if [[ ${path} == "" ]]; then
+        path="${script_dir}"
+    fi
+    debug "generate_test_commands_list: path == ${path}"
+    for m in $(find ${path} -type d -iname "*archzfs-qemu-*-test-*"); do
+        test_commands_list+=("${m}")
     done
 }
 
