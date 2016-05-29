@@ -8,10 +8,8 @@ pkgrel=${spl_pkgrel}
 pkgdesc="Solaris Porting Layer kernel module support files."
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("${spl_src_target}"
-        "spl-utils.hostid")
-sha256sums=("${spl_src_hash}"
-            "${spl_hostid_hash}")
+source=("${spl_src_target}")
+sha256sums=("${spl_src_hash}")
 groups=("${archzfs_package_group}")
 license=("GPL")
 provides=("spl-utils")
@@ -28,7 +26,6 @@ build() {
 package() {
     cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install
-    install -D -m644 "\${srcdir}"/spl-utils.hostid "\${pkgdir}"/etc/hostid
 }
 EOF
 

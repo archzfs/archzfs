@@ -181,7 +181,6 @@ generate_package_files() {
     debug "spl_workdir: ${spl_workdir}"
     debug "spl_src_target: ${spl_src_target}"
     debug "spl_src_hash: ${spl_src_hash}"
-    debug "spl_hostid_hash: ${spl_hostid_hash}"
     debug "zfs_bash_completion_hash: ${zfs_bash_completion_hash}"
     debug "zfs_initcpio_install_hash: ${zfs_initcpio_install_hash}"
     debug "zfs_initcpio_hook_hash: ${zfs_initcpio_hook_hash}"
@@ -195,8 +194,6 @@ generate_package_files() {
     # Finally, generate the update packages ...
     msg2 "Creating spl-utils PKGBUILD"
     run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
-    msg2 "Copying spl-utils.hostid"
-    run_cmd_no_output "cp ${script_dir}/src/spl-utils/spl-utils.hostid ${spl_utils_pkgbuild_path}/spl-utils.hostid"
 
     msg2 "Creating spl PKGBUILD"
     run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"

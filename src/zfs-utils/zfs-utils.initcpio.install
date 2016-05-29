@@ -27,7 +27,6 @@ build() {
         zstreamdump \
         ztest \
         splat \
-        hostid \
         /lib/udev/vdev_id \
         /lib/udev/zvol_id \
         findmnt
@@ -48,7 +47,6 @@ build() {
 
     [[ -f /etc/zfs/zpool.cache ]] && add_file "/etc/zfs/zpool.cache"
     [[ -f /etc/modprobe.d/zfs.conf ]] && add_file "/etc/modprobe.d/zfs.conf"
-    [[ -f /etc/hostid ]] && add_file "/etc/hostid"
 }
 
 help() {
