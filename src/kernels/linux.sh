@@ -4,13 +4,11 @@ mode_desc="Select and use the packages for the default linux kernel"
 
 # Kernel versions for default ZFS packages
 pkgrel="1"
-kernel_version="4.5.4-1"
-kernel_version_next="4.6"
+kernel_version="4.6.1-2"
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
 kernel_version_git="${kernel_version}"
-kernel_version_git_next="${kernel_version_next}"
 zfs_git_commit=""
 spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
@@ -19,7 +17,6 @@ spl_git_url="https://github.com/zfsonlinux/spl.git"
 # Archiso Configuration
 pkgrel_archiso="1"
 kernel_version_archiso="4.4.5"
-kernel_version_archiso_next="4.5"
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
@@ -77,7 +74,6 @@ update_linux_git_pkgbuilds() {
     kernel_version_full=$(kernel_version_full ${kernel_version_git})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version_git})
     kernel_version_major=${kernel_version_git%-*}
-    kernel_version_next=${kernel_version_git_next}
     kernel_mod_path="${kernel_version_full}-ARCH"
     archzfs_package_group="archzfs-linux-git"
     spl_pkgver="" # Set later by call to git_calc_pkgver
