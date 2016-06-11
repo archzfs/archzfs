@@ -4,8 +4,7 @@ mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.4.12-1"
-kernel_version_next="4.5"
+kernel_version="4.4.13-1"
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
