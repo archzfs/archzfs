@@ -14,10 +14,6 @@ spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
 spl_git_url="https://github.com/zfsonlinux/spl.git"
 
-# Archiso Configuration
-pkgrel_archiso="1"
-kernel_version_archiso="4.4.5"
-
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
 #

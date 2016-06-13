@@ -195,7 +195,7 @@ run_cmd() {
     else
         plain "Running command:" "$@"
         plain_one_line "Output:"
-        echo -e "$@" | source /dev/stdin
+        eval "$@"
         run_cmd_return=$?
         echo
         plain_one_line "Command returned:" "${run_cmd_return}"
@@ -210,7 +210,7 @@ run_cmd_no_dry_run() {
     # $@: The command and args to run
     plain "Running command:" "$@"
     plain_one_line "Output:"
-    echo -e "$@" | source /dev/stdin
+    eval "$@"
     run_cmd_return=$?
     echo
     plain_one_line "Command returned:" "${run_cmd_return}"
@@ -236,7 +236,7 @@ run_cmd_show_and_capture_output() {
         # lib.sh: line 145: /bin/cat: Argument list too long
 
         exec 6>&1 # Link file descriptor 6 with stdout.
-        run_cmd_output=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
+        run_cmd_output=$(eval "$@" | tee >(cat - >&6); exit ${PIPESTATUS[1]})
         exec 1>&6 6>&-      # Restore stdout and close file descriptor #6.
         run_cmd_return=$?
         echo
@@ -261,7 +261,7 @@ run_cmd_show_and_capture_output_no_dry_run() {
     # lib.sh: line 145: /bin/cat: Argument list too long
 
     exec 6>&1 # Link file descriptor 6 with stdout.
-    run_cmd_output=$(echo -e "$@" | source /dev/stdin | tee >(cat - >&6); exit ${PIPESTATUS[1]})
+    run_cmd_output=$(eval "$@" | tee >(cat - >&6); exit ${PIPESTATUS[1]})
     exec 1>&6 6>&-      # Restore stdout and close file descriptor #6.
     run_cmd_return=$?
     echo
@@ -279,7 +279,7 @@ run_cmd_no_output() {
         norun "CMD:" "$@"
     else
         plain "Running command:" "$@"
-        run_cmd_output=$(echo -e "$@" | source /dev/stdin)
+        run_cmd_output=$(eval "$@")
         run_cmd_return=$?
         plain_one_line "Command returned:" "${run_cmd_return}"
     fi
@@ -293,7 +293,7 @@ run_cmd_no_output() {
 run_cmd_no_output_no_dry_run() {
     # $@: The command and args to run
     plain "Running command:" "$@"
-    run_cmd_output=$(echo -e "$@" | source /dev/stdin)
+    run_cmd_output=$(eval "$@")
     run_cmd_return=$?
     plain_one_line "Command returned:" "${run_cmd_return}"
 }

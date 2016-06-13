@@ -42,3 +42,15 @@
 [submodule "spl-linux"]
 	path = packages/linux/spl-linux
 	url = ssh+git://aur@aur.archlinux.org/spl-linux.git
+[submodule "packages/archiso/zfs-archiso-linux"]
+	path = packages/archiso/zfs-archiso-linux
+	url = ssh+git://aur@aur.archlinux.org/zfs-archiso-linux.git
+[submodule "packages/archiso/zfs-utils-archiso-linux"]
+	path = packages/archiso/zfs-utils-archiso-linux
+	url = ssh+git://aur@aur.archlinux.org/zfs-utils-archiso-linux.git
+[submodule "packages/archiso/spl-utils-archiso-linux"]
+	path = packages/archiso/spl-utils-archiso-linux
+	url = ssh+git://aur@aur.archlinux.org/spl-utils-archiso-linux.git
+[submodule "packages/archiso/spl-archiso-linux"]
+	path = packages/archiso/spl-archiso-linux
+	url = ssh+git://aur@aur.archlinux.org/spl-archiso-linux.git
