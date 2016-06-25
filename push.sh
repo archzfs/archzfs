@@ -90,7 +90,8 @@ msg "$(date) :: ${script_name} started..."
 push_packages() {
     for pkg in "${pkg_list[@]}"; do
         msg "Packaging ${pkg}..."
-        local cmd="cd \"${PWD}/packages/${kernel_name}/${pkg}\" && "
+        debug "PWD=${PWD}"
+        local cmd="cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && "
         if [[ ${push} -eq 1 ]]; then
             cmd+="git --no-pager diff && echo && echo && git checkout master && git add . && "
             cmd+="git commit -m 'Semi-automated update for ${zfs_pkgver}-${zfs_pkgrel}'; git push"
