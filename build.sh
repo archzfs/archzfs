@@ -132,7 +132,7 @@ git_calc_pkgver() {
         cmd+="mkdir temp && cd temp\\n"
         cmd+="git clone ../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
         cmd+="git checkout -b azb ${sha}\\n"
-        cmd+="EOF\\n"
+        cmd+="EOF"
         run_cmd_no_output_no_dry_run "${cmd}"
 
         # Get the version number past the last tag
@@ -218,10 +218,10 @@ generate_package_files() {
     run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
 
     msg "Update diffs ..."
-    run_cmd "cd ${spl_utils_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${spl_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${zfs_utils_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${zfs_pkgbuild_path} && git --no-pager diff"
+    run_cmd "cd ${script_dir}/${spl_utils_pkgbuild_path} && git --no-pager diff"
+    run_cmd "cd ${script_dir}/${spl_pkgbuild_path} && git --no-pager diff"
+    run_cmd "cd ${script_dir}/${zfs_utils_pkgbuild_path} && git --no-pager diff"
+    run_cmd "cd ${script_dir}/${zfs_pkgbuild_path} && git --no-pager diff"
 }
 
 
