@@ -24,7 +24,8 @@ build() {
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \\
                 --datadir=/usr/share --includedir=/usr/include --with-udevdir=/lib/udev \\
                 --libexecdir=/usr/lib/zfs-${zol_version} --with-config=kernel \\
-                --with-linux=/usr/lib/modules/${kernel_mod_path}/build
+                --with-linux=/usr/lib/modules/${kernel_mod_path}/build \\
+                --with-linux-obj=/usr/lib/modules/${kernel_mod_path}/build
     make
 }
 

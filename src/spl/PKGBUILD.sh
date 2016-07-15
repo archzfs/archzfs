@@ -23,6 +23,7 @@ build() {
     ./autogen.sh
     ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \\
                 --with-linux=/usr/lib/modules/${kernel_mod_path}/build \\
+                --with-linux-obj=/usr/lib/modules/${kernel_mod_path}/build \\
                 --with-config=kernel
     make
 }
