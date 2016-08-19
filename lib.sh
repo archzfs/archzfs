@@ -439,7 +439,7 @@ get_kernel_update_funcs() {
         if [[ ${kernel%.*} != ${kernel_name} ]]; then
             continue
         fi
-        updatefuncs=$(cat "${script_dir}/src/kernels/${kernel}" | grep -oh "update_.*_pkgbuilds")
+        updatefuncs=$(cat "${script_dir}/src/kernels/${kernel}" | grep -v "^.*#" | grep -oh "update_.*_pkgbuilds")
         for func in ${updatefuncs}; do update_funcs+=("${func}"); done
     done
 }
