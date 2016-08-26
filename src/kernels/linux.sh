@@ -4,7 +4,7 @@ mode_desc="Select and use the packages for the default linux kernel"
 
 # Kernel versions for default ZFS packages
 pkgrel="1"
-kernel_version="4.6.4-1"
+kernel_version="4.7-1"
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
@@ -32,37 +32,37 @@ header="\
 # archzfs github page.
 #"
 
-update_linux_pkgbuilds() {
-    pkg_list=("spl-utils-linux" "spl-linux" "zfs-utils-linux" "zfs-linux")
-    kernel_version_full=$(kernel_version_full ${kernel_version})
-    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
-    kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full}-ARCH"
-    archzfs_package_group="archzfs-linux"
-    spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
-    zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
-    spl_pkgrel=${pkgrel}
-    zfs_pkgrel=${pkgrel}
-    spl_utils_pkgname="spl-utils-linux"
-    spl_pkgname="spl-linux"
-    zfs_utils_pkgname="zfs-utils-linux"
-    zfs_pkgname="zfs-linux"
-    # Paths are relative to build.sh
-    spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
-    spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
-    zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
-    zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-${zol_version}.tar.gz"
-    zfs_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-${zol_version}.tar.gz"
-    spl_workdir="\${srcdir}/spl-${zol_version}"
-    zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux=${kernel_version_major}\""
-    linux_headers_depends="\"linux-headers=${kernel_version_major}\""
-    spl_replaces='replaces=("spl-git")'
-    spl_utils_replaces='replaces=("spl-utils-git")'
-    zfs_replaces='replaces=("zfs-git")'
-    zfs_utils_replaces='replaces=("zfs-utils-git")'
-}
+# update_linux_pkgbuilds() {
+    # pkg_list=("spl-utils-linux" "spl-linux" "zfs-utils-linux" "zfs-linux")
+    # kernel_version_full=$(kernel_version_full ${kernel_version})
+    # kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
+    # kernel_version_major=${kernel_version%-*}
+    # kernel_mod_path="${kernel_version_full}-ARCH"
+    # archzfs_package_group="archzfs-linux"
+    # spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    # zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    # spl_pkgrel=${pkgrel}
+    # zfs_pkgrel=${pkgrel}
+    # spl_utils_pkgname="spl-utils-linux"
+    # spl_pkgname="spl-linux"
+    # zfs_utils_pkgname="zfs-utils-linux"
+    # zfs_pkgname="zfs-linux"
+    # # Paths are relative to build.sh
+    # spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
+    # spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
+    # zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
+    # zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
+    # spl_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-${zol_version}.tar.gz"
+    # zfs_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-${zol_version}.tar.gz"
+    # spl_workdir="\${srcdir}/spl-${zol_version}"
+    # zfs_workdir="\${srcdir}/zfs-${zol_version}"
+    # linux_depends="\"linux=${kernel_version_major}\""
+    # linux_headers_depends="\"linux-headers=${kernel_version_major}\""
+    # spl_replaces='replaces=("spl-git")'
+    # spl_utils_replaces='replaces=("spl-utils-git")'
+    # zfs_replaces='replaces=("zfs-git")'
+    # zfs_utils_replaces='replaces=("zfs-utils-git")'
+# }
 
 update_linux_git_pkgbuilds() {
     pkg_list=("spl-utils-linux-git" "spl-linux-git" "zfs-utils-linux-git" "zfs-linux-git")
