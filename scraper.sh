@@ -159,7 +159,7 @@ check_zol_version() {
     # Check ZFSonLinux.org
     #
     msg "Checking zfsonlinux.org for new versions..."
-    check_webpage "http://zfsonlinux.org/" "(?<=downloads/zfsonlinux/spl/spl-)[\d\.]+(?=.tar.gz)" "${zol_version}"
+    check_webpage "http://zfsonlinux.org/" "(?<=download/zfs-)[\d\.]+(?=/)" "${zol_version}"
     check_result "ZOL stable version" "ZOL stable version"
 }
 
