@@ -96,7 +96,7 @@ update_linux_git_pkgbuilds() {
     spl_makedepends="\"git\""
     zfs_src_target="git+${zfs_git_url}"
     if [[ ${zfs_git_commit} != "" ]]; then
-        spl_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
+        zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
     fi
     zfs_src_hash="SKIP"
     zfs_makedepends="\"git\""
