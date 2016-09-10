@@ -66,6 +66,7 @@ usage() {
 build_sources() {
     for pkg in "${pkg_list[@]}"; do
         msg "Building source for ${pkg}";
+        run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/${pkg}'"
         run_cmd "su - ${makepkg_nonpriv_user} -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
     done
 }
