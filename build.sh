@@ -226,7 +226,7 @@ generate_package_files() {
 build_packages() {
     for pkg in "${pkg_list[@]}"; do
         msg "Building ${pkg}..."
-        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ~/bin/ccm64 s && mksrcinfo"
+        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm64 s && mksrcinfo"
         if [[ ${run_cmd_return} -ne 0 ]]; then
             error "A problem occurred building the package"
             exit 1
@@ -322,7 +322,7 @@ fi
 
 if have_command "update_chroot"; then
     msg "Updating the x86_64 clean chroot..."
-    run_cmd "~/bin/ccm64 u"
+    run_cmd "ccm64 u"
 fi
 
 
