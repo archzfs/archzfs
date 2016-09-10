@@ -30,6 +30,7 @@ usage() {
     echo "    -h:    Show help information."
     echo "    -n:    Dryrun; Output commands, but don't do anything."
     echo "    -d:    Show debug info."
+    echo "    -R:    Perform git reset in packages directory for Mode."
     echo "    -u:    Perform an update in the clean chroot."
     echo "    -U:    Update the file sums in conf.sh."
     echo "    -C:    Remove all files that are not package sources."
@@ -271,6 +272,8 @@ for (( a = 0; a < $#; a++ )); do
         commands+=("update_chroot")
     elif [[ ${args[$a]} == "-U" ]]; then
         commands+=("update_sums")
+    elif [[ ${args[$a]} == "-R" ]]; then
+        commands+=("reset_pkgs")
     elif [[ ${args[$a]} == "-n" ]]; then
         dry_run=1
     elif [[ ${args[$a]} == "-d" ]]; then
@@ -291,6 +294,17 @@ if [[ ${#commands[@]} -eq 0 || ${mode} == "" ]]; then
 fi
 
 
+msg "$(date) :: ${script_name} started..."
+
+
+get_kernel_update_funcs
+debug_print_default_vars
+
+
+export script_dir mode kernel_name
+source_safe "src/kernels/${kernel_name}.sh"
+
+
 if have_command "cleanup"; then
     msg "Cleaning up work files..."
     fincs='-iname "*.log" -o -iname "*.pkg.tar.xz*" -o -iname "*.src.tar.gz"'
@@ -301,7 +315,18 @@ if have_command "cleanup"; then
 fi
 
 
-msg "$(date) :: ${script_name} started..."
+if have_command "reset_pkgs"; then
+    msg "Performing git reset for packages/${kernel_name}/*"
+        msg "${update_funcs[@]}"
+    for func in "${update_funcs[@]}"; do
+        debug "Evaluating '${func}'"
+        "${func}"
+        msg "${pkg_list[@]}"
+        for pkg in "${pkg_list[@]}"; do
+            run_cmd "cd '${script_dir}/packages/${kernel_name}/${pkg}' && git reset --hard HEAD"
+        done
+    done
+fi
 
 
 if have_command "update_sums"; then
@@ -324,14 +349,6 @@ if have_command "update_chroot"; then
     msg "Updating the x86_64 clean chroot..."
     run_cmd "ccm64 u"
 fi
-
-
-get_kernel_update_funcs
-debug_print_default_vars
-
-
-export script_dir mode kernel_name
-source_safe "src/kernels/${kernel_name}.sh"
 
 
 for func in "${update_funcs[@]}"; do
