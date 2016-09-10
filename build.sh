@@ -66,7 +66,7 @@ usage() {
 build_sources() {
     for pkg in "${pkg_list[@]}"; do
         msg "Building source for ${pkg}";
-        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f"
+        run_cmd "su - ${makepkg_nonpriv_user} -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
     done
 }
 
@@ -78,7 +78,8 @@ sign_packages() {
     for f in ${files}; do
         if [[ ! -f "${f}.sig" ]]; then
             msg2 "Signing ${f}"
-            run_cmd_no_output "gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${f}\""
+            # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
+            run_cmd_no_output "su - ${makepkg_nonpriv_user} -c 'GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${f}\"'"
         fi
     done
 }
@@ -232,8 +233,8 @@ build_packages() {
             error "A problem occurred building the package"
             exit 1
         fi
-        msg2 "${pkg} package files:"
-        run_cmd "tree ${chroot_path}/build/${pkg}/pkg"
+        # msg2 "${pkg} package files:"
+        # run_cmd "tree ${chroot_path}/build/${pkg}/pkg"
     done
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
 }
@@ -242,14 +243,14 @@ build_packages() {
 generate_mode_list
 
 
-if [[ ${EUID} -ne 0 ]]; then
-    error "This script must be run as root."
-    exit 1;
+if [[ $# -lt 1 ]]; then
+    usage
 fi
 
 
-if [[ $# -lt 1 ]]; then
-    usage
+if [[ ${EUID} -ne 0 ]]; then
+    error "This script must be run as root."
+    exit 155;
 fi
 
 
@@ -361,6 +362,7 @@ for func in "${update_funcs[@]}"; do
     if have_command "make"; then
         build_packages
         build_sources
+        sign_packages
     fi
     if have_command "sources"; then
         build_sources
