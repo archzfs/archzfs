@@ -296,6 +296,14 @@ if [[ ${#commands[@]} -eq 0 || ${mode} == "" ]]; then
 fi
 
 
+# Check for internet (thanks Comcast!)
+# Please thank Comcast for this requirement...
+if ! check_internet; then
+    error "Could not reach google dns server! (No internet?)"
+    exit 155
+fi
+
+
 msg "$(date) :: ${script_name} started..."
 
 

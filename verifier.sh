@@ -72,14 +72,15 @@ compute_remote_repo_hash() {
 }
 
 
-msg "$(date) :: ${script_name} started..."
-
-
-# Bail if no internet
+# Check for internet (thanks Comcast!)
 # Please thank Comcast for this requirement...
-if [[ $(ping -w 1 -c 1 8.8.8.8 &> /dev/null; echo $?) != 0 ]]; then
-    exit 0;
+if ! check_internet; then
+    error "Could not reach google dns server! (No internet?)"
+    exit 155
 fi
+
+
+msg "$(date) :: ${script_name} started..."
 
 
 has_error=0

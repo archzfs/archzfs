@@ -39,6 +39,13 @@ usage() {
 }
 
 
+# Check for internet (thanks Comcast!)
+if ! check_internet; then
+    error "Could not reach google dns server! (No internet?)"
+    exit 155
+fi
+
+
 for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "-n" ]]; then
         dry_run=1

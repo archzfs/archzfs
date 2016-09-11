@@ -122,15 +122,17 @@ fi
 
 
 # Check for internet (thanks Comcast!)
-if [[ $(ping -w 1 -c 1 8.8.8.8 &> /dev/null; echo $?) != 0 ]]; then
+if ! check_internet; then
     error "Could not reach google dns server! (No internet?)"
-    exit 1;
+    exit 155
 fi
+
 
 if [[ ${EUID} -ne 0 ]]; then
     error "This script must be run as root."
     exit 1;
 fi
+
 
 if [[ "${test_mode}" != "" ]]; then
 
