@@ -28,7 +28,7 @@ archiso_build() {
     msg "Building the archiso if required"
     local build_archiso=0
     # Check the linux-lts version last used in the archiso
-    run_cmd_no_output "cat ${script_dir}/../archiso/work/iso/arch/pkglist.x86_64.txt 2> /dev/null | grep linux-lts | grep -Po '(?<=core/linux-lts-).*$'"
+    run_cmd_no_output "cat ${script_dir}/../archiso/work/iso/arch/pkglist.x86_64.txt 2> /dev/null | grep linux-lts | grep -oP '(?<=core/linux-lts-).*$'"
     if [[ ${run_cmd_return} -ne 0 ]]; then
         build_archiso=1
     elif [[ ! -f "${packer_work_dir}/archlinux*.iso" ]]; then
