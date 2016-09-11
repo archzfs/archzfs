@@ -46,6 +46,7 @@ test_fs_config_root_preinstall() {
     run_cmd "zfs create -o compression=lz4 -o mountpoint=${test_target_dir}/ROOT zroot/ROOT/default"
     run_cmd "zfs create -o mountpoint=none zroot/data"
     run_cmd "zfs create -o compression=lz4 -o mountpoint=${test_target_dir}/ROOT/home zroot/data/home"
+    run_cmd "zfs set mountpoint=legacy zroot/data/home"
 
     msg2 "Mounting /home"
     run_cmd "mount -t zfs -o default,noatime zroot/data/home ${test_target_dir}/ROOT/home"

@@ -1,4 +1,2 @@
 *.qcow2
 packer_work/
-out/
-work/

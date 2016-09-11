@@ -1,3 +1,5 @@
 *!
 */*.tar.*
 *.log
+archiso/out/
+archiso/work/

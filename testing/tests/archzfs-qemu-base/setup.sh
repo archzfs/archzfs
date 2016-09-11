@@ -60,8 +60,15 @@ test_bootloader_install
 test_fs_config_root_postinstall
 
 
-exit 0
-
-
 # Reboot!
-setup_exit
+test_setup_exit
+
+
+# TODO: Manage packer output here. We need to boot the built base image and run tests on it.
+
+
+# Check acceptance criteria
+if ! test_met_acceptance_criteria; then
+    error "Test failed!"
+    exit 1
+fi

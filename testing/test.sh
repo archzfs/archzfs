@@ -23,26 +23,50 @@ export packer_work_dir="${script_dir}/files/packer_work"
 export base_image_output_dir="${script_dir}/files"
 
 
-init_archiso_vars() {
-    if [[ ! -d ${test_mode}/archiso ]]; then
-        export archiso_baseurl="http://mirrors.kernel.org/archlinux/iso/latest"
-        debug "archiso_baseurl=${archiso_baseurl}"
-        export archiso_iso_name=$(curl -s ${archiso_baseurl}/ | grep -o "\".*dual.iso\"" | tr -d '"')
-        export archiso_sha=$(curl -s ${archiso_baseurl}/sha1sums.txt | grep ${archiso_iso_name} | awk '{ print $1 }')
-        export archiso_url="${packer_work_dir}/${archiso_iso_name}"
+# Build the archiso with linux-lts if needed
+archiso_build() {
+    msg "Building the archiso if required"
+    local build_archiso=0
+    # Check the linux-lts version last used in the archiso
+    run_cmd_no_output "cat ${script_dir}/../archiso/work/iso/arch/pkglist.x86_64.txt 2> /dev/null | grep linux-lts | grep -Po '(?<=core/linux-lts-).*$'"
+    if [[ ${run_cmd_return} -ne 0 ]]; then
+        build_archiso=1
+    elif [[ ! -f "${packer_work_dir}/archlinux*.iso" ]]; then
+        msg2 "archzfs archiso does not exist!"
+        build_archiso=1
     else
-        export archiso_iso_name=$(find files/packer_work/ -iname "archlinux*.iso" | xargs basename)
-        export archiso_sha=$(sha1sum ${packer_work_dir}/${archiso_iso_name} | awk '{ print $1 }')
-        export archiso_url="${packer_work_dir}/${archiso_iso_name}"
+        current_archiso_lts_vers="${run_cmd_output}"
+        debug "current_archiso_lts_vers: ${current_archiso_lts_vers}"
+        if ! check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "${current_archiso_lts_vers}"; then
+            debug "Setting build_archiso to 1"
+            build_archiso=1
+        fi
     fi
+
+    if [[ ${build_archiso} -eq 0 ]]; then
+        msg2 "archiso is up-to-date!"
+        return
+    fi
+
+    # Delete the working directories since we are out-of-date
+    run_cmd_no_output "rm -rf ${script_dir}/archiso/{out,work} ${packer_work_dir}/*.iso"
+
+    source_safe "${test_mode}/conf.sh" && source_safe "${test_mode}/archiso.sh" && test_build_archiso
+}
+
+
+archiso_init_vars() {
+    export archiso_iso_name=$(find ${packer_work_dir}/ -iname "archlinux*.iso" | xargs basename)
+    export archiso_sha=$(sha1sum ${packer_work_dir}/${archiso_iso_name} | awk '{ print $1 }')
+    export archiso_url="${packer_work_dir}/${archiso_iso_name}"
     debug "archiso_iso_name=${archiso_iso_name}"
     debug "archiso_sha=${archiso_sha}"
     debug "archiso_url=${archiso_url}"
 }
 
 
-gen_base_image_name() {
-    export base_image_basename="$(basename ${test_mode})-archiso-${archiso_iso_name:10:-9}"
+base_image_name() {
+    export base_image_basename="$(basename ${test_mode})-archiso-${archiso_iso_name:10:-4}"
     debug "base_image_basename=${base_image_basename}"
     run_cmd_output=$(find ${script_dir} -iname "*$(basename ${test_mode})-*" -printf "%P\\n" | sort -r | head -n 1)
     if [[ ${run_cmd_output} == "" ]]; then
@@ -65,8 +89,8 @@ usage() {
     echo "    -h:    Show help information."
     echo "    -n:    Dryrun; Output commands, but don't do anything."
     echo "    -d:    Show debug info."
-    echo "    -R:    Re-use existing archzfs test packages."
-    echo
+    # echo "    -R:    Re-use existing archzfs test packages."
+    # echo
     # echo "Modes:"
     # echo
     # for ml in "${mode_list[@]}"; do
@@ -93,9 +117,9 @@ debug_print_array "test_commands_list" "${test_commands_list[@]}"
 
 
 for (( a = 0; a < $#; a++ )); do
-    if [[ ${args[$a]} == "-R" ]]; then
-        commands+=("reuse")
-    elif [[ ${args[$a]} == "-n" ]]; then
+    # if [[ ${args[$a]} == "-R" ]]; then
+        # commands+=("reuse")
+    if [[ ${args[$a]} == "-n" ]]; then
         dry_run=1
     elif [[ ${args[$a]} == "-d" ]]; then
         debug_flag=1
@@ -155,8 +179,6 @@ if [[ "${test_mode}" != "" ]]; then
 
     msg2 "Using packer to build the base image ..."
 
-    gen_base_image_name
-
     # Base files
     run_cmd "check_symlink '${script_dir}/tests/archzfs-qemu-base/packer.json' '${packer_work_dir}/packer.json'"
     run_cmd "check_symlink '${script_dir}/tests/archzfs-qemu-base/base.sh' '${packer_work_dir}/base.sh'"
@@ -179,10 +201,9 @@ if [[ "${test_mode}" != "" ]]; then
     # Make it easy to get the files into the archiso environment
     run_cmd "tar --exclude='*.iso' --exclude=packer_cache --exclude=b.tar -C ${packer_work_dir} -cvhf ${packer_work_dir}/b.tar ."
 
-    msg "Building the archiso if required"
-    source_safe "${test_mode}/conf.sh" && source_safe "${test_mode}/archiso.sh" && test_build_archiso
-
-    init_archiso_vars
+    archiso_build
+    archiso_init_vars
+    base_image_name
 
     # Uncomment to enable packer debug
     export PACKER_LOG=1
