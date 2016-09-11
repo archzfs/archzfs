@@ -60,7 +60,6 @@ done
 msg "$(date) :: ${script_name} started..."
 
 
-check_webpage_retval=0
 haz_error=0
 
 

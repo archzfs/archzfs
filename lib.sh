@@ -396,18 +396,15 @@ check_webpage() {
     run_cmd_no_output "curl -sL ${1}"
 
     if [[ ${dry_run} -eq 1 ]]; then
-        return
+        return 0
     fi
 
     if [[ $(echo ${run_cmd_output} | \grep -q "504 Gateway Timeout"; echo $?) -eq 0 ]]; then
-        check_webpage_retval=-1
-        return
+        return -1
     elif [[ $(echo ${run_cmd_output} | \grep -q "503 Service Unavailable"; echo $?) -eq 0 ]]; then
-        check_webpage_retval=-1
-        return
+        return -1
     elif [[ ${run_cmd_output} == "RETVAL: 7" ]]; then
-        check_webpage_retval=-1
-        return
+        return -1
     fi
 
     local scraped_string=$(echo "${run_cmd_output}" | \grep -Po -m 1 "${2}")
@@ -416,27 +413,26 @@ check_webpage() {
     if [[ ${scraped_string} != "$3" ]]; then
         error "Checking '$1' expected '$3' got '${scraped_string}'"
         debug "Returning 1 from check_webpage()"
-        check_webpage_retval=1
-        return
+        return 1
     fi
 
-    check_webpage_retval=0
-    return
+    return 0
 }
 
 
 check_result() {
     # $1 current line
     # $2 changed line
-    if [[ ${check_webpage_retval} -eq 0 ]]; then
+    # $3 the return code from check_webpage
+    if [[ ${?} -eq 0 ]]; then
         msg2 "The $1 version is current."
-    elif [[ ${check_webpage_retval} -eq 1 ]]; then
+    elif [[ ${?} -eq 1 ]]; then
         error "The $2 is out-of-date!"
         haz_error=1
-    elif [[ ${check_webpage_retval} -eq -1 ]]; then
+    elif [[ ${?} -eq -1 ]]; then
         warning "The $2 package page was unreachable!"
     else
-        error "Check returned ${check_webpage_retval}"
+        error "Check returned ${?}"
         haz_error=1
     fi
 }
@@ -449,7 +445,7 @@ check_archiso() {
     msg "Checking archiso download page for linux kernel version changes..."
     check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" \
         "${kernel_version_archiso}"
-    check_result "archiso kernel version" "archiso"
+    check_result "archiso kernel version" "archiso" "$?"
 }
 
 
@@ -460,7 +456,7 @@ check_linux_kernel() {
     msg "Checking the online package database for x86_64 linux kernel version changes..."
     check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" \
         "${kernel_version}"
-    check_result "x86_64 linux kernel package" "linux x86_64"
+    check_result "x86_64 linux kernel package" "linux x86_64" "$?"
 }
 
 
@@ -471,7 +467,7 @@ check_linux_lts_kernel() {
     msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
     check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" \
         "${kernel_version}"
-    check_result "x86_64 linux-lts kernel package" "linux-lts x86_64"
+    check_result "x86_64 linux-lts kernel package" "linux-lts x86_64" "$?"
 }
 
 
@@ -481,7 +477,7 @@ check_zol_version() {
     #
     msg "Checking zfsonlinux.org for new versions..."
     check_webpage "http://zfsonlinux.org/" "(?<=download/zfs-)[\d\.]+(?=/)" "${zol_version}"
-    check_result "ZOL stable version" "ZOL stable version"
+    check_result "ZOL stable version" "ZOL stable version" "$?"
 }
 
 
