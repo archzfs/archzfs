@@ -26,3 +26,6 @@ chroot_path="/opt/chroot/x86_64/$(whoami)"
 
 # Package backup directory
 package_backup_dir="/data/pacman/repo/archive_archzfs"
+
+# Used to run mkaurball and mksrcinfo with lower privledges
+makepkg_nonpriv_user="demizer"
