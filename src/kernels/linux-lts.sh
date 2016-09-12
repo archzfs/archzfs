@@ -3,7 +3,7 @@ mode_name="lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
-pkgrel="1"
+pkgrel="2"
 kernel_version="4.4.20-1"
 
 header="\
@@ -44,8 +44,8 @@ update_linux_lts_pkgbuilds() {
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-${zol_version}.tar.gz"
-    zfs_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-${zol_version}.tar.gz"
+    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/spl-${zol_version}.tar.gz"
+    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
     linux_depends="\"linux-lts=${kernel_version_major}\""

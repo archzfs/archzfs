@@ -4,7 +4,7 @@ mode_desc="Select and use the packages for the archiso linux kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.5.4-1"
+kernel_version="4.7.2-1"
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
@@ -44,8 +44,8 @@ update_archiso_linux_pkgbuilds() {
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/spl/spl-${zol_version}.tar.gz"
-    zfs_src_target="http://archive.zfsonlinux.org/downloads/zfsonlinux/zfs/zfs-${zol_version}.tar.gz"
+    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/spl-${zol_version}.tar.gz"
+    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
     linux_depends="\"linux=${kernel_version_major}\""

@@ -21,6 +21,7 @@ sha256sums=("${zfs_src_hash}"
 license=("CDDL")
 groups=("${archzfs_package_group}")
 provides=("zfs-utils")
+install=zfs-utils.install
 ${zfs_utils_replaces}
 
 build() {
@@ -44,6 +45,10 @@ package() {
     # move module tree /lib -> /usr/lib
     cp -r "\${pkgdir}"/{lib,usr}
     rm -r "\${pkgdir}"/lib
+
+    # Autoload the zfs module at boot
+    mkdir -p "\${pkgdir}/etc/modules-load.d"
+    printf "%s\n" "zfs" > "\${pkgdir}/etc/modules-load.d/zfs.conf"
 
     # Install the support files
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.hook "\${pkgdir}"/usr/lib/initcpio/hooks/zfs
