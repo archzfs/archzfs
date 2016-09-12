@@ -11,4 +11,10 @@ export test_archzfs_repo_name="archzfs-testing"
 export test_archiso_packages="archzfs-linux-lts"
 
 # Additional packages to install after base and base-devel
-export test_chroot_packages="gptfdisk openssh syslinux archzfs-linux-lts"
+export test_chroot_packages="$(</root/packages) archzfs-linux"
+
+export fqdn='test.archzfs.test'
+export keymap='us'
+export language='en_US.UTF-8'
+export password=$(/usr/bin/openssl passwd -crypt 'azfstest')
+export timezone='UTC'

@@ -11,10 +11,10 @@ fi
 
 
 # source_safe "${script_dir}/archzfs-conf.sh"
+source_safe "${script_dir}/test-conf.sh"
 source_safe "${script_dir}/test-archiso.sh"
 source_safe "${script_dir}/test-boot.sh"
 source_safe "${script_dir}/test-chroot.sh"
-source_safe "${script_dir}/test-conf.sh"
 source_safe "${script_dir}/test-fs.sh"
 source_safe "${script_dir}/test-hooks.sh"
 source_safe "${script_dir}/test-pacman.sh"
@@ -58,6 +58,9 @@ test_bootloader_install
 
 # Filesystem things to do after installation
 test_fs_config_root_postinstall
+
+
+exit 0
 
 
 # Reboot!

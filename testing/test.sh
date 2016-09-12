@@ -180,13 +180,12 @@ if [[ "${test_mode}" != "" ]]; then
     msg2 "Using packer to build the base image ..."
 
     # Base files
+    run_cmd "check_symlink '${script_dir}/tests/archzfs-qemu-base/packages' '${packer_work_dir}/packages'"
     run_cmd "check_symlink '${script_dir}/tests/archzfs-qemu-base/packer.json' '${packer_work_dir}/packer.json'"
-    run_cmd "check_symlink '${script_dir}/tests/archzfs-qemu-base/base.sh' '${packer_work_dir}/base.sh'"
     run_cmd "check_symlink '${script_dir}/tests/archzfs-qemu-base/setup.sh' '${packer_work_dir}/setup.sh'"
     run_cmd "check_symlink '${script_dir}/../lib.sh' '${packer_work_dir}/lib.sh'"
     run_cmd "check_symlink '${script_dir}/../conf.sh' '${packer_work_dir}/archzfs-conf.sh'"
     run_cmd "check_symlink '${script_dir}/files/poweroff.timer' '${packer_work_dir}/poweroff.timer'"
-    # run_cmd "check_symlink '${repo_basepath}/${repo_name_test}' '${packer_work_dir}/${repo_name_test}'"
 
     # Test files
     run_cmd "check_symlink '${test_mode}/archiso.sh' '${packer_work_dir}/test-archiso.sh'"
@@ -196,6 +195,7 @@ if [[ "${test_mode}" != "" ]]; then
     run_cmd "check_symlink '${test_mode}/fs.sh' '${packer_work_dir}/test-fs.sh'"
     run_cmd "check_symlink '${test_mode}/hooks.sh' '${packer_work_dir}/test-hooks.sh'"
     run_cmd "check_symlink '${test_mode}/pacman.sh' '${packer_work_dir}/test-pacman.sh'"
+    run_cmd "check_symlink '${test_mode}/config.sh' '${packer_work_dir}/test-config.sh'"
     run_cmd "check_symlink '${test_mode}/syslinux.cfg' '${packer_work_dir}/syslinux.cfg'"
 
     # Make it easy to get the files into the archiso environment

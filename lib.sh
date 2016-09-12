@@ -206,6 +206,19 @@ run_cmd() {
 }
 
 
+run_cmd_check() {
+    # $1 Exit code
+    # $2 Error string if defined with print an error message
+    if [[ ${run_cmd_return} -eq 0 ]]; then
+        return
+    fi
+    if [[ -n $2 ]]; then
+        error "$2"
+    fi
+    exit $1
+}
+
+
 # Runs a command. Ouput is not captured. dry_run=1 is ignored.
 # To use this function, define the following in your calling script:
 # run_cmd_return=""

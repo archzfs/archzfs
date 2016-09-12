@@ -1,15 +1,16 @@
 #!/bin/bash
 
-cat <<-EOF > "${arch_target_dir}/usr/bin/base.sh"
+cat <<-EOF > "${arch_target_dir}/usr/bin/config.sh"
     echo '${fqdn}' > /etc/hostname
     /usr/bin/ln -s /usr/share/zoneinfo/${timezone} /etc/localtime
     echo 'KEYMAP=${keymap}' > /etc/vconsole.conf
     /usr/bin/sed -i 's/#${language}/${language}/' /etc/locale.gen
     /usr/bin/locale-gen
 
-    /usr/bin/sed -i 's/filesystems/zfs filesystems/' '/etc/mkinitcpio.conf'
+    /usr/bin/sed -i 's/filesystems/zfs filesystems/' /etc/mkinitcpio.conf
 
-    /usr/bin/mkinitcpio -p linux-lts
+    /usr/bin/mkinitcpio -p linux
+
     /usr/bin/usermod --password ${password} root
 
     # https://wiki.archlinux.org/index.php/Network_Configuration#Device_names

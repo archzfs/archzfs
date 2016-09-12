@@ -16,17 +16,16 @@ test_pacman_config() {
 
     msg2 "Installing the signer key"
     run_cmd "${arch_chroot} pacman-key -r 0EE7A126"
-    if [[ $? != 0 ]]; then
+    if [[ ${run_cmd_return} -ne 0 ]]; then
         exit 1
     fi
     run_cmd "${arch_chroot} pacman-key --lsign-key 0EE7A126"
-
 
     if [[ ! -n $1 ]]; then
         msg2 "Installing test packages"
         # Install the required packages in the image
         run_cmd "${arch_chroot} pacman -Sy --noconfirm ${arch_packages}"
-        if [[ $? != 0 ]]; then
+        if [[ ${run_cmd_return} -ne 0 ]]; then
             exit 1
         fi
         msg2 "Loading zfs modules"
@@ -37,5 +36,8 @@ test_pacman_config() {
 
 test_pacman_pacstrap() {
     msg "bootstrapping the base installation"
-    /usr/bin/pacstrap -c ${test_target_dir}/ROOT base base-devel ${test_chroot_packages}
+    run_cmd "/usr/bin/pacstrap -c '${test_target_dir}/ROOT' base base-devel ${test_chroot_packages}"
+    if [[ ${run_cmd_return} -ne 0 ]]; then
+        exit 1
+    fi
 }
