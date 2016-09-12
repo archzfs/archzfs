@@ -73,14 +73,19 @@ build_sources() {
 
 
 sign_packages() {
-    files=$(find ${script_dir} -iname "*.pkg.tar.xz")
+    run_cmd_no_output "find ${script_dir} -iname '*${kernel_name}*${zol_version}*-${pkgrel}*.pkg.tar.xz' | tr '\\n' ' '"
+    files="${run_cmd_output}"
     debug "Found files: ${files}"
     msg "Signing the packages with GPG"
     for f in ${files}; do
+        debug "On file: ${f}"
         if [[ ! -f "${f}.sig" ]]; then
             msg2 "Signing ${f}"
             # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
             run_cmd_no_output "su - ${makepkg_nonpriv_user} -c 'GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${f}\"'"
+            if [[ ${run_cmd_return} -ne 0 ]]; then
+                exit 1
+            fi
         fi
     done
 }
