@@ -14,6 +14,7 @@ groups=("${archzfs_package_group}")
 license=("GPL")
 provides=("spl-utils")
 makedepends=(${linux_headers_depends} ${spl_makedepends})
+conflicts=(${spl_utils_conflicts})
 ${spl_utils_replaces}
 
 build() {

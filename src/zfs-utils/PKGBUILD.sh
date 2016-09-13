@@ -22,6 +22,7 @@ license=("CDDL")
 groups=("${archzfs_package_group}")
 provides=("zfs-utils")
 install=zfs-utils.install
+conflicts=(${zfs_utils_conflicts})
 ${zfs_utils_replaces}
 
 build() {

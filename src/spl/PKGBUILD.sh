@@ -16,6 +16,7 @@ groups=("${archzfs_package_group}")
 license=("GPL")
 install=spl.install
 provides=("spl")
+conflicts=(${spl_conflicts})
 ${spl_replaces}
 
 build() {

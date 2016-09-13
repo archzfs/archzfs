@@ -16,6 +16,7 @@ groups=("${archzfs_package_group}")
 license=("CDDL")
 install=zfs.install
 provides=("zfs")
+conflicts=(${zfs_conflicts})
 ${zfs_replaces}
 
 build() {

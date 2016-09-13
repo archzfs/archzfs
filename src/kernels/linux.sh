@@ -3,7 +3,7 @@ mode_name="std"
 mode_desc="Select and use the packages for the default linux kernel"
 
 # Kernel versions for default ZFS packages
-pkgrel="6"
+pkgrel="7"
 kernel_version="4.7.2-1"
 
 # Kernel version for GIT packages
@@ -43,6 +43,10 @@ update_linux_pkgbuilds() {
     zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
+    spl_utils_conflicts="'spl-utils-linux-git' 'spl-utils-linux-lts'"
+    spl_conflicts="'spl-utils-linux-git' 'spl-utils-linux-lts'"
+    zfs_utils_conflicts="'zfs-utils-linux-git' 'zfs-utils-linux-lts'"
+    zfs_conflicts="'zfs-linux-git' 'zfs-linux-lts'"
     spl_utils_pkgname="spl-utils-linux"
     spl_pkgname="spl-linux"
     zfs_utils_pkgname="zfs-utils-linux"
@@ -76,6 +80,10 @@ update_linux_git_pkgbuilds() {
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     spl_pkgrel=${pkgrel_git}
     zfs_pkgrel=${pkgrel_git}
+    spl_utils_conflicts="'spl-utils-linux' 'spl-utils-linux-lts'"
+    spl_conflicts="'spl-utils-linux' 'spl-utils-linux-lts'"
+    zfs_utils_conflicts="'zfs-utils-linux' 'zfs-utils-linux-lts'"
+    zfs_conflicts="'zfs-linux' 'zfs-linux-lts'"
     spl_utils_pkgname="spl-utils-linux-git"
     spl_pkgname="spl-linux-git"
     zfs_utils_pkgname="zfs-utils-linux-git"

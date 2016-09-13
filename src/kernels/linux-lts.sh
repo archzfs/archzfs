@@ -3,7 +3,7 @@ mode_name="lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
-pkgrel="2"
+pkgrel="3"
 kernel_version="4.4.20-1"
 
 header="\
@@ -36,6 +36,10 @@ update_linux_lts_pkgbuilds() {
     zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
+    spl_utils_conflicts="'spl-utils-linux' 'spl-utils-linux-git'"
+    spl_conflicts="'spl-utils-linux' 'spl-utils-linux-git'"
+    zfs_utils_conflicts="'zfs-utils-linux' 'zfs-utils-linux-git'"
+    zfs_conflicts="'zfs-linux' 'zfs-linux-git'"
     spl_utils_pkgname="spl-utils-linux-lts"
     spl_pkgname="spl-linux-lts"
     zfs_utils_pkgname="zfs-utils-linux-lts"
