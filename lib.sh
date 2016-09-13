@@ -417,7 +417,7 @@ check_webpage() {
     debug "Using regex: `printf "%q" "$2"`"
     debug "Expecting: $3"
 
-    run_cmd_no_outpurun_cmd_outputt "curl -sL ${1}"
+    run_cmd_no_output "curl -sL ${1}"
 
     if [[ ${dry_run} -eq 1 ]]; then
         return 0
