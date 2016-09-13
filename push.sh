@@ -94,7 +94,7 @@ push_packages() {
         local cmd="cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && "
         if [[ ${push} -eq 1 ]]; then
             cmd+="git --no-pager diff && echo && echo && git checkout master && git add . && "
-            cmd+="git commit -m 'Semi-automated update for ${zfs_pkgver}-${zfs_pkgrel}'; git push"
+            cmd+="git commit -m 'Semi-automated update for $(kernel_version_full_no_hyphen ${kernel_version_full})-${zfs_pkgrel}'; git push"
         else
             cmd+="git --no-pager diff"
         fi

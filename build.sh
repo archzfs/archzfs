@@ -73,12 +73,11 @@ build_sources() {
 
 
 sign_packages() {
-    run_cmd_no_output "find ${script_dir} -iname '*${kernel_name}*${zol_version}*-${pkgrel}*.pkg.tar.xz' | tr '\\n' ' '"
+    run_cmd_no_output "find ${script_dir}/packages/${kernel_name} -iname '*$(kernel_version_full_no_hyphen ${kernel_version_full})-${pkgrel}*.pkg.tar.xz' | tr '\\n' ' '"
     files="${run_cmd_output}"
-    debug "Found files: ${files}"
-    msg "Signing the packages with GPG"
+    # debug "Found files: ${files}"
     for f in ${files}; do
-        debug "On file: ${f}"
+        # debug "On file: ${f}"
         if [[ ! -f "${f}.sig" ]]; then
             msg2 "Signing ${f}"
             # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
@@ -90,79 +89,6 @@ sign_packages() {
     done
 }
 
-
-git_check_repo() {
-    for pkg in "${pkg_list[@]}"; do
-        local reponame="spl"
-        local url="${spl_git_url}"
-        if [[ ${pkg} =~ ^zfs ]]; then
-            url="${zfs_git_url}"
-            reponame="zfs"
-        fi
-        local repopath="${script_dir}/packages/${kernel_name}/${pkg}/${reponame}"
-
-        debug "GIT URL: ${url}"
-        debug "GIT REPO: ${repopath}"
-
-        if [[ ! -d "${repopath}"  ]]; then
-            msg2 "Cloning repo '${repopath}'"
-            run_cmd_no_dry_run "git clone --mirror '${url}' '${repopath}'"
-            if [[ ${run_cmd_return} -ne 0 ]]; then
-                error "Failure while cloning ${url} repo"
-                exit 1
-            fi
-        else
-            msg2 "Updating repo '${repopath}'"
-            run_cmd_no_dry_run "cd ${repopath} && git fetch --all -p"
-            if [[ ${run_cmd_return} -ne 0 ]]; then
-                error "Failure while fetching ${url} repo"
-                exit 1
-            fi
-        fi
-    done
-}
-
-
-git_calc_pkgver() {
-    for repo in "spl" "zfs"; do
-        msg2 "Cloning working copy for ${repo}"
-        local sha=${spl_git_commit}
-        local kernvers=${kernel_version_full_pkgver}
-        if [[ ${repo} =~ ^zfs ]]; then
-            sha=${zfs_git_commit}
-        fi
-
-        pkg=$(eval "echo \${${repo}_pkgname}")
-        debug "Using package '${pkg}'"
-
-        # Checkout the git repo to a work directory
-        local cmd="/usr/bin/bash -s << EOF 2>/dev/null\\n"
-        cmd+="[[ -d temp ]] && rm -r temp\\n"
-        cmd+="mkdir temp && cd temp\\n"
-        cmd+="git clone ../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
-        cmd+="git checkout -b azb ${sha}\\n"
-        cmd+="EOF"
-        run_cmd_no_output_no_dry_run "${cmd}"
-
-        # Get the version number past the last tag
-        msg2 "Calculating PKGVER"
-        cmd="cd temp/${repo} && "
-        cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')_${kernvers}"
-        run_cmd_no_output_no_dry_run "${cmd}"
-
-        if [[ ${repo} =~ ^spl ]]; then
-            spl_pkgver=${run_cmd_output}
-            debug "spl_pkgver: ${spl_pkgver}"
-        elif [[ ${repo} =~ ^zfs ]]; then
-            zfs_pkgver=${run_cmd_output}
-            debug "zfs_pkgver: ${zfs_pkgver}"
-        fi
-
-        # Cleanup
-        msg2 "Removing working directory"
-        run_cmd_no_output_no_dry_run "rm -vrf temp"
-    done
-}
 
 generate_package_files() {
     debug "kernel_version_full: ${kernel_version_full}"
@@ -265,6 +191,7 @@ fi
 for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "make" ]]; then
         commands+=("make")
+        commands+=("sign")
     elif [[ ${args[$a]} == "test" ]]; then
         commands+=("test")
     elif [[ ${args[$a]} == "update" ]]; then
@@ -380,13 +307,11 @@ for func in "${update_funcs[@]}"; do
     if have_command "make"; then
         build_packages
         build_sources
-        sign_packages
     fi
     if have_command "sources"; then
         build_sources
     fi
 done
-
 
 if have_command "sign"; then
     sign_packages

@@ -1,11 +1,15 @@
 =====================
 archzfs testing guide
 =====================
-:Modified: Mon Sep 12 00:32 2016
+:Modified: Mon Sep 12 22:33 2016
 
 -----
 Notes
 -----
+
+- Mon Sep 12 22:32 2016: git_calc_check should not be used in repo.sh
+
+  If commits are pushed after the git packages have been built, the version used in repo.sh will not be correct.
 
 - Sun Apr 19 19:45 2015: Found more tests at https://github.com/behlendorf/xfstests
 
@@ -14,6 +18,8 @@ Notes
 - Sun Apr 19 19:51 2015: ztest slides http://blog.delphix.com/csiden/files/2012/01/ZFS_Backward_Compatability_Testing.pdf
 
 - Sun Apr 19 20:05 2015: What I am trying to do is described here: https://github.com/zfsonlinux/zfs/issues/1534
+
+- Mon Sep 12 22:27 2016: add a test for zfs-archiso-linux packages to install in current archiso
 
 --------
 Overview

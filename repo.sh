@@ -101,6 +101,7 @@ repo_package_list() {
     msg "Generating a list of packages to add..."
     debug_print_array "pkg_list" "${pkg_list[@]}"
 
+    package_list=()
     local pkgs=()
 
     # Get packages from the backup directory
@@ -115,7 +116,16 @@ repo_package_list() {
         name=$(package_name_from_path ${pkg})
         vers=$(package_version_from_path ${pkg})
 
-        match="${zol_version::-1}.*${kernel_version_full_pkgver}-${zfs_pkgrel}"
+
+        # Version match check: arch: x86_64 name: spl-utils-linux-git vers: 0.7.0_rc1_r0_g4fd75d3_4.7.2_1-4 vers_match: 0.6.5.8.*4.7.2_1-4
+        debug "spl_pkgver: ${spl_pkgver}"
+        debug "zfs_pkgver: ${zfs_pkgver}"
+
+        if [[ ${pkg} =~ .*spl-.* ]]; then
+            match="${spl_pkgver}-${spl_pkgrel}"
+        elif [[ ${pkg} =~ .*zfs-.* ]]; then
+            match="${zfs_pkgver}-${zfs_pkgrel}"
+        fi
         debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} vers_match: ${match}"
 
         if ! [[ ${vers} =~ ^${match} ]]; then
@@ -146,8 +156,8 @@ repo_package_backup() {
     for x in ${run_cmd_output}; do
         ename=$(package_name_from_path ${x})
         evers=$(package_version_from_path ${x})
-        # The '*' globs the signatures and package sources
-        epkg="${repo_target}/x86_64/${ename}-${evers}*"
+        epkg="${repo_target}/x86_64/${ename}-${evers}"
+        epkg="${repo_target}/x86_64/${ename}-${evers}.sig"
         debug "repo_package_backup epkg: ${epkg}"
         package_exist_list+=("${epkg}")
     done
@@ -167,6 +177,7 @@ repo_add() {
         exit 1
     fi
 
+    debug_print_array "package_list" ${#package_list}
     local pkg_cp_list=()
     local pkg_add_list=()
     local dest=""
@@ -185,8 +196,9 @@ repo_add() {
 
         debug "name: ${name} vers: ${vers} pkgp: ${pkgp} dest: ${dest}"
 
-        # The * is to catch the signature
-        pkg_cp_list+=("${pkgp}*")
+        pkg_cp_list+=("${pkgp}")
+        pkg_cp_list+=("${pkgp}.sig")
+
         bname=$(basename ${pkgp})
         pkg_add_list+=("${dest}/${bname}")
     done
@@ -226,8 +238,15 @@ debug "repo_target: ${repo_target}"
 source_safe "src/kernels/${kernel_name}.sh"
 
 
-for func in "${update_funcs[@]}"; do
+export zfs_pkgver=""
+export spl_pkgver=""
+
+for func in ${update_funcs[@]}; do
     debug "Evaluating '${func}'"
+    if [[ ${func} =~ .*_git_.* ]]; then
+        # Update the local zfs/spl git repositories, this will change the calculated pkgver version of the PKGBUILD.
+        commands+=("update")
+    fi
     "${func}"
     repo_package_list
     repo_package_backup

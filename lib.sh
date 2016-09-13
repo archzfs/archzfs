@@ -192,6 +192,8 @@ norun() {
 # To use this function, define the following in your calling script:
 # run_cmd_return=""
 run_cmd() {
+    run_cmd_return=0
+    run_cmd_return=0
     # $@: The command and args to run
     if [[ ${dry_run} -eq 1 ]]; then
         norun "CMD:" "$@"
@@ -223,6 +225,7 @@ run_cmd_check() {
 # To use this function, define the following in your calling script:
 # run_cmd_return=""
 run_cmd_no_dry_run() {
+    run_cmd_return=0
     # $@: The command and args to run
     plain "Running command:" "$@"
     plain_one_line "Output:"
@@ -238,6 +241,8 @@ run_cmd_no_dry_run() {
 # run_cmd_output=""
 # run_cmd_return=""
 run_cmd_show_and_capture_output() {
+    run_cmd_output=""
+    run_cmd_return=0
     # $@: The command and args to run
     if [[ ${dry_run} -eq 1 ]]; then
         norun "CMD:" "$@"
@@ -266,6 +271,8 @@ run_cmd_show_and_capture_output() {
 # run_cmd_output=""
 # run_cmd_return=""
 run_cmd_show_and_capture_output_no_dry_run() {
+    run_cmd_output=""
+    run_cmd_return=0
     # $@: The command and args to run
     plain "Running command:" "$@"
     plain_one_line "Output:"
@@ -290,6 +297,8 @@ run_cmd_show_and_capture_output_no_dry_run() {
 # run_cmd_output=""
 # run_cmd_return=""
 run_cmd_no_output() {
+    run_cmd_output=""
+    run_cmd_return=0
     # $@: The command and args to run
     if [[ ${dry_run} -eq 1 ]]; then
         norun "CMD:" "$@"
@@ -307,6 +316,8 @@ run_cmd_no_output() {
 # run_cmd_output=""
 # run_cmd_return=""
 run_cmd_no_output_no_dry_run() {
+    run_cmd_output=""
+    run_cmd_return=0
     # $@: The command and args to run
     plain "Running command:" "${@}"
     run_cmd_output=$(echo -e "${@}" | source /dev/stdin )
@@ -406,7 +417,7 @@ check_webpage() {
     debug "Using regex: `printf "%q" "$2"`"
     debug "Expecting: $3"
 
-    run_cmd_no_output "curl -sL ${1}"
+    run_cmd_no_outpurun_cmd_outputt "curl -sL ${1}"
 
     if [[ ${dry_run} -eq 1 ]]; then
         return 0
@@ -677,6 +688,7 @@ if check_debug; then
     debug "debug mode is enabled"
 fi
 
+
 pkgbuild_cleanup() {
     # $1 the file to process
     # Strip all blanklines
@@ -686,3 +698,78 @@ pkgbuild_cleanup() {
     sed -i '/^build\(\)/{x;p;x;}' $1
     sed -i '/^package\(\)/{x;p;x;}' $1
 }
+
+
+git_check_repo() {
+    for pkg in "${pkg_list[@]}"; do
+        local reponame="spl"
+        local url="${spl_git_url}"
+        if [[ ${pkg} =~ ^zfs ]]; then
+            url="${zfs_git_url}"
+            reponame="zfs"
+        fi
+        local repopath="${script_dir}/packages/${kernel_name}/${pkg}/${reponame}"
+
+        debug "GIT URL: ${url}"
+        debug "GIT REPO: ${repopath}"
+
+        if [[ ! -d "${repopath}"  ]]; then
+            msg2 "Cloning repo '${repopath}'"
+            run_cmd_no_dry_run "git clone --mirror '${url}' '${repopath}'"
+            if [[ ${run_cmd_return} -ne 0 ]]; then
+                error "Failure while cloning ${url} repo"
+                exit 1
+            fi
+        else
+            msg2 "Updating repo '${repopath}'"
+            run_cmd_no_dry_run "cd ${repopath} && git fetch --all -p"
+            if [[ ${run_cmd_return} -ne 0 ]]; then
+                error "Failure while fetching ${url} repo"
+                exit 1
+            fi
+        fi
+    done
+}
+
+
+git_calc_pkgver() {
+    for repo in "spl" "zfs"; do
+        msg2 "Cloning working copy for ${repo}"
+        local sha=${spl_git_commit}
+        local kernvers=${kernel_version_full_pkgver}
+        if [[ ${repo} =~ ^zfs ]]; then
+            sha=${zfs_git_commit}
+        fi
+
+        pkg=$(eval "echo \${${repo}_pkgname}")
+        debug "Using package '${pkg}'"
+
+        # Checkout the git repo to a work directory
+        local cmd="/usr/bin/bash -s << EOF 2>/dev/null\\n"
+        cmd+="[[ -d temp ]] && rm -r temp\\n"
+        cmd+="mkdir temp && cd temp\\n"
+        cmd+="git clone ../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
+        cmd+="git checkout -b azb ${sha}\\n"
+        cmd+="EOF"
+        run_cmd_no_output_no_dry_run "${cmd}"
+
+        # Get the version number past the last tag
+        msg2 "Calculating PKGVER"
+        cmd="cd temp/${repo} && "
+        cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')_${kernvers}"
+        run_cmd_no_output_no_dry_run "${cmd}"
+
+        if [[ ${repo} =~ ^spl ]]; then
+            spl_pkgver=${run_cmd_output}
+            debug "spl_pkgver: ${spl_pkgver}"
+        elif [[ ${repo} =~ ^zfs ]]; then
+            zfs_pkgver=${run_cmd_output}
+            debug "zfs_pkgver: ${zfs_pkgver}"
+        fi
+
+        # Cleanup
+        msg2 "Removing working directory"
+        run_cmd_no_output_no_dry_run "rm -vrf temp"
+    done
+}
+
