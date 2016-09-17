@@ -3,8 +3,8 @@ mode_name="lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
-pkgrel="3"
-kernel_version="4.4.20-1"
+pkgrel="2"
+kernel_version="4.4.21-1"
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
