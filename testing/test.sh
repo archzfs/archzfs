@@ -31,7 +31,7 @@ archiso_build() {
     run_cmd_no_output "cat ${script_dir}/../archiso/work/iso/arch/pkglist.x86_64.txt 2> /dev/null | grep linux-lts | grep -oP '(?<=core/linux-lts-).*$'"
     if [[ ${run_cmd_return} -ne 0 ]]; then
         build_archiso=1
-    elif [[ ! -f "${packer_work_dir}/archlinux*.iso" ]]; then
+    elif [[ ! -f "$(find ${packer_work_dir} -maxdepth 1 -name 'archlinux*.iso' -print -quit)" ]]; then
         msg2 "archzfs archiso does not exist!"
         build_archiso=1
     else
@@ -49,7 +49,7 @@ archiso_build() {
     fi
 
     # Delete the working directories since we are out-of-date
-    run_cmd_no_output "rm -rf ${script_dir}/archiso/{out,work} ${packer_work_dir}/*.iso"
+    run_cmd_no_output "rm -rf ${script_dir}/../archiso/out ${script_dir}/../archiso/work ${packer_work_dir}/*.iso"
 
     source_safe "${test_mode}/conf.sh" && source_safe "${test_mode}/archiso.sh" && test_build_archiso
 }
@@ -162,6 +162,10 @@ if [[ "${test_mode}" != "" ]]; then
 
     msg "Building arch base image"
 
+    if [[ ! -d "${packer_work_dir}" ]]; then
+        run_cmd "mkdir -p ${packer_work_dir}"
+    fi
+
     if [[ -d "${packer_work_dir}/output-qemu" ]]; then
         msg2 "Deleting '${packer_work_dir}/output-qemu' because it should not exist"
         run_cmd "rm -rf ${packer_work_dir}/output-qemu"
@@ -171,6 +175,9 @@ if [[ "${test_mode}" != "" ]]; then
         msg2 "Creating '${packer_work_dir}' because it does not exist"
         run_cmd "mkdir ${packer_work_dir}"
     fi
+
+    # Clear out everything except packer_cache and the archiso
+    run_cmd "find ${packer_work_dir} -mindepth 1 ! -iname 'mirrorlist' ! -iname 'archlinux*.iso' ! -iname 'packer_cache' -exec rm -rf {} \;"
 
     if [[ ! -f "${packer_work_dir}/mirrorlist" ]]; then
         msg2 "Generating pacman mirrorlist"

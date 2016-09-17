@@ -11,7 +11,7 @@ export test_archzfs_repo_name="archzfs-testing"
 export test_archiso_packages="archzfs-linux-lts"
 
 # Additional packages to install in the archiso
-export test_chroot_packages="$(<packages) archzfs-linux-lts"
+export test_chroot_packages="$(<packages) archzfs-linux-git"
 
 export fqdn='test.archzfs.test'
 export keymap='us'
