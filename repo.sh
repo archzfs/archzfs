@@ -156,8 +156,16 @@ repo_package_backup() {
     for x in ${run_cmd_output}; do
         ename=$(package_name_from_path ${x})
         evers=$(package_version_from_path ${x})
-        epkg="${repo_target}/x86_64/${ename}-${evers}"
-        epkg="${repo_target}/x86_64/${ename}-${evers}.sig"
+        debug "repo_package_backup: evers: ${evers}"
+        debug "repo_package_backup: kernel_vers: ${kernel_version_full_pkgver}"
+        # Ignore current packages if they exist
+        if [[ ${evers} == *"${kernel_version_full_pkgver}-${spl_pkgrel}"* ]] || \
+            [[ ${evers} == *"${kernel_version_full_pkgver}-${zfs_pkgrel}"* ]]; then
+            debug "repo_package_backup: Ignoring package '${x}'"
+            continue
+        fi
+        # asterisk globs the package signature
+        epkg="${repo_target}/x86_64/${ename}-${evers}*"
         debug "repo_package_backup epkg: ${epkg}"
         package_exist_list+=("${epkg}")
     done
