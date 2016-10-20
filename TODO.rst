@@ -2,6 +2,12 @@
 Things To Do
 ============
 
+* Sat Sep 17 01:16 2016: ADD TESTS for run_hook
+
+  Test the args! Make sure ash can parse them.
+
+  These tests will close #76 and #77
+
 * Thu Sep 15 09:04 2016: test.sh mirrorlist should be regenerated after 24 hours
 
 * Sun May 29 09:37 2016: auto increment numbers when building test packages
