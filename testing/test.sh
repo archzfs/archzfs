@@ -48,6 +48,13 @@ archiso_build() {
         return
     fi
 
+    # Ensure no mounts exist in archiso output directories, exit if mounts are detected
+    run_cmd "mount | grep airootfs"
+    if [[ ${run_cmd_return} -eq 0 ]]; then
+        error "airootfs bind mounds detected! Please unmount before continuing!"
+        exit 1
+    fi
+
     # Delete the working directories since we are out-of-date
     run_cmd_no_output "rm -rf ${script_dir}/../archiso/out ${script_dir}/../archiso/work ${packer_work_dir}/*.iso"
 
@@ -154,7 +161,7 @@ fi
 
 if [[ ${EUID} -ne 0 ]]; then
     error "This script must be run as root."
-    exit 1;
+    exit 155;
 fi
 
 

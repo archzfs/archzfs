@@ -60,9 +60,6 @@ test_bootloader_install
 test_fs_config_root_postinstall
 
 
-exit 0
-
-
 # Reboot!
 test_setup_exit
 
