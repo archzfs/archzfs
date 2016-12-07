@@ -4,7 +4,7 @@ mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
 pkgrel="2"
-kernel_version="4.4.35-1"
+kernel_version="4.4.36-1"
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
