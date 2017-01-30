@@ -1,7 +1,7 @@
 =====================
 archzfs testing guide
 =====================
-:Modified: Sat Sep 17 00:43 2016
+:Modified: Sun Jan 29 14:08 2017
 
 --------
 Overview
@@ -229,8 +229,8 @@ If all of these criteria are met, the test is a success.
 Another key area I am going to look at is the changes made to the systemd scripts reported by bronek via
 https://github.com/archzfs/archzfs/issues/72. How will these changes impact
 
-Deployng the archzfs-linux packages to the archzfs-testing repo
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Deploying the archzfs-linux packages to the archzfs-testing repo
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This is the easiest part, all that needed to be done was to increment the version number in `src/kernels/linux.sh` and build
 using `./build.sh std update make -u -U` once this was done the packages were added to the `archzfs-testing` repo using

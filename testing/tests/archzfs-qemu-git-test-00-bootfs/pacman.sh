@@ -8,6 +8,9 @@ test_pacman_config() {
         arch_chroot="/usr/bin/arch-chroot ${1}"
     fi
 
+    msg "Overriding mirrorlist"
+    run_cmd "cp mirrorlist ${arch_target_dir}/etc/pacman.d/mirrorlist"
+
     msg "Installing archzfs repo into chroot"
     printf "\n%s\n%s\n" "[${test_archzfs_repo_name}]" "Server = file:///repo/\$repo/\$arch" >> ${arch_target_dir}/etc/pacman.conf
 
@@ -34,6 +37,7 @@ test_pacman_config() {
 
 test_pacman_pacstrap() {
     msg "bootstrapping the base installation"
+    debug "TEST_CHROOT_PACKAGES: ${test_chroot_packages}"
     run_cmd "/usr/bin/pacstrap -c '${test_target_dir}/ROOT' base base-devel ${test_chroot_packages}"
     run_cmd_check 1
 }

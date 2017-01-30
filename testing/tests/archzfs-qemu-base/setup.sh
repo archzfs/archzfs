@@ -10,6 +10,10 @@ if ! source ${script_dir}/lib.sh; then
 fi
 
 
+export debug_flag=1
+export dry_run=0
+
+
 # source_safe "${script_dir}/archzfs-conf.sh"
 source_safe "${script_dir}/test-conf.sh"
 source_safe "${script_dir}/test-archiso.sh"
@@ -18,10 +22,6 @@ source_safe "${script_dir}/test-chroot.sh"
 source_safe "${script_dir}/test-fs.sh"
 source_safe "${script_dir}/test-hooks.sh"
 source_safe "${script_dir}/test-pacman.sh"
-
-
-export debug_flag=1
-export dry_run=0
 
 
 # Install nfs mount points to the archiso environment

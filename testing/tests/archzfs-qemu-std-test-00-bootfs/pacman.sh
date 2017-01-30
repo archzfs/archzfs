@@ -8,6 +8,9 @@ test_pacman_config() {
         arch_chroot="/usr/bin/arch-chroot ${1}"
     fi
 
+    msg "Overriding mirrorlist"
+    run_cmd "cp mirrorlist /etc/pacman.d/mirrorlist"
+
     msg "Installing archzfs repo into chroot"
     printf "\n%s\n%s\n" "[${test_archzfs_repo_name}]" "Server = file:///repo/\$repo/\$arch" >> ${arch_target_dir}/etc/pacman.conf
 

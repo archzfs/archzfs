@@ -63,8 +63,8 @@ archiso_build() {
 
 
 archiso_init_vars() {
-    export archiso_iso_name=$(find ${packer_work_dir}/ -iname "archlinux*.iso" | xargs basename)
-    export archiso_sha=$(sha1sum ${packer_work_dir}/${archiso_iso_name} | awk '{ print $1 }')
+    export archiso_iso_name=$(find ${packer_work_dir}/ -iname "archlinux*.iso" | xargs basename 2> /dev/null )
+    export archiso_sha=$(sha1sum ${packer_work_dir}/${archiso_iso_name} 2> /dev/null | awk '{ print $1 }')
     export archiso_url="${packer_work_dir}/${archiso_iso_name}"
     debug "archiso_iso_name=${archiso_iso_name}"
     debug "archiso_sha=${archiso_sha}"

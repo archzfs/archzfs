@@ -13,6 +13,7 @@ repo_name="" # The destination repo for the packages
 package_list=() # A list of packages to add. Array items are in the form of "name;pkg.tar.xz;repo_path".
 package_src_list=() # A list of package sources to move
 package_exist_list=()
+haz_error=0
 
 
 if ! source ${script_dir}/lib.sh; then
@@ -128,8 +129,17 @@ repo_package_list() {
         fi
         debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} vers_match: ${match}"
 
-        if ! [[ ${vers} =~ ^${match} ]]; then
+        if ! [[ ${vers} =~ ^${match} ]] ; then
             debug "Version mismatch!"
+            if [[ ${name} =~ .*-git ]]; then
+                error "Attempting to add Git packages that are out of date!"
+                error "package version from filesystem: ${vers}"
+                error "calculated version from git: ${match}"
+                haz_error=1
+                if [[ ${dry_run} -ne 1 ]]; then
+                    exit 1
+                fi
+            fi
             continue
         fi
 
@@ -260,3 +270,7 @@ for func in ${update_funcs[@]}; do
     repo_package_backup
     repo_add
 done
+
+if [[ ${haz_error} -ne 0 ]]; then
+    warning "An error has been detected! Inspect output above closely..."
+fi
