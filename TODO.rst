@@ -2,6 +2,10 @@
 Things To Do
 ============
 
+* Sun Feb 12 11:13 2017: extramodules support
+
+  Support for: https://lists.archlinux.org/pipermail/arch-general/2011-December/023672.html
+
 * Sat Sep 17 01:16 2016: ADD TESTS for run_hook
 
   Test the args! Make sure ash can parse them.

@@ -63,17 +63,22 @@ usage() {
 }
 
 
+ensure_perms() {
+    run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/${pkg}'"
+}
+
+
 build_sources() {
     for pkg in "${pkg_list[@]}"; do
         msg "Building source for ${pkg}";
-        run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/${pkg}'"
+        ensure_perms
         run_cmd "su - ${makepkg_nonpriv_user} -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
     done
 }
 
 
 sign_packages() {
-    run_cmd_no_output "find ${script_dir}/packages/${kernel_name} -iname '*$(kernel_version_full_no_hyphen ${kernel_version_full})-${pkgrel}*.pkg.tar.xz' | tr '\\n' ' '"
+    run_cmd_no_output "find ${script_dir}/packages/${kernel_name} -iname '*_${kernel_version}-${pkgrel}*.pkg.tar.xz' | tr '\\n' ' '"
     files="${run_cmd_output}"
     # debug "Found files: ${files}"
     for f in ${files}; do
@@ -89,73 +94,120 @@ sign_packages() {
     done
 }
 
-
-generate_package_files() {
-    debug "kernel_version_full: ${kernel_version_full}"
-    debug "kernel_mod_path: ${kernel_mod_path}"
-    debug "archzfs_package_group: ${archzfs_package_group}"
-    debug "header: ${header}"
+spl_debug_print() {
     debug "spl_pkgver: ${spl_pkgver}"
     debug "spl_pkgrel: ${spl_pkgrel}"
-    debug "zfs_pkgver: ${zfs_pkgver}"
-    debug "zfs_pkgrel: ${zfs_pkgrel}"
     debug "spl_makedepends: ${spl_makedepends}"
-    debug "zfs_makedepends: ${zfs_makedepends}"
-    debug "zol_version: ${zol_version}"
     debug "spl_utils_pkgname: ${spl_utils_pkgname}"
     debug "spl_pkgname: ${spl_pkgname}"
-    debug "zfs_utils_pkgname: ${zfs_utils_pkgname}"
-    debug "zfs_pkgname: ${zfs_pkgname}"
     debug "spl_utils_pkgbuild_path: ${spl_utils_pkgbuild_path}"
     debug "spl_pkgbuild_path: ${spl_pkgbuild_path}"
+    debug "spl_workdir: ${spl_workdir}"
+    debug "spl_src_target: ${spl_src_target}"
+    debug "spl_src_hash: ${spl_src_hash}"
+}
+
+zfs_debug_print() {
+    debug "zfs_pkgver: ${zfs_pkgver}"
+    debug "zfs_pkgrel: ${zfs_pkgrel}"
+    debug "zfs_makedepends: ${zfs_makedepends}"
+    debug "zfs_utils_pkgname: ${zfs_utils_pkgname}"
+    debug "zfs_pkgname: ${zfs_pkgname}"
     debug "zfs_utils_pkgbuild_path: ${zfs_utils_pkgbuild_path}"
     debug "zfs_pkgbuild_path: ${zfs_pkgbuild_path}"
     debug "zfs_workdir: ${zfs_workdir}"
     debug "zfs_src_target: ${zfs_src_target}"
     debug "zfs_src_hash: ${zfs_src_hash}"
-    debug "spl_workdir: ${spl_workdir}"
-    debug "spl_src_target: ${spl_src_target}"
-    debug "spl_src_hash: ${spl_src_hash}"
     debug "zfs_bash_completion_hash: ${zfs_bash_completion_hash}"
     debug "zfs_initcpio_install_hash: ${zfs_initcpio_install_hash}"
     debug "zfs_initcpio_hook_hash: ${zfs_initcpio_hook_hash}"
+}
 
-    # Make sure our target directory exists
-    run_cmd_no_output "[[ -d "${spl_utils_pkgbuild_path}" ]] || mkdir -p ${spl_utils_pkgbuild_path}"
-    run_cmd_no_output "[[ -d "${spl_pkgbuild_path}" ]] || mkdir -p ${spl_pkgbuild_path}"
-    run_cmd_no_output "[[ -d "${zfs_utils_pkgbuild_path}" ]] || mkdir -p ${zfs_utils_pkgbuild_path}"
-    run_cmd_no_output "[[ -d "${zfs_pkgbuild_path}" ]] || mkdir -p ${zfs_pkgbuild_path}"
+headers_debug_print() {
+    debug "spl_headers_pkgver: ${spl_headers_pkgver}"
+    debug "spl_headers_pkgrel: ${spl_headers_pkgrel}"
+    debug "spl_headers_pkgname: ${spl_headers_pkgname}"
+    debug "spl_headers_pkgbuild_path: ${spl_headers_pkgbuild_path}"
+    debug "zfs_headers_pkgver: ${zfs_headers_pkgver}"
+    debug "zfs_headers_pkgrel: ${zfs_headers_pkgrel}"
+    debug "zfs_headers_pkgname: ${zfs_headers_pkgname}"
+    debug "zfs_headers_pkgbuild_path: ${zfs_headers_pkgbuild_path}"
+}
 
-    # Finally, generate the update packages ...
-    msg2 "Creating spl-utils PKGBUILD"
-    run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
+generate_package_files() {
+    debug "kernel_version: ${kernel_version}"
+    debug "extramodules: ${extramodules}"
+    debug "archzfs_package_group: ${archzfs_package_group}"
+    debug "zol_version: ${zol_version}"
+    debug "header: ${header}"
 
-    msg2 "Creating spl PKGBUILD"
-    run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
-    msg2 "Creating spl.install"
-    run_cmd_no_output "source ${script_dir}/src/spl/spl.install.sh"
+    if [[ ! -z "${zfs_headers_pkgbuild_path}" ]] || [[ ! -z "${spl_headers_pkgbuild_path}" ]]; then
+        if [[ ! -z "${spl_headers_pkgbuild_path}" ]]; then
+            headers_debug_print
+            [[ -d "${spl_headers_pkgbuild_path}" ]] || mkdir -p "${spl_headers_pkgbuild_path}"
+            msg2 "Creating spl-headers PKGBUILD"
+            run_cmd_no_output "source ${script_dir}/src/spl-headers/PKGBUILD.sh"
+            run_cmd "cd ${script_dir}/${spl_headers_pkgbuild_path} && git --no-pager diff"
+        fi
+        if [[ ! -z "${zfs_headers_pkgbuild_path}" ]]; then
+            headers_debug_print
+            [[ -d "${zfs_headers_pkgbuild_path}" ]] || mkdir -p "${zfs_headers_pkgbuild_path}"
+            msg2 "Creating zfs-headers PKGBUILD"
+            run_cmd_no_output "source ${script_dir}/src/zfs-headers/PKGBUILD.sh"
+            run_cmd "cd ${script_dir}/${zfs_headers_pkgbuild_path} && git --no-pager diff"
+        fi
+    fi
 
-    msg2 "Creating zfs-utils PKGBUILD"
-    run_cmd_no_output "source ${script_dir}/src/zfs-utils/PKGBUILD.sh"
-    msg2 "Copying zfs-utils.install"
-    run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.install ${zfs_utils_pkgbuild_path}/zfs-utils.install"
-    msg2 "Copying zfs-utils.bash-completion"
-    run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1 ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
-    msg2 "Copying zfs-utils.initcpio.hook"
-    run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
-    msg2 "Copying zfs-utils.initcpio.install"
-    run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
+    # # Make sure our target directory exists
+    # if [[ ! -z "${spl_utils_pkgbuild_path}" ]] || [[ ! -z "${spl_pkgbuild_path}" ]]; then
+        # spl_debug_print
+        # if [[ ! -z "${spl_utils_pkgbuild_path}" ]]; then
+            # [[ -d "${spl_utils_pkgbuild_path}" ]] || mkdir -p "${spl_utils_pkgbuild_path}"
+            # # Finally, generate the update packages ...
+            # msg2 "Creating spl-utils PKGBUILD"
+            # run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
+        # fi
+        # if [[ ! -z "${spl_pkgbuild_path}" ]]; then
+            # [[ -d "${spl_pkgbuild_path}" ]] || mkdir -p "${spl_pkgbuild_path}"
+            # msg2 "Creating spl PKGBUILD"
+            # run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
+            # msg2 "Creating spl.install"
+            # run_cmd_no_output "source ${script_dir}/src/spl/spl.install.sh"
+        # fi
+    # fi
 
-    msg2 "Creating zfs PKGBUILD"
-    run_cmd_no_output "source ${script_dir}/src/zfs/PKGBUILD.sh"
-    msg2 "Creating zfs.install"
-    run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
+    # if [[ ! -z "${zfs_utils_pkgbuild_path}" ]] || [[ ! -z "${zfs_pkgbuild_path}" ]]; then
+        # zfs_debug_print
+        # if [[ ! -z "${zfs_utils_pkgbuild_path}" ]]; then
+            # [[ -d "${zfs_utils_pkgbuild_path}" ]] || mkdir -p "${zfs_utils_pkgbuild_path}"
+            # msg2 "Creating zfs-utils PKGBUILD"
+            # run_cmd_no_output "source ${script_dir}/src/zfs-utils/PKGBUILD.sh"
+            # msg2 "Copying zfs-utils.install"
+            # run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.install ${zfs_utils_pkgbuild_path}/zfs-utils.install"
+            # msg2 "Copying zfs-utils.bash-completion"
+            # run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1 ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
+            # msg2 "Copying zfs-utils.initcpio.hook"
+            # run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
+            # msg2 "Copying zfs-utils.initcpio.install"
+            # run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
+        # fi
+        # if [[ ! -z "${zfs_pkgbuild_path}" ]]; then
+            # [[ -d "${zfs_pkgbuild_path}" ]] || mkdir -p "${zfs_pkgbuild_path}"
+            # msg2 "Creating zfs PKGBUILD"
+            # run_cmd_no_output "source ${script_dir}/src/zfs/PKGBUILD.sh"
+            # msg2 "Creating zfs.install"
+            # run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
+        # fi
+    # fi
 
-    msg "Update diffs ..."
-    run_cmd "cd ${script_dir}/${spl_utils_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${script_dir}/${spl_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${script_dir}/${zfs_utils_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${script_dir}/${zfs_pkgbuild_path} && git --no-pager diff"
+    # if [[ ! -z "${zfs_utils_pkgbuild_path}" ]] || [[ ! -z "${zfs_pkgbuild_path}" ]]; then
+        # msg "Update diffs ..."
+        # run_cmd "cd ${script_dir}/${spl_utils_pkgbuild_path} && git --no-pager diff"
+        # run_cmd "cd ${script_dir}/${spl_pkgbuild_path} && git --no-pager diff"
+        # run_cmd "cd ${script_dir}/${zfs_utils_pkgbuild_path} && git --no-pager diff"
+        # run_cmd "cd ${script_dir}/${zfs_pkgbuild_path} && git --no-pager diff"
+    # fi
+    ensure_perms
 }
 
 
