@@ -8,6 +8,12 @@ Things To Do
 
   These tests will close #76 and #77
 
+* Sun Feb 12 15:57 2017: more scraper stuff
+
+  verify aur packages not flagged out of date
+
+  verify should check kernel pkgrel versions
+
 * Thu Sep 15 09:04 2016: test.sh mirrorlist should be regenerated after 24 hours
 
 * Sun May 29 09:37 2016: auto increment numbers when building test packages
