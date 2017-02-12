@@ -3,3 +3,6 @@
 *.log
 archiso/out/
 archiso/work/
+
+# TEMPORARY
+packages/linux/*-headers/
