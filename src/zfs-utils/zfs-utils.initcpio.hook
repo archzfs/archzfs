@@ -74,7 +74,7 @@ zfs_mount_handler () {
                 fi
                 ;;
             *)
-                mount -t zfs -o "zfsutil,${rwopt_exp}" "${dataset}" "${node}${mountpoint##${rootmnt}}"
+                mount -t zfs -o "zfsutil,${rwopt_exp}" "${dataset}" "${node}/${mountpoint##${rootmnt}}"
                 ;;
         esac
     done
