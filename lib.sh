@@ -424,11 +424,13 @@ check_webpage() {
     fi
 
     if [[ $(echo ${run_cmd_output} | \grep -q "504 Gateway Timeout"; echo $?) -eq 0 ]]; then
-        return -1
+        return 55
     elif [[ $(echo ${run_cmd_output} | \grep -q "503 Service Unavailable"; echo $?) -eq 0 ]]; then
-        return -1
+        return 55
     elif [[ ${run_cmd_output} == "RETVAL: 7" ]]; then
-        return -1
+        return 55
+    elif [[ ${run_cmd_return} -eq 7 ]]; then
+        return 55
     fi
 
     local scraped_string=$(echo "${run_cmd_output}" | \grep -Po -m 1 "${2}")
@@ -448,15 +450,17 @@ check_result() {
     # $1 current line
     # $2 changed line
     # $3 the return code from check_webpage
-    if [[ ${?} -eq 0 ]]; then
+    if [[ ${3} -eq 0 ]]; then
         msg2 "The $1 version is current."
-    elif [[ ${?} -eq 1 ]]; then
+        haz_error=0
+    elif [[ ${3} -eq 1 ]]; then
         error "The $2 is out-of-date!"
         haz_error=1
-    elif [[ ${?} -eq -1 ]]; then
+    elif [[ ${3} -eq 55 ]]; then
         warning "The $2 package page was unreachable!"
+        haz_error=0
     else
-        error "Check returned ${?}"
+        error "Check returned ${3}"
         haz_error=1
     fi
 }
