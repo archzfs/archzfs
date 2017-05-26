@@ -1,0 +1,103 @@
+From 112c80451d2997a5f0b5d89a0d76f07687676644 Mon Sep 17 00:00:00 2001
+From: Tim Chase <tim@chase2k.com>
+Date: Thu, 14 Aug 2014 08:06:47 -0500
+Subject: [PATCH] Add support for hole_birth
+
+If the com.delphix:hole_birth feature flag is set, the birth txg is
+stored in "hole" block pointers.  This patch updates the macros and the
+gang block-reading code to support the feature.
+---
+ grub-core/fs/zfs/zfs.c |  5 +++--
+ include/grub/zfs/spa.h | 23 +++++++++--------------
+ 2 files changed, 12 insertions(+), 16 deletions(-)
+
+diff --git a/grub-core/fs/zfs/zfs.c b/grub-core/fs/zfs/zfs.c
+index 279224a..568ff98 100644
+--- a/grub-core/fs/zfs/zfs.c
++++ b/grub-core/fs/zfs/zfs.c
+@@ -281,7 +281,8 @@ grub_crypto_cipher_handle_t (*grub_zfs_load_key) (const struct grub_zfs_key *key
+  */
+ #define MAX_SUPPORTED_FEATURE_STRLEN 50
+ static const char *spa_feature_names[] = {
+-  "org.illumos:lz4_compress",NULL
++  "org.illumos:lz4_compress",
++  "com.delphix:hole_birth",NULL
+ };
+ 
+ static int
+@@ -1749,7 +1750,7 @@ zio_read_gang (blkptr_t * bp, grub_zfs_endian_t endian, dva_t * dva, void *buf,
+ 
+   for (i = 0; i < SPA_GBH_NBLKPTRS; i++)
+     {
+-      if (zio_gb->zg_blkptr[i].blk_birth == 0)
++      if (BP_IS_HOLE(&zio_gb->zg_blkptr[i]))
+ 	continue;
+ 
+       err = zio_read_data (&zio_gb->zg_blkptr[i], endian, buf, data);
+diff --git a/include/grub/zfs/spa.h b/include/grub/zfs/spa.h
+index 7edb8ab..960f16f 100644
+--- a/include/grub/zfs/spa.h
++++ b/include/grub/zfs/spa.h
+@@ -185,9 +185,10 @@ typedef struct blkptr {
+  * Macros to get and set fields in a bp or DVA.
+  */
+ #define	DVA_GET_ASIZE(dva)	\
+-	BF64_GET_SB((dva)->dva_word[0], 0, 24, SPA_MINBLOCKSHIFT, 0)
++	BF64_GET_SB((dva)->dva_word[0], 0, SPA_ASIZEBITS, SPA_MINBLOCKSHIFT, 0)
+ #define	DVA_SET_ASIZE(dva, x)	\
+-	BF64_SET_SB((dva)->dva_word[0], 0, 24, SPA_MINBLOCKSHIFT, 0, x)
++	BF64_SET_SB((dva)->dva_word[0], 0, SPA_ASIZEBITS, \
++	SPA_MINBLOCKSHIFT, 0, x)
+ 
+ #define	DVA_GET_GRID(dva)	BF64_GET((dva)->dva_word[0], 24, 8)
+ #define	DVA_SET_GRID(dva, x)	BF64_SET((dva)->dva_word[0], 24, 8, x)
+@@ -199,9 +200,9 @@ typedef struct blkptr {
+ #define	DVA_SET_GANG(dva, x)	BF64_SET((dva)->dva_word[1], 63, 1, x)
+ 
+ #define	BP_GET_LSIZE(bp)	\
+-	BF64_GET_SB((bp)->blk_prop, 0, 16, SPA_MINBLOCKSHIFT, 1)
++	BF64_GET_SB((bp)->blk_prop, 0, SPA_LSIZEBITS, SPA_MINBLOCKSHIFT, 1)
+ #define	BP_SET_LSIZE(bp, x)	\
+-	BF64_SET_SB((bp)->blk_prop, 0, 16, SPA_MINBLOCKSHIFT, 1, x)
++	BF64_SET_SB((bp)->blk_prop, 0, SPA_LSIZEBITS, SPA_MINBLOCKSHIFT, 1, x)
+ 
+ #define	BP_GET_COMPRESS(bp)		BF64_GET((bp)->blk_prop, 32, 8)
+ #define	BP_SET_COMPRESS(bp, x)		BF64_SET((bp)->blk_prop, 32, 8, x)
+@@ -215,13 +216,10 @@ typedef struct blkptr {
+ #define	BP_GET_LEVEL(bp)		BF64_GET((bp)->blk_prop, 56, 5)
+ #define	BP_SET_LEVEL(bp, x)		BF64_SET((bp)->blk_prop, 56, 5, x)
+ 
+-#define	BP_GET_PROP_BIT_61(bp)		BF64_GET((bp)->blk_prop, 61, 1)
+-#define	BP_SET_PROP_BIT_61(bp, x)	BF64_SET((bp)->blk_prop, 61, 1, x)
+-
+ #define	BP_GET_DEDUP(bp)		BF64_GET((bp)->blk_prop, 62, 1)
+ #define	BP_SET_DEDUP(bp, x)		BF64_SET((bp)->blk_prop, 62, 1, x)
+ 
+-#define	BP_GET_BYTEORDER(bp)		(0 - BF64_GET((bp)->blk_prop, 63, 1))
++#define	BP_GET_BYTEORDER(bp)		BF64_GET((bp)->blk_prop, 63, 1)
+ #define	BP_SET_BYTEORDER(bp, x)		BF64_SET((bp)->blk_prop, 63, 1, x)
+ 
+ #define	BP_PHYSICAL_BIRTH(bp)		\
+@@ -246,11 +244,6 @@ typedef struct blkptr {
+ 	!!DVA_GET_ASIZE(&(bp)->blk_dva[1]) + \
+ 	!!DVA_GET_ASIZE(&(bp)->blk_dva[2]))
+ 
+-#define	BP_COUNT_GANG(bp)	\
+-	(DVA_GET_GANG(&(bp)->blk_dva[0]) + \
+-	DVA_GET_GANG(&(bp)->blk_dva[1]) + \
+-	DVA_GET_GANG(&(bp)->blk_dva[2]))
+-
+ #define	DVA_EQUAL(dva1, dva2)	\
+ 	((dva1)->dva_word[1] == (dva2)->dva_word[1] && \
+ 	(dva1)->dva_word[0] == (dva2)->dva_word[0])
+@@ -279,7 +272,9 @@ typedef struct blkptr {
+ 
+ #define	BP_IDENTITY(bp)		(&(bp)->blk_dva[0])
+ #define	BP_IS_GANG(bp)		DVA_GET_GANG(BP_IDENTITY(bp))
+-#define	BP_IS_HOLE(bp)		((bp)->blk_birth == 0)
++#define	DVA_IS_EMPTY(dva)	((dva)->dva_word[0] == 0ULL &&	\
++				(dva)->dva_word[1] == 0ULL)
++#define	BP_IS_HOLE(bp)		DVA_IS_EMPTY(BP_IDENTITY(bp))
+ 
+ /* BP_IS_RAIDZ(bp) assumes no block compression */
+ #define	BP_IS_RAIDZ(bp)		(DVA_GET_ASIZE(&(bp)->blk_dva[0]) > \
