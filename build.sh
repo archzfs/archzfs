@@ -156,6 +156,9 @@ generate_package_files() {
     run_cmd "cd ${script_dir}/${spl_pkgbuild_path} && git --no-pager diff"
     run_cmd "cd ${script_dir}/${zfs_utils_pkgbuild_path} && git --no-pager diff"
     run_cmd "cd ${script_dir}/${zfs_pkgbuild_path} && git --no-pager diff"
+
+    msg "Resetting ownership"
+    run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/'"
 }
 
 
