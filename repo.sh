@@ -107,7 +107,8 @@ repo_package_list() {
 
     # Get packages from the backup directory
     path="packages/${kernel_name}/{$(printf '%s,' ${pkg_list[@]} | cut -d ',' -f 1-${#pkg_list[@]})}/"
-    run_cmd_show_and_capture_output_no_dry_run "find ${path} -iname '*${kernel_version_full_pkgver}*.pkg.tar.xz'"
+    fcmd="find ${path} -iname '*${kernel_version_full_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_full_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+    run_cmd_show_and_capture_output_no_dry_run "${fcmd}"
     for pkg in ${run_cmd_output}; do
         pkgs+=(${pkg})
     done
