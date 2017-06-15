@@ -3,7 +3,7 @@ mode_name="lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
-pkgrel="1"
+pkgrel="2"
 kernel_version="4.9.31-1"
 
 # Kernel version for GIT packages
