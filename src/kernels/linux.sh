@@ -80,10 +80,10 @@ update_linux_git_pkgbuilds() {
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     spl_pkgrel=${pkgrel_git}
     zfs_pkgrel=${pkgrel_git}
-    spl_utils_conflicts="'spl-utils-linux' 'spl-utils-linux-lts'"
-    spl_conflicts="'spl-utils-linux' 'spl-utils-linux-lts'"
-    zfs_utils_conflicts="'zfs-utils-linux' 'zfs-utils-linux-lts'"
-    zfs_conflicts="'zfs-linux' 'zfs-linux-lts'"
+    spl_utils_conflicts="'spl-utils-linux' 'spl-utils-linux-lts' 'spl-utils-linux-lts-git'"
+    spl_conflicts="'spl-utils-linux' 'spl-utils-linux-lts' 'spl-utils-linux-lts-git'"
+    zfs_utils_conflicts="'zfs-utils-linux' 'zfs-utils-linux-lts' 'zfs-utils-linux-lts-git'"
+    zfs_conflicts="'zfs-linux' 'zfs-linux-lts' 'zfs-linux-lts-git'"
     spl_utils_pkgname="spl-utils-linux-git"
     spl_pkgname="spl-linux-git"
     zfs_utils_pkgname="zfs-utils-linux-git"

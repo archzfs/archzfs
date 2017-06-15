@@ -4,7 +4,15 @@ mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.9.30-1"
+kernel_version="4.9.31-1"
+
+# Kernel version for GIT packages
+pkgrel_git="${pkgrel}"
+kernel_version_git="${kernel_version}"
+zfs_git_commit=""
+spl_git_commit=""
+zfs_git_url="https://github.com/zfsonlinux/zfs.git"
+spl_git_url="https://github.com/zfsonlinux/spl.git"
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
@@ -25,33 +33,79 @@ header="\
 #
 #"
 
-update_linux_lts_pkgbuilds() {
-    pkg_list=("spl-utils-linux-lts" "spl-linux-lts" "zfs-utils-linux-lts" "zfs-linux-lts")
-    kernel_version_full=$(kernel_version_full ${kernel_version})
-    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
-    kernel_version_major=${kernel_version%-*}
+# update_linux_lts_pkgbuilds() {
+    # pkg_list=("spl-utils-linux-lts" "spl-linux-lts" "zfs-utils-linux-lts" "zfs-linux-lts")
+    # kernel_version_full=$(kernel_version_full ${kernel_version})
+    # kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
+    # kernel_version_major=${kernel_version%-*}
+    # kernel_mod_path="${kernel_version_full}-lts"
+    # archzfs_package_group="archzfs-linux-lts"
+    # spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    # zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    # spl_pkgrel=${pkgrel}
+    # zfs_pkgrel=${pkgrel}
+    # spl_utils_conflicts="'spl-utils-linux' 'spl-utils-linux-git' 'spl-utils-linux-lts-git'"
+    # spl_conflicts="'spl-utils-linux' 'spl-utils-linux-git' 'spl-linux-lts-git'"
+    # zfs_utils_conflicts="'zfs-utils-linux' 'zfs-utils-linux-git' 'zfs-utils-linux-lts-git'"
+    # zfs_conflicts="'zfs-linux' 'zfs-linux-git' 'zfs-linux-lts-git'"
+    # spl_utils_pkgname="spl-utils-linux-lts"
+    # spl_pkgname="spl-linux-lts"
+    # zfs_utils_pkgname="zfs-utils-linux-lts"
+    # zfs_pkgname="zfs-linux-lts"
+    # spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
+    # spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
+    # zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
+    # zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
+    # spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/spl-${zol_version}.tar.gz"
+    # zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
+    # spl_workdir="\${srcdir}/spl-${zol_version}"
+    # zfs_workdir="\${srcdir}/zfs-${zol_version}"
+    # linux_depends="\"linux-lts=${kernel_version_major}\""
+    # linux_headers_depends="\"linux-lts-headers=${kernel_version_major}\""
+# }
+
+update_linux_lts_git_pkgbuilds() {
+    pkg_list=("spl-utils-linux-lts-git" "spl-linux-lts-git" "zfs-utils-linux-lts-git" "zfs-linux-lts-git")
+    kernel_version=${kernel_version_git}
+    kernel_version_full=$(kernel_version_full ${kernel_version_git})
+    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version_git})
+    kernel_version_major=${kernel_version_git%-*}
     kernel_mod_path="${kernel_version_full}-lts"
-    archzfs_package_group="archzfs-linux-lts"
-    spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
-    zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
-    spl_pkgrel=${pkgrel}
-    zfs_pkgrel=${pkgrel}
-    spl_utils_conflicts="'spl-utils-linux' 'spl-utils-linux-git'"
-    spl_conflicts="'spl-utils-linux' 'spl-utils-linux-git'"
-    zfs_utils_conflicts="'zfs-utils-linux' 'zfs-utils-linux-git'"
-    zfs_conflicts="'zfs-linux' 'zfs-linux-git'"
-    spl_utils_pkgname="spl-utils-linux-lts"
-    spl_pkgname="spl-linux-lts"
-    zfs_utils_pkgname="zfs-utils-linux-lts"
-    zfs_pkgname="zfs-linux-lts"
+    archzfs_package_group="archzfs-linux-lts-git"
+    spl_pkgver="" # Set later by call to git_calc_pkgver
+    zfs_pkgver="" # Set later by call to git_calc_pkgver
+    spl_pkgrel=${pkgrel_git}
+    zfs_pkgrel=${pkgrel_git}
+    spl_utils_conflicts="'spl-utils-linux' 'spl-utils-linux-git' 'spl-utils-linux-lts'"
+    spl_conflicts="'spl-utils-linux' 'spl-utils-linux-git' 'spl-utils-linux-lts'"
+    zfs_utils_conflicts="'zfs-utils-linux' 'zfs-utils-linux-git' 'zfs-utils-linux-lts'"
+    zfs_conflicts="'zfs-linux' 'zfs-linux' 'zfs-git' 'zfs-linux-lts'"
+    spl_utils_pkgname="spl-utils-linux-lts-git"
+    spl_pkgname="spl-linux-lts-git"
+    zfs_utils_pkgname="zfs-utils-linux-lts-git"
+    zfs_pkgname="zfs-linux-lts-git"
     spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/spl-${zol_version}.tar.gz"
-    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
-    spl_workdir="\${srcdir}/spl-${zol_version}"
-    zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux-lts=${kernel_version_major}\""
-    linux_headers_depends="\"linux-lts-headers=${kernel_version_major}\""
+    spl_src_target="git+${spl_git_url}"
+    if [[ ${spl_git_commit} != "" ]]; then
+        spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
+    fi
+    spl_src_hash="SKIP"
+    linux_depends="\"linux-lts=${kernel_version_full}\""
+    linux_headers_depends="\"linux-lts-headers=${kernel_version_full}\""
+    spl_makedepends="\"git\""
+    zfs_src_target="git+${zfs_git_url}"
+    if [[ ${zfs_git_commit} != "" ]]; then
+        zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
+    fi
+    zfs_src_hash="SKIP"
+    zfs_makedepends="\"git\""
+    spl_workdir="\${srcdir}/spl"
+    zfs_workdir="\${srcdir}/zfs"
+    if have_command "update"; then
+        git_check_repo
+        git_calc_pkgver
+    fi
 }
