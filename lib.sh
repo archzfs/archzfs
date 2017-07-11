@@ -357,7 +357,7 @@ package_version_from_syncdb() {
 kernel_version_has_minor_version() {
     # $1: the kernel version
     # returns: 0 if the version contains a minor version and 1 if it does not
-    if [[ ${1} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]; then
+    if [[ ${1} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:alnum:]]+) ]]; then
         debug "kernel_version_has_minor_version: Have kernel with minor version!"
         return 0
     fi
