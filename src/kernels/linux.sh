@@ -33,7 +33,7 @@ header="\
 #"
 
 update_linux_pkgbuilds() {
-    pkg_list=("spl-utils-linux" "spl-linux" "zfs-utils-linux" "zfs-linux")
+    pkg_list=("spl-linux" "zfs-linux")
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
@@ -43,18 +43,14 @@ update_linux_pkgbuilds() {
     zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
-    spl_utils_conflicts="'spl-utils-linux-git' 'spl-utils-linux-lts'"
-    spl_conflicts="'spl-utils-linux-git' 'spl-utils-linux-lts'"
-    zfs_utils_conflicts="'zfs-utils-linux-git' 'zfs-utils-linux-lts'"
-    zfs_conflicts="'zfs-linux-git' 'zfs-linux-lts'"
-    spl_utils_pkgname="spl-utils-linux"
+    spl_conflicts="'spl-linux-lts-git'"
+    zfs_conflicts="'zfs-linux-lts-git'"
     spl_pkgname="spl-linux"
-    zfs_utils_pkgname="zfs-utils-linux"
+    spl_utils_pkgname="spl-utils-common"
     zfs_pkgname="zfs-linux"
+    zfs_utils_pkgname="zfs-utils-common"
     # Paths are relative to build.sh
-    spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
-    zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
     spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/spl-${zol_version}.tar.gz"
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
@@ -63,13 +59,11 @@ update_linux_pkgbuilds() {
     linux_depends="\"linux=${kernel_version_full}\""
     linux_headers_depends="\"linux-headers=${kernel_version_full}\""
     spl_replaces='replaces=("spl-git")'
-    spl_utils_replaces='replaces=("spl-utils-git")'
     zfs_replaces='replaces=("zfs-git")'
-    zfs_utils_replaces='replaces=("zfs-utils-git")'
 }
 
 update_linux_git_pkgbuilds() {
-    pkg_list=("spl-utils-linux-git" "spl-linux-git" "zfs-utils-linux-git" "zfs-linux-git")
+    pkg_list=("spl-linux-git" "zfs-linux-git")
     kernel_version=${kernel_version_git}
     kernel_version_full=$(kernel_version_full ${kernel_version_git})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version_git})
@@ -80,17 +74,13 @@ update_linux_git_pkgbuilds() {
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     spl_pkgrel=${pkgrel_git}
     zfs_pkgrel=${pkgrel_git}
-    spl_utils_conflicts="'spl-utils-linux' 'spl-utils-linux-lts' 'spl-utils-linux-lts-git'"
-    spl_conflicts="'spl-utils-linux' 'spl-utils-linux-lts' 'spl-utils-linux-lts-git'"
-    zfs_utils_conflicts="'zfs-utils-linux' 'zfs-utils-linux-lts' 'zfs-utils-linux-lts-git'"
-    zfs_conflicts="'zfs-linux' 'zfs-linux-lts' 'zfs-linux-lts-git'"
-    spl_utils_pkgname="spl-utils-linux-git"
+    spl_conflicts="'spl-linux'"
+    zfs_conflicts="'zfs-linux'"
     spl_pkgname="spl-linux-git"
-    zfs_utils_pkgname="zfs-utils-linux-git"
+    spl_utils_pkgname="spl-utils-common-git"
     zfs_pkgname="zfs-linux-git"
-    spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
+    zfs_utils_pkgname="zfs-utils-common-git"
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
-    zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
     spl_src_target="git+${spl_git_url}"
     if [[ ${spl_git_commit} != "" ]]; then
