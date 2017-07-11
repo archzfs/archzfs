@@ -11,7 +11,6 @@ arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("${spl_src_target}")
 sha256sums=("${spl_src_hash}")
-groups=("${archzfs_package_group}")
 license=("GPL")
 
 build() {
@@ -29,9 +28,10 @@ package_${spl_pkgname}() {
     depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
     install=spl.install
     provides=("spl")
+    groups=("${archzfs_package_group}")
     conflicts=(${spl_conflicts})
     ${spl_replaces}
-
+    
     cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install
     mv "\${pkgdir}/lib" "\${pkgdir}/usr/"
@@ -42,7 +42,7 @@ package_${spl_pkgname}() {
 
 package_${spl_pkgname}-headers() {
     pkgdesc="Solaris Porting Layer kernel headers."
-    conflicts=(${spl_conflicts})
+    conflicts=(${spl_headers_conflicts})
     
     cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install

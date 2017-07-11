@@ -43,8 +43,10 @@ update_linux_pkgbuilds() {
     zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
-    spl_conflicts="'spl-linux-lts-git'"
-    zfs_conflicts="'zfs-linux-lts-git'"
+    spl_conflicts="'spl-linux-git'"
+    spl_headers_conflicts="'spl-linux-git-headers' 'spl-linux-lts-headers' 'spl-linux-lts-git-headers' 'spl-linux-hardened-headers' 'spl-linux-hardened-git-headers'"
+    zfs_headers_conflicts="'zfs-linux-git-headers' 'zfs-linux-lts-headers' 'zfs-linux-lts-git-headers' 'zfs-linux-hardened-headers' 'zfs-linux-hardened-git-headers'"
+    zfs_conflicts="'zfs-linux-git'"
     spl_pkgname="spl-linux"
     spl_utils_pkgname="spl-utils-common"
     zfs_pkgname="zfs-linux"
@@ -76,6 +78,8 @@ update_linux_git_pkgbuilds() {
     spl_pkgrel=${pkgrel_git}
     zfs_pkgrel=${pkgrel_git}
     spl_conflicts="'spl-linux'"
+    spl_headers_conflicts="'spl-linux-headers' 'spl-linux-lts-headers' 'spl-linux-lts-git-headers' 'spl-linux-hardened-headers' 'spl-linux-hardened-git-headers'"
+    zfs_headers_conflicts="'zfs-linux-headers' 'zfs-linux-lts-headers' 'zfs-linux-lts-git-headers' 'zfs-linux-hardened-headers' 'zfs-linux-hardened-git-headers'"
     zfs_conflicts="'zfs-linux'"
     spl_pkgname="spl-linux-git"
     spl_utils_pkgname="spl-utils-common-git"

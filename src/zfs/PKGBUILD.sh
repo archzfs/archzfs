@@ -11,7 +11,6 @@ arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("${zfs_src_target}")
 sha256sums=("${zfs_src_hash}")
-groups=("${archzfs_package_group}")
 license=("CDDL")
 
 build() {
@@ -30,6 +29,7 @@ package_${zfs_pkgname}() {
     depends=("kmod" "${spl_pkgname}" "${zfs_utils_pkgname}" ${linux_depends})
     install=zfs.install
     provides=("zfs")
+    groups=("${archzfs_package_group}")
     conflicts=(${zfs_conflicts})
     ${zfs_replaces}
     
@@ -44,7 +44,7 @@ package_${zfs_pkgname}() {
 
 package_${zfs_pkgname}-headers() {
     pkgdesc="Kernel headers for the Zettabyte File System."
-    conflicts=(${zfs_conflicts})
+    conflicts=(${zfs_headers_conflicts})
     
     cd "${zfs_workdir}"
     make DESTDIR="\${pkgdir}" install
