@@ -54,3 +54,15 @@
 [submodule "packages/archiso/spl-archiso-linux"]
 	path = packages/archiso/spl-archiso-linux
 	url = ssh+git://aur@aur.archlinux.org/spl-archiso-linux.git
+[submodule "packages/linux-hardened/spl-linux-hardened"]
+	path = packages/linux-hardened/spl-linux-hardened
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-hardened.git
+[submodule "packages/linux-hardened/spl-utils-linux-hardened"]
+	path = packages/linux-hardened/spl-utils-linux-hardened
+	url = ssh+git://aur@aur.archlinux.org/spl-utils-linux-hardened.git
+[submodule "packages/linux-hardened/zfs-utils-linux-hardened"]
+	path = packages/linux-hardened/zfs-utils-linux-hardened
+	url = ssh+git://aur@aur.archlinux.org/zfs-utils-linux-hardened.git
+[submodule "packages/linux-hardened/zfs-linux-hardened"]
+	path = packages/linux-hardened/zfs-linux-hardened
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-hardened.git
