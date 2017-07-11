@@ -58,6 +58,7 @@ update_linux_lts_pkgbuilds() {
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
     linux_depends="\"linux-lts=${kernel_version_major}\""
     linux_headers_depends="\"linux-lts-headers=${kernel_version_major}\""
+    zfs_makedepends="\"${spl_pkgname}-headers\""
 }
 
 update_linux_lts_git_pkgbuilds() {
@@ -93,7 +94,7 @@ update_linux_lts_git_pkgbuilds() {
         zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
     fi
     zfs_src_hash="SKIP"
-    zfs_makedepends="\"git\""
+    zfs_makedepends="\"git\" \"${spl_pkgname}-headers\""
     spl_workdir="\${srcdir}/spl"
     zfs_workdir="\${srcdir}/zfs"
     if have_command "update"; then

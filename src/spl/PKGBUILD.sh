@@ -2,11 +2,10 @@
 
 cat << EOF > ${spl_pkgbuild_path}/PKGBUILD
 ${header}
-pkgname="${spl_pkgname}"
+pkgbase="${spl_pkgname}"
+pkgname=("${spl_pkgname}" "${spl_pkgname}-headers")
 pkgver=${spl_pkgver}
 pkgrel=${spl_pkgrel}
-pkgdesc="Solaris Porting Layer kernel modules."
-depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
 makedepends=(${linux_headers_depends} ${spl_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
@@ -14,10 +13,6 @@ source=("${spl_src_target}")
 sha256sums=("${spl_src_hash}")
 groups=("${archzfs_package_group}")
 license=("GPL")
-install=spl.install
-provides=("spl")
-conflicts=(${spl_conflicts})
-${spl_replaces}
 
 build() {
     cd "${spl_workdir}"
@@ -29,13 +24,34 @@ build() {
     make
 }
 
-package() {
+package_${spl_pkgname}() {
+    pkgdesc="Solaris Porting Layer kernel modules."
+    depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
+    install=spl.install
+    provides=("spl")
+    conflicts=(${spl_conflicts})
+    ${spl_replaces}
+
     cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install
     mv "\${pkgdir}/lib" "\${pkgdir}/usr/"
+    
+    # Remove src dir
+    rm -r "\${pkgdir}"/usr/src
+}
+
+package_${spl_pkgname}-headers() {
+    pkgdesc="Solaris Porting Layer kernel headers."
+    conflicts=(${spl_conflicts})
+    
+    cd "${spl_workdir}"
+    make DESTDIR="\${pkgdir}" install
+    rm -r "\${pkgdir}/lib"
+    
     # Remove reference to \${srcdir}
     sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/spl-*/${kernel_mod_path}/Module.symvers
 }
+
 EOF
 
 pkgbuild_cleanup "${spl_pkgbuild_path}/PKGBUILD"

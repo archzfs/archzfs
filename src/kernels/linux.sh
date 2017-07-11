@@ -60,6 +60,7 @@ update_linux_pkgbuilds() {
     linux_headers_depends="\"linux-headers=${kernel_version_full}\""
     spl_replaces='replaces=("spl-git")'
     zfs_replaces='replaces=("zfs-git")'
+    zfs_makedepends="\"${spl_pkgname}-headers\""
 }
 
 update_linux_git_pkgbuilds() {
@@ -95,7 +96,7 @@ update_linux_git_pkgbuilds() {
         zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
     fi
     zfs_src_hash="SKIP"
-    zfs_makedepends="\"git\""
+    zfs_makedepends="\"git\" \"${spl_pkgname}-headers\""
     spl_workdir="\${srcdir}/spl"
     zfs_workdir="\${srcdir}/zfs"
     if have_command "update"; then
