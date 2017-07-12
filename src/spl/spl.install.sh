@@ -15,6 +15,6 @@ post_upgrade() {
 
 run_depmod() {
     echo ">>> Updating SPL module dependencies"
-    depmod -a ${kernel_mod_path}
+    depmod -a \$(cat /usr/lib/modules/${kernel_mod_path}/version)
 }
 EOF

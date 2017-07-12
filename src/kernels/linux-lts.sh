@@ -4,11 +4,13 @@ mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.9.51-1"
+kernel_version="4.9"
+kernel_version_max=$(echo ${kernel_version}| awk -F. '{print $1"."$2+1}')
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
 kernel_version_git="${kernel_version}"
+kernel_version_max_git="${kernel_version_max}"
 zfs_git_commit=""
 spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
@@ -35,13 +37,11 @@ header="\
 
 update_linux_lts_pkgbuilds() {
     pkg_list=("spl-linux-lts" "zfs-linux-lts")
-    kernel_version_full=$(kernel_version_full ${kernel_version})
-    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
-    kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full}-lts"
+    kernel_mod_path="extramodules-${kernel_version}-lts"
     archzfs_package_group="archzfs-linux-lts"
-    spl_pkgver=${zol_version}.${kernel_version_full_pkgver}
-    zfs_pkgver=${zol_version}.${kernel_version_full_pkgver}
+    kernel_version_full=$(kernel_version_full ${kernel_version})
+    spl_pkgver=${zol_version}.${kernel_version_full}
+    zfs_pkgver=${zol_version}.${kernel_version_full}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_conflicts="'spl-linux-lts-git'"
@@ -57,8 +57,8 @@ update_linux_lts_pkgbuilds() {
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux-lts=${kernel_version_major}\""
-    linux_headers_depends="\"linux-lts-headers=${kernel_version_major}\""
+    linux_depends="\"linux-lts>=${kernel_version}\" \"linux-lts<${kernel_version_max}\""
+    linux_headers_depends="\"linux-lts-headers>=${kernel_version}\" \"linux-lts-headers<${kernel_version_max}\""
     spl_makedepends="\"libelf\""
     zfs_makedepends="\"libelf\" \"${spl_pkgname}-headers\""
 }
@@ -66,11 +66,9 @@ update_linux_lts_pkgbuilds() {
 update_linux_lts_git_pkgbuilds() {
     pkg_list=("spl-linux-lts-git" "zfs-linux-lts-git")
     kernel_version=${kernel_version_git}
-    kernel_version_full=$(kernel_version_full ${kernel_version})
-    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
-    kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full}-lts"
+    kernel_mod_path="extramodules-${kernel_version}-lts"
     archzfs_package_group="archzfs-linux-lts-git"
+    kernel_version_full=$(kernel_version_full ${kernel_version})
     spl_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     spl_pkgrel=${pkgrel_git}
@@ -86,8 +84,8 @@ update_linux_lts_git_pkgbuilds() {
         spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
     fi
     spl_src_hash="SKIP"
-    linux_depends="\"linux-lts=${kernel_version_full}\""
-    linux_headers_depends="\"linux-lts-headers=${kernel_version_full}\""
+    linux_depends="\"linux-lts>=${kernel_version}\" \"linux-lts<${kernel_version_max}\""
+    linux_headers_depends="\"linux-lts-headers>=${kernel_version}\" \"linux-lts-headers<${kernel_version_max}\""
     spl_makedepends="\"libelf\" \"git\""
     zfs_src_target="git+${zfs_git_url}"
     if [[ ${zfs_git_commit} != "" ]]; then

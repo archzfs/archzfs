@@ -366,33 +366,25 @@ kernel_version_has_minor_version() {
 }
 
 
-# Returns the full kernel version. If $1 is "3.14-1" then kernel_version_full returns "3.14.0-1".
+# Returns the full kernel version. If $1 is "3.14" then kernel_version_full returns "3.14.0".
 kernel_version_full() {
     # $1: the kernel version
     local arg=$1
     if ! kernel_version_has_minor_version $1; then
         debug "kernel_version_full: Have kernel without minor version!"
-        if [[ ${1} =~ ^([[:digit:]]+\.[[:digit:]]+)\.?([[:alpha:][:digit:]]+)?\-([[:digit:]]+) ]]; then
+        if [[ ${1} =~ ^([[:digit:]]+\.[[:digit:]]+)\.?([[:alpha:][:digit:]]+)? ]]; then
             local arg=${BASH_REMATCH[1]}
             local minor=${BASH_REMATCH[2]}
             local rev=${BASH_REMATCH[3]}
             if [[ ${minor} =~ ^[[:alpha:]]+ ]]; then
-                printf "${arg}.0.${minor}-${rev}"
+                printf "${arg}.0.${minor}"
                 return 0
             fi
         fi
-        printf "${arg}.0-${rev}"
+        printf "${arg}.0"
         return 0
     fi
     printf ${arg}
-}
-
-
-# Returns the full kernel version. If $1 is "3.14-1" then kernel_version_full returns "3.14.0_1".
-kernel_version_full_no_hyphen() {
-    # $1: The full kernel version
-    # returns: output is printed to stdout
-    echo $(kernel_version_full ${1} | sed s/-/./g)
 }
 
 # from makepkg
@@ -803,7 +795,7 @@ git_calc_pkgver() {
     for repo in "spl" "zfs"; do
         msg2 "Cloning working copy for ${repo}"
         local sha=${spl_git_commit}
-        local kernvers=${kernel_version_full_pkgver}
+        local kernvers=${kernel_version_full}
         if [[ ${repo} =~ ^zfs ]]; then
             sha=${zfs_git_commit}
         fi
