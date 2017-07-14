@@ -744,8 +744,14 @@ git_calc_pkgver() {
         if [[ ${repo} =~ ^zfs ]]; then
             sha=${zfs_git_commit}
         fi
-
-        pkg=$(eval "echo \${${repo}_pkgname}")
+        
+        # use utils package, if no kernel version is set
+        if [ -z "${kernvers}" ]; then
+            pkg=$(eval "echo \${${repo}_utils_pkgname}")
+        else
+            pkg=$(eval "echo \${${repo}_pkgname}")
+        fi
+            
         debug "Using package '${pkg}'"
 
         # Checkout the git repo to a work directory
@@ -760,7 +766,14 @@ git_calc_pkgver() {
         # Get the version number past the last tag
         msg2 "Calculating PKGVER"
         cmd="cd temp/${repo} && "
-        cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')_${kernvers}"
+        
+        # append kernel version if set
+        if [ ! -z "${kernvers}" ]; then
+            cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')_${kernvers}"
+        else
+            cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')"
+        fi
+        
         run_cmd_no_output_no_dry_run "${cmd}"
 
         if [[ ${repo} =~ ^spl ]]; then

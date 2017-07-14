@@ -6,25 +6,10 @@
 	path = packages/linux-lts/zfs-linux-lts
 	url = ssh+git://aur@aur.archlinux.org/zfs-linux-lts.git
 	branch = master
-[submodule "zfs-utils-linux-lts"]
-	path = packages/linux-lts/zfs-utils-linux-lts
-	url = ssh+git://aur@aur.archlinux.org/zfs-utils-linux-lts.git
-	branch = master
-[submodule "zfs-utils-linux-git"]
-	path = packages/linux/zfs-utils-linux-git
-	url = ssh+git://aur@aur.archlinux.org/zfs-utils-linux-git.git
-	branch = master
 [submodule "spl-linux-git"]
 	path = packages/linux/spl-linux-git
 	url = ssh+git://aur@aur.archlinux.org/spl-linux-git.git
 	branch = master
-[submodule "spl-utils-linux-git"]
-	path = packages/linux/spl-utils-linux-git
-	url = ssh+git://aur@aur.archlinux.org/spl-utils-linux-git.git
-	branch = master
-[submodule "spl-utils-linux-lts"]
-	path = packages/linux-lts/spl-utils-linux-lts
-	url = ssh+git://aur@aur.archlinux.org/spl-utils-linux-lts.git
 	branch = master
 [submodule "spl-linux-lts"]
 	path = packages/linux-lts/spl-linux-lts
@@ -33,36 +18,18 @@
 [submodule "zfs-linux"]
 	path = packages/linux/zfs-linux
 	url = ssh+git://aur@aur.archlinux.org/zfs-linux.git
-[submodule "zfs-utils-linux"]
-	path = packages/linux/zfs-utils-linux
-	url = ssh+git://aur@aur.archlinux.org/zfs-utils-linux.git
-[submodule "spl-utils-linux"]
-	path = packages/linux/spl-utils-linux
-	url = ssh+git://aur@aur.archlinux.org/spl-utils-linux.git
 [submodule "spl-linux"]
 	path = packages/linux/spl-linux
 	url = ssh+git://aur@aur.archlinux.org/spl-linux.git
 [submodule "packages/archiso/zfs-archiso-linux"]
 	path = packages/archiso/zfs-archiso-linux
 	url = ssh+git://aur@aur.archlinux.org/zfs-archiso-linux.git
-[submodule "packages/archiso/zfs-utils-archiso-linux"]
-	path = packages/archiso/zfs-utils-archiso-linux
-	url = ssh+git://aur@aur.archlinux.org/zfs-utils-archiso-linux.git
-[submodule "packages/archiso/spl-utils-archiso-linux"]
-	path = packages/archiso/spl-utils-archiso-linux
-	url = ssh+git://aur@aur.archlinux.org/spl-utils-archiso-linux.git
 [submodule "packages/archiso/spl-archiso-linux"]
 	path = packages/archiso/spl-archiso-linux
 	url = ssh+git://aur@aur.archlinux.org/spl-archiso-linux.git
 [submodule "packages/linux-hardened/spl-linux-hardened"]
 	path = packages/linux-hardened/spl-linux-hardened
 	url = ssh+git://aur@aur.archlinux.org/spl-linux-hardened.git
-[submodule "packages/linux-hardened/spl-utils-linux-hardened"]
-	path = packages/linux-hardened/spl-utils-linux-hardened
-	url = ssh+git://aur@aur.archlinux.org/spl-utils-linux-hardened.git
-[submodule "packages/linux-hardened/zfs-utils-linux-hardened"]
-	path = packages/linux-hardened/zfs-utils-linux-hardened
-	url = ssh+git://aur@aur.archlinux.org/zfs-utils-linux-hardened.git
 [submodule "packages/linux-hardened/zfs-linux-hardened"]
 	path = packages/linux-hardened/zfs-linux-hardened
 	url = ssh+git://aur@aur.archlinux.org/zfs-linux-hardened.git

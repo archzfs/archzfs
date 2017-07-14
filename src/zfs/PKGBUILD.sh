@@ -2,22 +2,16 @@
 
 cat << EOF > ${zfs_pkgbuild_path}/PKGBUILD
 ${header}
-pkgname="${zfs_pkgname}"
+pkgbase="${zfs_pkgname}"
+pkgname=("${zfs_pkgname}" "${zfs_pkgname}-headers")
 pkgver=${zfs_pkgver}
 pkgrel=${zfs_pkgrel}
-pkgdesc="Kernel modules for the Zettabyte File System."
-depends=("kmod" "${spl_pkgname}" "${zfs_utils_pkgname}" ${linux_depends})
 makedepends=(${linux_headers_depends} ${zfs_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("${zfs_src_target}")
 sha256sums=("${zfs_src_hash}")
-groups=("${archzfs_package_group}")
 license=("CDDL")
-install=zfs.install
-provides=("zfs")
-conflicts=(${zfs_conflicts})
-${zfs_replaces}
 
 build() {
     cd "${zfs_workdir}"
@@ -30,14 +24,36 @@ build() {
     make
 }
 
-package() {
+package_${zfs_pkgname}() {
+    pkgdesc="Kernel modules for the Zettabyte File System."
+    depends=("kmod" "${spl_pkgname}" "${zfs_utils_pkgname}" ${linux_depends})
+    install=zfs.install
+    provides=("zfs")
+    groups=("${archzfs_package_group}")
+    conflicts=(${zfs_conflicts})
+    ${zfs_replaces}
+    
     cd "${zfs_workdir}"
     make DESTDIR="\${pkgdir}" install
     cp -r "\${pkgdir}"/{lib,usr}
     rm -r "\${pkgdir}"/lib
+    
+    # Remove src dir
+    rm -r "\${pkgdir}"/usr/src
+}
+
+package_${zfs_pkgname}-headers() {
+    pkgdesc="Kernel headers for the Zettabyte File System."
+    conflicts=(${zfs_headers_conflicts})
+    
+    cd "${zfs_workdir}"
+    make DESTDIR="\${pkgdir}" install
+    rm -r "\${pkgdir}/lib"
+    
     # Remove reference to \${srcdir}
     sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/zfs-*/${kernel_mod_path}/Module.symvers
 }
+
 EOF
 
 pkgbuild_cleanup "${zfs_pkgbuild_path}/PKGBUILD"
