@@ -53,6 +53,7 @@ zfs_mount_handler () {
     fi
 
     local node="$1"
+    local rootmnt=$(zfs get -H -o value mountpoint "${ZFS_DATASET}")
     local tab_file="${node}/etc/fstab"
     local zfs_datasets="$(zfs list -H -o name -t filesystem -r ${ZFS_DATASET})"
 
@@ -73,7 +74,7 @@ zfs_mount_handler () {
                 fi
                 ;;
             *)
-                mount -t zfs -o "zfsutil,${rwopt_exp}" "${dataset}" "${node}${mountpoint}"
+                mount -t zfs -o "zfsutil,${rwopt_exp}" "${dataset}" "${node}/${mountpoint##${rootmnt}}"
                 ;;
         esac
     done
