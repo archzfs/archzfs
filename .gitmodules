@@ -40,3 +40,15 @@
 [submodule "packages/linux-hardened/spl-linux-hardened-git"]
 	path = packages/linux-hardened/spl-linux-hardened-git
 	url = ssh+git://aur@aur.archlinux.org/spl-linux-hardened-git.git
+[submodule "packages/common/spl-utils-common"]
+	path = packages/common/spl-utils-common
+	url = ssh+git://aur@aur.archlinux.org/spl-utils-common.git
+[submodule "packages/common/zfs-utils-common"]
+	path = packages/common/zfs-utils-common
+	url = ssh+git://aur@aur.archlinux.org/zfs-utils-common.git
+[submodule "packages/common/zfs-utils-common-git"]
+	path = packages/common/zfs-utils-common-git
+	url = ssh+git://aur@aur.archlinux.org/zfs-utils-common-git.git
+[submodule "packages/common/spl-utils-common-git"]
+	path = packages/common/spl-utils-common-git
+	url = ssh+git://aur@aur.archlinux.org/spl-utils-common-git.git
