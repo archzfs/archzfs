@@ -34,3 +34,9 @@
 [submodule "packages/linux-lts/zfs-linux-lts-git"]
 	path = packages/linux-lts/zfs-linux-lts-git
 	url = ssh+git://aur@aur.archlinux.org/zfs-linux-lts-git.git
+[submodule "packages/linux-hardened/zfs-linux-hardened-git"]
+	path = packages/linux-hardened/zfs-linux-hardened-git
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-hardened-git.git
+[submodule "packages/linux-hardened/spl-linux-hardened-git"]
+	path = packages/linux-hardened/spl-linux-hardened-git
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-hardened-git.git

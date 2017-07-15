@@ -4,7 +4,7 @@ mode_desc="Select and use the packages for the linux-hardened kernel"
 
 # Kernel versions for hardened packages
 pkgrel="1"
-kernel_version="4.12.e-1"
+kernel_version="4.12.1.b-1"
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
@@ -63,46 +63,46 @@ update_linux_hardened_pkgbuilds() {
     zfs_makedepends="\"${spl_pkgname}-headers\""
 }
 
-# update_linux_hardened_git_pkgbuilds() {
-#     pkg_list=("spl-linux-hardened-git" "zfs-linux-hardened-git")
-#     kernel_version=${kernel_version_git}
-#     kernel_version_full=$(kernel_version_full ${kernel_version_git})
-#     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version_git})
-#     kernel_version_major=${kernel_version_git%-*}
-#     kernel_mod_path="${kernel_version_full/\.[a-z]/}-hardened"
-#     archzfs_package_group="archzfs-linux-hardened-git"
-#     spl_pkgver="" # Set later by call to git_calc_pkgver
-#     zfs_pkgver="" # Set later by call to git_calc_pkgver
-#     spl_pkgrel=${pkgrel_git}
-#     zfs_pkgrel=${pkgrel_git}
-#     spl_conflicts="'spl-linux-hardened'"
-#     spl_headers_conflicts="'spl-linux-hardened-headers' 'spl-linux-lts-headers' 'spl-linux-lts-git-headers' 'spl-linux-headers' 'spl-linux-git-headers'"
-#     zfs_headers_conflicts="'zfs-linux-hardened-headers' 'zfs-linux-lts-headers' 'zfs-linux-lts-git-headers' 'zfs-linux-headers' 'zfs-linux-git-headers'"
-#     zfs_conflicts="'zfs-linux-hardened'"
-#     spl_utils_pkgname="spl-utils-common-git"
-#     spl_pkgname="spl-linux-hardened-git"
-#     zfs_utils_pkgname="zfs-utils-common-git"
-#     zfs_pkgname="zfs-linux-hardened-git"
-#     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
-#     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-#     spl_src_target="git+${spl_git_url}"
-#     if [[ ${spl_git_commit} != "" ]]; then
-#         spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
-#     fi
-#     spl_src_hash="SKIP"
-#     linux_depends="\"linux-hardened=${kernel_version}\""
-#     linux_headers_depends="\"linux-hardened-headers=${kernel_version}\""
-#     spl_makedepends="\"git\""
-#     zfs_src_target="git+${zfs_git_url}"
-#     if [[ ${zfs_git_commit} != "" ]]; then
-#         zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
-#     fi
-#     zfs_src_hash="SKIP"
-#     zfs_makedepends="\"git\" \"${spl_pkgname}-headers\""
-#     spl_workdir="\${srcdir}/spl"
-#     zfs_workdir="\${srcdir}/zfs"
-#     if have_command "update"; then
-#         git_check_repo
-#         git_calc_pkgver
-#     fi
-# }
+update_linux_hardened_git_pkgbuilds() {
+    pkg_list=("spl-linux-hardened-git" "zfs-linux-hardened-git")
+    kernel_version=${kernel_version_git}
+    kernel_version_full=$(kernel_version_full ${kernel_version_git})
+    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version_git})
+    kernel_version_major=${kernel_version_git%-*}
+    kernel_mod_path="${kernel_version_full/\.[a-z]/}-hardened"
+    archzfs_package_group="archzfs-linux-hardened-git"
+    spl_pkgver="" # Set later by call to git_calc_pkgver
+    zfs_pkgver="" # Set later by call to git_calc_pkgver
+    spl_pkgrel=${pkgrel_git}
+    zfs_pkgrel=${pkgrel_git}
+    spl_conflicts="'spl-linux-hardened'"
+    spl_headers_conflicts="'spl-linux-hardened-headers' 'spl-linux-lts-headers' 'spl-linux-lts-git-headers' 'spl-linux-headers' 'spl-linux-git-headers'"
+    zfs_headers_conflicts="'zfs-linux-hardened-headers' 'zfs-linux-lts-headers' 'zfs-linux-lts-git-headers' 'zfs-linux-headers' 'zfs-linux-git-headers'"
+    zfs_conflicts="'zfs-linux-hardened'"
+    spl_utils_pkgname="spl-utils-common-git"
+    spl_pkgname="spl-linux-hardened-git"
+    zfs_utils_pkgname="zfs-utils-common-git"
+    zfs_pkgname="zfs-linux-hardened-git"
+    spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
+    zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
+    spl_src_target="git+${spl_git_url}"
+    if [[ ${spl_git_commit} != "" ]]; then
+        spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
+    fi
+    spl_src_hash="SKIP"
+    linux_depends="\"linux-hardened=${kernel_version}\""
+    linux_headers_depends="\"linux-hardened-headers=${kernel_version}\""
+    spl_makedepends="\"git\""
+    zfs_src_target="git+${zfs_git_url}"
+    if [[ ${zfs_git_commit} != "" ]]; then
+        zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
+    fi
+    zfs_src_hash="SKIP"
+    zfs_makedepends="\"git\" \"${spl_pkgname}-headers\""
+    spl_workdir="\${srcdir}/spl"
+    zfs_workdir="\${srcdir}/zfs"
+    if have_command "update"; then
+        git_check_repo
+        git_calc_pkgver
+    fi
+}
