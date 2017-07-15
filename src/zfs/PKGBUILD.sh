@@ -12,6 +12,7 @@ url="http://zfsonlinux.org/"
 source=("${zfs_src_target}")
 sha256sums=("${zfs_src_hash}")
 license=("CDDL")
+depends=("kmod" "${spl_pkgname}" "${zfs_utils_pkgname}" ${linux_depends})
 
 build() {
     cd "${zfs_workdir}"
@@ -26,7 +27,6 @@ build() {
 
 package_${zfs_pkgname}() {
     pkgdesc="Kernel modules for the Zettabyte File System."
-    depends=("kmod" "${spl_pkgname}" "${zfs_utils_pkgname}" ${linux_depends})
     install=zfs.install
     provides=("zfs")
     groups=("${archzfs_package_group}")
