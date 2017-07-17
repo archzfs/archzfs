@@ -2,6 +2,10 @@
 Things To Do
 ============
 
+* Mon Jul 17 00:30 2017: Finish documenting how to run tests in testing/README.rst
+
+* Mon Jul 17 00:30 2017: Add tests for lts-git
+
 * Sat Sep 17 01:16 2016: ADD TESTS for run_hook
 
   Test the args! Make sure ash can parse them.

@@ -28,13 +28,15 @@ archiso_build() {
     msg "Building the archiso if required"
     local build_archiso=0
     # Check the linux-lts version last used in the archiso
-    run_cmd_no_output "cat ${script_dir}/../archiso/work/iso/arch/pkglist.x86_64.txt 2> /dev/null | grep linux-lts | grep -oP '(?<=core/linux-lts-).*$'"
+    msg2 "Checking for previous archiso build"
+    run_cmd_no_output_no_dry_run "cat ${script_dir}/../archiso/work/iso/arch/pkglist.x86_64.txt 2> /dev/null | grep linux-lts | grep -oP '(?<=core/linux-lts-).*$'"
     if [[ ${run_cmd_return} -ne 0 ]]; then
         build_archiso=1
-    elif [[ ! -f "$(find ${packer_work_dir} -maxdepth 1 -name 'archlinux*.iso' -print -quit)" ]]; then
+    elif [[ "$(find ${packer_work_dir} -maxdepth 1 -name 'archlinux*.iso' -print -quit &> /dev/null; echo $?)" -eq 1 ]]; then
         msg2 "archzfs archiso does not exist!"
         build_archiso=1
     else
+        # Make sure the archiso packages in the archiso are the current version
         current_archiso_lts_vers="${run_cmd_output}"
         debug "current_archiso_lts_vers: ${current_archiso_lts_vers}"
         if ! check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "${current_archiso_lts_vers}"; then
@@ -49,16 +51,19 @@ archiso_build() {
     fi
 
     # Ensure no mounts exist in archiso output directories, exit if mounts are detected
-    run_cmd "mount | grep airootfs"
+    run_cmd_no_output_no_dry_run "mount | grep airootfs"
+
     if [[ ${run_cmd_return} -eq 0 ]]; then
         error "airootfs bind mounds detected! Please unmount before continuing!"
         exit 1
     fi
 
     # Delete the working directories since we are out-of-date
-    run_cmd_no_output "rm -rf ${script_dir}/../archiso/out ${script_dir}/../archiso/work ${packer_work_dir}/*.iso"
+    run_cmd_no_output_no_dry_run "rm -rf ${script_dir}/../archiso/out ${script_dir}/../archiso/work ${packer_work_dir}/*.iso"
 
+    cd ${packer_work_dir}
     source_safe "${test_mode}/conf.sh" && source_safe "${test_mode}/archiso.sh" && test_build_archiso
+    cd -
 }
 
 
@@ -170,50 +175,50 @@ if [[ "${test_mode}" != "" ]]; then
     msg "Building arch base image"
 
     if [[ ! -d "${packer_work_dir}" ]]; then
-        run_cmd "mkdir -p ${packer_work_dir}"
+        run_cmd_no_output_no_dry_run "mkdir -p ${packer_work_dir}"
     fi
 
     if [[ -d "${packer_work_dir}/output-qemu" ]]; then
         msg2 "Deleting '${packer_work_dir}/output-qemu' because it should not exist"
-        run_cmd "rm -rf ${packer_work_dir}/output-qemu"
+        run_cmd_no_dry_run "rm -rf ${packer_work_dir}/output-qemu"
     fi
 
     if [[ ! -d "${packer_work_dir}" ]]; then
         msg2 "Creating '${packer_work_dir}' because it does not exist"
-        run_cmd "mkdir ${packer_work_dir}"
+        run_cmd_no_output_no_dry_run "mkdir ${packer_work_dir}"
     fi
 
     # Clear out everything except packer_cache and the archiso
-    run_cmd "find ${packer_work_dir} -mindepth 1 ! -iname 'mirrorlist' ! -iname 'archlinux*.iso' ! -iname 'packer_cache' -exec rm -rf {} \;"
+    run_cmd_no_dry_run "find ${packer_work_dir} -mindepth 1 ! -iname 'mirrorlist' ! -iname 'archlinux*.iso' ! -iname 'packer_cache' -exec rm -rf {} \;"
 
     if [[ ! -f "${packer_work_dir}/mirrorlist" ]]; then
         msg2 "Generating pacman mirrorlist"
-        run_cmd "/usr/bin/reflector -c US -l 5 -f 5 --sort rate 2>&1 > ${packer_work_dir}/mirrorlist"
+        run_cmd_no_dry_run "/usr/bin/reflector -c US -l 5 -f 5 --sort rate 2>&1 > ${packer_work_dir}/mirrorlist"
     fi
 
     msg2 "Using packer to build the base image ..."
 
     # Base files
-    run_cmd "check_symlink '${script_dir}/tests/archzfs-qemu-base/packages' '${packer_work_dir}/packages'"
-    run_cmd "check_symlink '${script_dir}/tests/archzfs-qemu-base/packer.json' '${packer_work_dir}/packer.json'"
-    run_cmd "check_symlink '${script_dir}/tests/archzfs-qemu-base/setup.sh' '${packer_work_dir}/setup.sh'"
-    run_cmd "check_symlink '${script_dir}/../lib.sh' '${packer_work_dir}/lib.sh'"
-    run_cmd "check_symlink '${script_dir}/../conf.sh' '${packer_work_dir}/archzfs-conf.sh'"
-    run_cmd "check_symlink '${script_dir}/files/poweroff.timer' '${packer_work_dir}/poweroff.timer'"
+    run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/archzfs-qemu-base/packages' '${packer_work_dir}/packages'"
+    run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/archzfs-qemu-base/packer.json' '${packer_work_dir}/packer.json'"
+    run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/archzfs-qemu-base/setup.sh' '${packer_work_dir}/setup.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/../lib.sh' '${packer_work_dir}/lib.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/../conf.sh' '${packer_work_dir}/archzfs-conf.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/files/poweroff.timer' '${packer_work_dir}/poweroff.timer'"
 
     # Test files
-    run_cmd "check_symlink '${test_mode}/archiso.sh' '${packer_work_dir}/test-archiso.sh'"
-    run_cmd "check_symlink '${test_mode}/boot.sh' '${packer_work_dir}/test-boot.sh'"
-    run_cmd "check_symlink '${test_mode}/chroot.sh' '${packer_work_dir}/test-chroot.sh'"
-    run_cmd "check_symlink '${test_mode}/conf.sh' '${packer_work_dir}/test-conf.sh'"
-    run_cmd "check_symlink '${test_mode}/fs.sh' '${packer_work_dir}/test-fs.sh'"
-    run_cmd "check_symlink '${test_mode}/hooks.sh' '${packer_work_dir}/test-hooks.sh'"
-    run_cmd "check_symlink '${test_mode}/pacman.sh' '${packer_work_dir}/test-pacman.sh'"
-    run_cmd "check_symlink '${test_mode}/config.sh' '${packer_work_dir}/test-config.sh'"
-    run_cmd "check_symlink '${test_mode}/syslinux.cfg' '${packer_work_dir}/syslinux.cfg'"
+    run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/archiso.sh' '${packer_work_dir}/test-archiso.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/boot.sh' '${packer_work_dir}/test-boot.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/chroot.sh' '${packer_work_dir}/test-chroot.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/conf.sh' '${packer_work_dir}/test-conf.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/fs.sh' '${packer_work_dir}/test-fs.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/hooks.sh' '${packer_work_dir}/test-hooks.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/pacman.sh' '${packer_work_dir}/test-pacman.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/config.sh' '${packer_work_dir}/test-config.sh'"
+    run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/syslinux.cfg' '${packer_work_dir}/syslinux.cfg'"
 
     # Make it easy to get the files into the archiso environment
-    run_cmd "tar --exclude='*.iso' --exclude=packer_cache --exclude=b.tar -C ${packer_work_dir} -cvhf ${packer_work_dir}/b.tar ."
+    run_cmd_no_dry_run "tar --exclude='*.iso' --exclude=packer_cache --exclude=b.tar -C ${packer_work_dir} -cvhf ${packer_work_dir}/b.tar ."
 
     archiso_build
     archiso_init_vars
@@ -228,6 +233,10 @@ if [[ "${test_mode}" != "" ]]; then
 
     # msg "Moving the compiled base image"
     # run_cmd "mv -f ${base_image_output_dir}/output-qemu/packer-qemu ${base_image_path}"
+
+    msg "Resetting ownership"
+    run_cmd "chown -R ${makepkg_nonpriv_user}: '${packer_work_dir}'"
+
 fi
 
 

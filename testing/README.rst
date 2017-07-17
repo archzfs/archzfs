@@ -1,7 +1,9 @@
 =====================
 archzfs testing guide
 =====================
-:Modified: Sun Jan 29 14:08 2017
+:Modified: Mon Jul 17 00:53 2017
+
+.. content:
 
 --------
 Overview
@@ -13,8 +15,6 @@ Overview
   archzfs.com/repo for the repo (webfaction)
   build.archzfs.com for jenkins
   deploy.archzfs.com custom webpage for deploying valid builds (local server)
-
-* Bulder hardware Intel Xeon v3 with 16GB of ECC RAM @ home in DMZ
 
 * Build a qemu base image using packer
 
@@ -63,6 +63,32 @@ To run the test automation, the following items are required:
 * python2.6
 
   From AUR, needed for zfs-test
+
+-----------------
+Running the Tests
+-----------------
+
+This section can only be done after the preresuquites have been completed.
+
+Currently, there are only tests for verifying the packages in the archzfs-test repo will boot into a running system.
+
+It is first necessary to build an archiso with the test packages. The archzfs repo contains a copy of the archiso that is
+modified to use the archzfs-lts packages to boot.
+
+.. code:: console
+
+   cd testing/
+
+   cd files/packer_work/
+
+   qemu-system-x86_64 -machine type=pc,accel=kvm -boot once=d \
+   -device virtio-net,netdev=user.0 -drive file=output-qemu/archzfs-qemu-lts-test-00-bootfs-archiso-2017.07.16,if=virtio,cache=writeback,discard=ignore \
+   -name archzfs-qemu-lts-test-00-bootfs-archiso-2017.07.16 -netdev user,id=user.0,hostfwd=tcp::2487-:22 -display sdl -m 512M -vnc 0.0.0.0:2
+
+login as root user and password "azfstest"
+
+At this point if the login was successful, zfs is working. The running of actual regression tests in this environment is a
+work in progress...
 
 ----------------------
 Build and test process
@@ -196,7 +222,7 @@ Finally, run your test from the root project directory::
 
     # testing/test.sh -d std-test-00-default
 
-You should see packer start archiso in qemu and begin previsioning the device. Once packer is done, the device will reboot
+You should see packer start archiso in qemu and begin provisioning the device. Once packer is done, the device will reboot
 and the acceptance criteria will determine if the test succeeded.
 
 If you think any of these steps can be done simpler and/or more efficiently, please open an issue!
