@@ -28,18 +28,22 @@ usage() {
     echo
     echo "Options:"
     echo
-    echo "    -h:       Show help information."
-    echo "    -n:       Dryrun; Output commands, but don't do anything."
-    echo "    -d:       Show debug info."
-    echo "    -r:       Push the archzfs repositories."
-    echo "    -p:       Commit changes and push."
+    echo "    -h:           Show help information."
+    echo "    -n:           Dryrun; Output commands, but don't do anything."
+    echo "    -d:           Show debug info."
+    echo "    -r:           Push the archzfs repositories."
+    echo "    -p:           Commit changes and push."
     echo
     echo "Modes:"
     echo
     for ml in "${mode_list[@]}"; do
         mn=$(echo ${ml} | cut -f2 -d:)
         md=$(echo ${ml} | cut -f3 -d:)
-        echo -e "    ${mn}    ${md}"
+        if [[ ${#mn} -gt 3 ]]; then
+            echo -e "    ${mn}\t  ${md}"
+        else
+            echo -e "    ${mn}\t\t  ${md}"
+        fi
     done
     echo
     echo "Example Usage:"

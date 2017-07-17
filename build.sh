@@ -40,7 +40,11 @@ usage() {
     for ml in "${mode_list[@]}"; do
         mn=$(echo ${ml} | cut -f2 -d:)
         md=$(echo ${ml} | cut -f3 -d:)
-        echo -e "    ${mn}    ${md}"
+        if [[ ${#mn} -gt 3 ]]; then
+            echo -e "    ${mn}\t  ${md}"
+        else
+            echo -e "    ${mn}\t\t  ${md}"
+        fi
     done
     echo
     echo "Commands:"
