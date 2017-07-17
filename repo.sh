@@ -150,10 +150,15 @@ repo_package_list() {
 
         debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${repo_target}/${arch}"
         package_list+=("${name};${vers};${pkg};${repo_target}/${arch}")
-        package_src_list+=("packages/${kernel_name}/${name}/${name}-${vers}.src.tar.gz")
+
+        pkgsrc="packages/${kernel_name}/${name}/${name}-${vers}.src.tar.gz"
+        if [[ -f  "${pkgsrc}" ]]; then
+            package_src_list+=("${pkgsrc}")
+        fi
     done
 
     debug_print_array "package_list" ${package_list[@]}
+    debug_print_array "package_src_list" ${package_src_list[@]}
 }
 
 
