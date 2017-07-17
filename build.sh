@@ -77,19 +77,21 @@ build_sources() {
 
 
 sign_packages() {
-    run_cmd_no_output "find ${script_dir}/packages/${kernel_name} -iname '*$(kernel_version_full_no_hyphen ${kernel_version_full})-${pkgrel}*.pkg.tar.xz' | tr '\\n' ' '"
-    files="${run_cmd_output}"
-    # debug "Found files: ${files}"
-    for f in ${files}; do
-        # debug "On file: ${f}"
-        if [[ ! -f "${f}.sig" ]]; then
-            msg2 "Signing ${f}"
-            # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
-            run_cmd_no_output "su - ${makepkg_nonpriv_user} -c 'GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${f}\"'"
-            if [[ ${run_cmd_return} -ne 0 ]]; then
-                exit 1
+    for pkg in "${pkg_list[@]}"; do
+        run_cmd_no_output_no_dry_run "find ${script_dir}/packages/${kernel_name} -iname '*${pkg}*-${pkgrel}*.pkg.tar.xz' | tr '\\n' ' '"
+        files="${run_cmd_output}"
+        # debug "Found files: ${files}"
+        for f in ${files}; do
+            # debug "On file: ${f}"
+            if [[ ! -f "${f}.sig" ]]; then
+                msg2 "Signing ${f}"
+                # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
+                run_cmd_no_output "su - ${makepkg_nonpriv_user} -c 'GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${f}\"'"
+                if [[ ${run_cmd_return} -ne 0 ]]; then
+                    exit 1
+                fi
             fi
-        fi
+        done
     done
 }
 
@@ -325,8 +327,8 @@ for func in "${update_funcs[@]}"; do
     if have_command "sources"; then
         build_sources
     fi
+    if have_command "sign"; then
+        sign_packages
+    fi
 done
 
-if have_command "sign"; then
-    sign_packages
-fi

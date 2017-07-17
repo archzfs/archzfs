@@ -70,10 +70,10 @@ update_common_git_pkgbuilds() {
     zfs_makedepends="\"git\""
     spl_workdir="\${srcdir}/spl"
     zfs_workdir="\${srcdir}/zfs"
-    
+
     spl_utils_replaces='replaces=("spl-utils-linux", "spl-utils-linux-lts")'
     zfs_utils_replaces='replaces=("zfs-utils-linux", "zfs-utils-linux-lts")'
-    
+
     if have_command "update"; then
         git_check_repo
         git_calc_pkgver
