@@ -1,26 +1,3 @@
-[submodule "zfs-linux-git"]
-	path = packages/linux/zfs-linux-git
-	url = ssh+git://aur@aur.archlinux.org/zfs-linux-git.git
-	branch = master
-[submodule "zfs-linux-lts"]
-	path = packages/linux-lts/zfs-linux-lts
-	url = ssh+git://aur@aur.archlinux.org/zfs-linux-lts.git
-	branch = master
-[submodule "spl-linux-git"]
-	path = packages/linux/spl-linux-git
-	url = ssh+git://aur@aur.archlinux.org/spl-linux-git.git
-	branch = master
-	branch = master
-[submodule "spl-linux-lts"]
-	path = packages/linux-lts/spl-linux-lts
-	url = ssh+git://aur@aur.archlinux.org/spl-linux-lts.git
-	branch = master
-[submodule "zfs-linux"]
-	path = packages/linux/zfs-linux
-	url = ssh+git://aur@aur.archlinux.org/zfs-linux.git
-[submodule "spl-linux"]
-	path = packages/linux/spl-linux
-	url = ssh+git://aur@aur.archlinux.org/spl-linux.git
 [submodule "packages/archiso/zfs-archiso-linux"]
 	path = packages/archiso/zfs-archiso-linux
 	url = ssh+git://aur@aur.archlinux.org/zfs-archiso-linux.git
@@ -33,3 +10,45 @@
 [submodule "packages/linux-hardened/zfs-linux-hardened"]
 	path = packages/linux-hardened/zfs-linux-hardened
 	url = ssh+git://aur@aur.archlinux.org/zfs-linux-hardened.git
+[submodule "packages/linux/zfs-linux-git"]
+	path = packages/linux/zfs-linux-git
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-git.git
+[submodule "packages/linux/spl-linux-git"]
+	path = packages/linux/spl-linux-git
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-git.git
+[submodule "packages/linux/zfs-linux"]
+	path = packages/linux/zfs-linux
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux.git
+[submodule "packages/linux/spl-linux"]
+	path = packages/linux/spl-linux
+	url = ssh+git://aur@aur.archlinux.org/spl-linux.git
+[submodule "packages/linux-lts/zfs-linux-lts"]
+	path = packages/linux-lts/zfs-linux-lts
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-lts.git
+[submodule "packages/linux-lts/spl-linux-lts"]
+	path = packages/linux-lts/spl-linux-lts
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-lts.git
+[submodule "packages/linux-lts/spl-linux-lts-git"]
+	path = packages/linux-lts/spl-linux-lts-git
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-lts-git.git
+[submodule "packages/linux-lts/zfs-linux-lts-git"]
+	path = packages/linux-lts/zfs-linux-lts-git
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-lts-git.git
+[submodule "packages/linux-hardened/zfs-linux-hardened-git"]
+	path = packages/linux-hardened/zfs-linux-hardened-git
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-hardened-git.git
+[submodule "packages/linux-hardened/spl-linux-hardened-git"]
+	path = packages/linux-hardened/spl-linux-hardened-git
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-hardened-git.git
+[submodule "packages/common/spl-utils-common"]
+	path = packages/common/spl-utils-common
+	url = ssh+git://aur@aur.archlinux.org/spl-utils-common.git
+[submodule "packages/common/zfs-utils-common"]
+	path = packages/common/zfs-utils-common
+	url = ssh+git://aur@aur.archlinux.org/zfs-utils-common.git
+[submodule "packages/common/zfs-utils-common-git"]
+	path = packages/common/zfs-utils-common-git
+	url = ssh+git://aur@aur.archlinux.org/zfs-utils-common-git.git
+[submodule "packages/common/spl-utils-common-git"]
+	path = packages/common/spl-utils-common-git
+	url = ssh+git://aur@aur.archlinux.org/spl-utils-common-git.git

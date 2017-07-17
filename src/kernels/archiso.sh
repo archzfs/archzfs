@@ -36,9 +36,9 @@ update_archiso_linux_pkgbuilds() {
     zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
-    spl_utils_pkgname="spl-utils-linux-common"
+    spl_utils_pkgname="spl-utils-common"
     spl_pkgname="spl-archiso-linux"
-    zfs_utils_pkgname="zfs-utils-linux-common"
+    zfs_utils_pkgname="zfs-utils-common"
     zfs_pkgname="zfs-archiso-linux"
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"

@@ -12,6 +12,7 @@ url="http://zfsonlinux.org/"
 source=("${spl_src_target}")
 sha256sums=("${spl_src_hash}")
 license=("GPL")
+depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
 
 build() {
     cd "${spl_workdir}"
@@ -25,7 +26,6 @@ build() {
 
 package_${spl_pkgname}() {
     pkgdesc="Solaris Porting Layer kernel modules."
-    depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
     install=spl.install
     provides=("spl")
     groups=("${archzfs_package_group}")
