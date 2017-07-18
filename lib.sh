@@ -783,22 +783,28 @@ git_calc_pkgver() {
         # Get the version number past the last tag
         msg2 "Calculating PKGVER"
         cmd="cd temp/${repo} && "
-
-        # append kernel version if set
-        if [ ! -z "${kernvers}" ]; then
-            cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')_${kernvers}"
-        else
-            cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')"
-        fi
+        cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')"
 
         run_cmd_no_output_no_dry_run "${cmd}"
 
         if [[ ${repo} =~ ^spl ]]; then
-            spl_pkgver=${run_cmd_output}
+            spl_git_ver=${run_cmd_output}
+            # append kernel version if set
+            if [ ! -z "${kernvers}" ]; then
+              spl_pkgver=${spl_git_ver}_${kernvers};
+            else
+              spl_pkgver=${spl_git_ver};
+            fi
             debug "spl_pkgver: ${spl_pkgver}"
         elif [[ ${repo} =~ ^zfs ]]; then
-            zfs_pkgver=${run_cmd_output}
-            debug "zfs_pkgver: ${zfs_pkgver}"
+          zfs_git_ver=${run_cmd_output}
+          # append kernel version if set
+          if [ ! -z "${kernvers}" ]; then
+            zfs_pkgver=${zfs_git_ver}_${kernvers};
+          else
+            zfs_pkgver=${zfs_git_ver};
+          fi
+          debug "zfs_pkgver: ${zfs_pkgver}"
         fi
 
         # Cleanup

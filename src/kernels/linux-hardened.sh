@@ -46,9 +46,9 @@ update_linux_hardened_pkgbuilds() {
     zfs_pkgrel=${pkgrel}
     spl_conflicts="'spl-linux-hardened-git'"
     zfs_conflicts="'zfs-linux-hardened-git'"
-    spl_utils_pkgname="spl-utils-common"
+    spl_utils_pkgname="spl-utils-common>=${zol_version}"
     spl_pkgname="spl-linux-hardened"
-    zfs_utils_pkgname="zfs-utils-common"
+    zfs_utils_pkgname="zfs-utils-common>=${zol_version}"
     zfs_pkgname="zfs-linux-hardened"
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
@@ -75,9 +75,7 @@ update_linux_hardened_git_pkgbuilds() {
     zfs_pkgrel=${pkgrel_git}
     spl_conflicts="'spl-linux-hardened'"
     zfs_conflicts="'zfs-linux-hardened'"
-    spl_utils_pkgname="spl-utils-common-git"
     spl_pkgname="spl-linux-hardened-git"
-    zfs_utils_pkgname="zfs-utils-common-git"
     zfs_pkgname="zfs-linux-hardened-git"
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
@@ -101,4 +99,6 @@ update_linux_hardened_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
+    spl_utils_pkgname="spl-utils-common-git>=${spl_git_ver}"
+    zfs_utils_pkgname="zfs-utils-common-git>=${zfs_git_ver}"
 }
