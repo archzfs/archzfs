@@ -151,8 +151,12 @@ generate_package_files() {
         msg2 "Copying zfs-utils.initcpio.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
     fi
-    
+
     if [[ ! -z ${zfs_pkgbuild_path} ]]; then
+        # remove own headers from conflicts
+        zfs_headers_conflicts=${zfs_headers_conflicts_all/"'${zfs_pkgname}-headers'"}
+        spl_headers_conflicts=${spl_headers_conflicts_all/"'${spl_pkgname}-headers'"}
+
         msg2 "Creating spl PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
         msg2 "Creating spl.install"
@@ -256,7 +260,7 @@ fi
 
 msg "$(date) :: ${script_name} started..."
 
-
+get_headers_conflicts
 get_kernel_update_funcs
 debug_print_default_vars
 
@@ -331,4 +335,3 @@ for func in "${update_funcs[@]}"; do
         sign_packages
     fi
 done
-

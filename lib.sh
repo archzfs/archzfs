@@ -654,6 +654,23 @@ get_kernel_update_funcs() {
     done
 }
 
+get_headers_conflicts() {
+    for kernel in $(ls ${script_dir}/src/kernels); do
+        # do not conflict with the common packages
+        if [[ "$kernel" == "common.sh" ]]; then
+          continue;
+        fi
+
+        # get update funcs
+        updatefuncstmp=$(cat "${script_dir}/src/kernels/${kernel}" | grep -v "^.*#" | grep -oh "update_.*_pkgbuilds")
+
+        # generate conflict list
+        for func in ${updatefuncstmp}; do
+          zfs_headers_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//spl*}; printf "'%s-headers' "  "${conflicts[@]}")
+          spl_headers_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//zfs*}; printf "'%s-headers' "  "${conflicts[@]}")
+        done
+    done
+}
 
 debug_print_default_vars() {
     debug "dry_run: "${dry_run}
@@ -744,14 +761,14 @@ git_calc_pkgver() {
         if [[ ${repo} =~ ^zfs ]]; then
             sha=${zfs_git_commit}
         fi
-        
+
         # use utils package, if no kernel version is set
         if [ -z "${kernvers}" ]; then
             pkg=$(eval "echo \${${repo}_utils_pkgname}")
         else
             pkg=$(eval "echo \${${repo}_pkgname}")
         fi
-            
+
         debug "Using package '${pkg}'"
 
         # Checkout the git repo to a work directory
@@ -766,14 +783,14 @@ git_calc_pkgver() {
         # Get the version number past the last tag
         msg2 "Calculating PKGVER"
         cmd="cd temp/${repo} && "
-        
+
         # append kernel version if set
         if [ ! -z "${kernvers}" ]; then
             cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')_${kernvers}"
         else
             cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')"
         fi
-        
+
         run_cmd_no_output_no_dry_run "${cmd}"
 
         if [[ ${repo} =~ ^spl ]]; then
@@ -789,4 +806,3 @@ git_calc_pkgver() {
         run_cmd_no_output_no_dry_run "rm -vrf temp"
     done
 }
-
