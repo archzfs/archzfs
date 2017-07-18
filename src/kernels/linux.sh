@@ -66,9 +66,9 @@ update_linux_pkgbuilds() {
 update_linux_git_pkgbuilds() {
     pkg_list=("spl-linux-git" "zfs-linux-git")
     kernel_version=${kernel_version_git}
-    kernel_version_full=$(kernel_version_full ${kernel_version_git})
-    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version_git})
-    kernel_version_major=${kernel_version_git%-*}
+    kernel_version_full=$(kernel_version_full ${kernel_version})
+    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
+    kernel_version_major=${kernel_version%-*}
     kernel_mod_path="${kernel_version_full}-ARCH"
     archzfs_package_group="archzfs-linux-git"
     spl_pkgver="" # Set later by call to git_calc_pkgver
