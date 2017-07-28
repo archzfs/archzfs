@@ -168,10 +168,21 @@ generate_package_files() {
     fi
 
     msg "Update diffs ..."
-    run_cmd "cd ${script_dir}/${spl_utils_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${script_dir}/${spl_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${script_dir}/${zfs_utils_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${script_dir}/${zfs_pkgbuild_path} && git --no-pager diff"
+    if [[ ! -z ${spl_utils_pkgbuild_path} ]]; then
+        run_cmd "cd ${script_dir}/${spl_utils_pkgbuild_path} && git --no-pager diff"
+    fi
+
+    if [[ ! -z ${spl_pkgbuild_path} ]]; then
+        run_cmd "cd ${script_dir}/${spl_pkgbuild_path} && git --no-pager diff"
+    fi
+
+    if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
+        run_cmd "cd ${script_dir}/${zfs_utils_pkgbuild_path} && git --no-pager diff"
+    fi
+
+    if [[ ! -z ${zfs_pkgbuild_path} ]]; then
+        run_cmd "cd ${script_dir}/${zfs_pkgbuild_path} && git --no-pager diff"
+    fi
 
     msg "Resetting ownership"
     run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/'"
@@ -186,8 +197,11 @@ build_packages() {
             error "A problem occurred building the package"
             exit 1
         fi
-        # msg2 "${pkg} package files:"
-        # run_cmd "tree ${chroot_path}/build/${pkg}/pkg"
+        # if [[ "${pkg}" == "zfs-utils-common" ]]; then
+            # msg2 "${pkg} package files:"
+            # run_cmd "tree ${chroot_path}/build/${pkg}/pkg"
+            # exit
+        # fi
     done
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
 }
