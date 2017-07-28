@@ -13,13 +13,11 @@ url="http://zfsonlinux.org/"
 source=("${zfs_src_target}"
         "zfs-utils.bash-completion-r1"
         "zfs-utils.initcpio.install"
-        "zfs-utils.initcpio.hook"
-        "0001-Correct-man-page-generation.patch")
+        "zfs-utils.initcpio.hook")
 sha256sums=("${zfs_src_hash}"
             "${zfs_bash_completion_hash}"
             "${zfs_initcpio_install_hash}"
-            "${zfs_initcpio_hook_hash}"
-            "1059516f60c74ddb6e90d32b0581ac31a497fcff87015cf7716861dedc06cab3")
+            "${zfs_initcpio_hook_hash}")
 license=("CDDL")
 groups=("${archzfs_package_group}")
 provides=("zfs-utils")
@@ -29,8 +27,6 @@ ${zfs_utils_replaces}
 
 build() {
     cd "${zfs_workdir}"
-    # This can be removed when OpenZFS version 0.7.1 is released
-    patch -p1 -i < "\${srcdir}/0001-Correct-man-page-generation.patch"
     ./autogen.sh
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
