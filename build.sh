@@ -150,8 +150,11 @@ generate_package_files() {
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
         msg2 "Copying zfs-utils.initcpio.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
+
+        msg2 "Copying zfs-utils manual patch"
+        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/0001-Correct-man-page-generation.patch ${zfs_utils_pkgbuild_path}/0001-Correct-man-page-generation.patch"
     fi
-    
+
     if [[ ! -z ${zfs_pkgbuild_path} ]]; then
         msg2 "Creating spl PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
