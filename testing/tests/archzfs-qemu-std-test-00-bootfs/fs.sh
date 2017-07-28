@@ -24,41 +24,55 @@ test_fs_config_root_preinstall() {
 
     msg2 "Clearing partition table on ${disk}"
     run_cmd "sgdisk --zap ${disk}"
+    run_cmd_check 1 "Could not clear partition table!"
 
     msg2 "Destroying magic strings and signatures on ${disk}"
     run_cmd "dd if=/dev/zero of=${disk} bs=512 count=2048"
+    run_cmd_check 1 "Problem clearing disk using dd!"
     run_cmd "wipefs --all ${disk}"
+    run_cmd_check 1 "Problem clearing disk using wipefs!"
 
     # See http://www.rodsbooks.com/gdisk/sgdisk-walkthrough.html
     # http://www.rodsbooks.com/gdisk/sgdisk.htm
     msg2 "Creating boot partition on ${disk}"
     run_cmd "sgdisk --new=1:0:512M --typecode=1:8300 ${disk}"
-
+    run_cmd_check 1 "A problem occurred creating boot partition using sgdisk!"
     msg2 "Creating root partition on ${disk}"
     run_cmd "sgdisk --new=2:0:0 --typecode=2:bf00 ${disk}"
+    run_cmd_check 1 "A problem occurred creating root partition using sgdisk!"
 
     msg2 "The disk"
     run_cmd "sgdisk -p ${disk}"
 
     msg2 "Creating root filesystem"
     run_cmd "zpool create -m ${test_target_dir} -f zroot /dev/vda2"
+    run_cmd_check 1 "Failed to create zfs pool"
     run_cmd "zfs create -o mountpoint=none zroot/ROOT"
+    run_cmd_check 1 "Failed to create zfs root!"
     run_cmd "zfs create -o compression=lz4 -o mountpoint=${test_target_dir}/ROOT zroot/ROOT/default"
+    run_cmd_check 1 "Failed to create zfs zroot/ROOT/default mountpoint!"
     run_cmd "zfs create -o mountpoint=none zroot/data"
+    run_cmd_check 1 "Failed to create zfs zroot/data mountpoint!"
     run_cmd "zfs create -o compression=lz4 -o mountpoint=${test_target_dir}/ROOT/home zroot/data/home"
+    run_cmd_check 1 "Failed to create zfs zroot/data/home mountpoint!"
     run_cmd "zfs set mountpoint=legacy zroot/data/home"
+    run_cmd_check 1 "Failed to set zfs legacy mount option on mountpoint!"
 
     msg2 "Mounting /home"
     run_cmd "mount -t zfs -o default,noatime zroot/data/home ${test_target_dir}/ROOT/home"
+    run_cmd_check 1 "Problem mount the zfs home mountpoint!"
 
     msg2 "Create boot directory"
     run_cmd "mkdir -p ${test_target_dir}/ROOT/boot"
+    run_cmd_check 1 "Problem occurred creating boot directory!"
 
     msg2 "Creating /boot filesystem (ext4)"
     run_cmd "mkfs.ext4 -F -m 0 -q -L boot /dev/vda1"
+    run_cmd_check 1 "Problem occurred formatting the bootfs!"
 
     msg2 "Mounting boot filesystem"
     run_cmd "mount -o noatime,errors=remount-ro /dev/vda1 ${test_target_dir}/ROOT/boot"
+    run_cmd_check 1 "Problem occurred mounting the boot fs!"
 
 }
 

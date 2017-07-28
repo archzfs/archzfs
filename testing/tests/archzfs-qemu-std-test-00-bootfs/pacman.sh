@@ -17,6 +17,19 @@ test_pacman_config() {
     msg2 "Setting up gnupg"
     run_cmd "${arch_chroot} dirmngr < /dev/null"
 
+    # Wait for networking
+    for i in `seq 1 10`; do
+        if [[ check_internet -eq 0 ]]; then
+            break
+        fi
+        msg2 "Attempt $i -- Google.com did not respond, trying again in 3 seconds..."
+        sleep 3
+        if [[ $i == "10" ]]; then
+            error "Tried 10 times, giving up!"
+            exit 1
+        fi
+    done
+
     msg2 "Installing the signer key"
     run_cmd "${arch_chroot} pacman-key -r 0EE7A126"
     run_cmd_check 1
