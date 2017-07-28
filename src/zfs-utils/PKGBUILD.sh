@@ -27,6 +27,8 @@ ${zfs_utils_replaces}
 
 build() {
     cd "${zfs_workdir}"
+    # This can be removed when OpenZFS version 0.7.1 is released
+    patch -p1 -i < "\${srcdir}/0001-Correct-man-page-generation.patch"
     ./autogen.sh
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\

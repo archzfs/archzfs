@@ -1,0 +1,31 @@
+From 0f69f42b43637548bec225ed25fa71b032de114e Mon Sep 17 00:00:00 2001
+From: bunder2015 <omfgbunder@gmail.com>
+Date: Thu, 27 Jul 2017 22:06:34 -0400
+Subject: [PATCH] Correct man page generation
+
+Reviewed-by: Giuseppe Di Natale <dinatale2@llnl.gov>
+Reviewed-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Reviewed-by: George Melikov <mail@gmelikov.ru>
+Signed-off-by: bunder2015 <omfgbunder@gmail.com>
+Closes #6409
+Closes #6410
+---
+ man/man8/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/man/man8/Makefile.am b/man/man8/Makefile.am
+index fa58a628d..422d3e666 100644
+--- a/man/man8/Makefile.am
++++ b/man/man8/Makefile.am
+@@ -4,7 +4,7 @@ dist_man_MANS = \
+ 	vdev_id.8 \
+ 	zdb.8 \
+ 	zfs.8 \
+-	zgenhostid.8
++	zgenhostid.8 \
+ 	zinject.8 \
+ 	zpool.8 \
+ 	zstreamdump.8
+-- 
+2.13.2
+
