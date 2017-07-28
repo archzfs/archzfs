@@ -32,12 +32,12 @@ package_${zfs_pkgname}() {
     groups=("${archzfs_package_group}")
     conflicts=(${zfs_conflicts})
     ${zfs_replaces}
-    
+
     cd "${zfs_workdir}"
     make DESTDIR="\${pkgdir}" install
     cp -r "\${pkgdir}"/{lib,usr}
     rm -r "\${pkgdir}"/lib
-    
+
     # Remove src dir
     rm -r "\${pkgdir}"/usr/src
 }
@@ -45,11 +45,11 @@ package_${zfs_pkgname}() {
 package_${zfs_pkgname}-headers() {
     pkgdesc="Kernel headers for the Zettabyte File System."
     conflicts=(${zfs_headers_conflicts})
-    
+
     cd "${zfs_workdir}"
     make DESTDIR="\${pkgdir}" install
     rm -r "\${pkgdir}/lib"
-    
+
     # Remove reference to \${srcdir}
     sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/zfs-*/${kernel_mod_path}/Module.symvers
 }
