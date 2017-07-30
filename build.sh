@@ -178,8 +178,11 @@ generate_package_files() {
     if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
         msg2 "Creating spl-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
+
         msg2 "Creating zfs-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
+        msg2 "Creating zfs.install"
+        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/zfs.install.sh"
     fi
 
     msg "Update diffs ..."

@@ -14,6 +14,7 @@ source=("${zfs_src_target}")
 sha256sums=("${zfs_src_hash}")
 license=("CDDL")
 depends=("${spl_pkgname}" "${zfs_utils_pkgname}")
+install=zfs.install
 provides=("zfs")
 groups=("${archzfs_package_group}")
 conflicts=(${zfs_conflicts} ${zfs_conflicts_all} ${zfs_headers_conflicts_all})
