@@ -135,6 +135,10 @@ generate_package_files() {
         run_cmd_no_output "[[ -d "${spl_pkgbuild_path}" ]] || mkdir -p ${spl_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_pkgbuild_path}" ]] || mkdir -p ${zfs_pkgbuild_path}"
     fi
+    if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
+        run_cmd_no_output "[[ -d "${spl_dkms_pkgbuild_path}" ]] || mkdir -p ${spl_dkms_pkgbuild_path}"
+        run_cmd_no_output "[[ -d "${zfs_dkms_pkgbuild_path}" ]] || mkdir -p ${zfs_dkms_pkgbuild_path}"
+    fi
 
     # Finally, generate the update packages ...
     if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
@@ -169,6 +173,13 @@ generate_package_files() {
         run_cmd_no_output "source ${script_dir}/src/zfs/PKGBUILD.sh"
         msg2 "Creating zfs.install"
         run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
+    fi
+    
+    if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
+        msg2 "Creating spl-dkms PKGBUILD"
+        run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
+        msg2 "Creating zfs-dkms PKGBUILD"
+        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
     fi
 
     msg "Update diffs ..."
