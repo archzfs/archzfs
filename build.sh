@@ -260,7 +260,7 @@ fi
 
 msg "$(date) :: ${script_name} started..."
 
-get_headers_conflicts
+get_conflicts
 get_kernel_update_funcs
 debug_print_default_vars
 

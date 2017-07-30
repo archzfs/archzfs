@@ -654,10 +654,10 @@ get_kernel_update_funcs() {
     done
 }
 
-get_headers_conflicts() {
+get_conflicts() {
     for kernel in $(ls ${script_dir}/src/kernels); do
-        # do not conflict with the common packages
-        if [[ "$kernel" == "common.sh" ]]; then
+        # do not conflict with common or dkms packages
+        if [[ "$kernel" == "common.sh"  || "$kernel" == "dkms.sh" ]]; then
           continue;
         fi
 
@@ -668,6 +668,9 @@ get_headers_conflicts() {
         for func in ${updatefuncstmp}; do
           zfs_headers_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//spl*}; printf "'%s-headers' "  "${conflicts[@]}")
           spl_headers_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//zfs*}; printf "'%s-headers' "  "${conflicts[@]}")
+
+          zfs_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//spl*}; printf "'%s' "  "${conflicts[@]}")
+          spl_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//zfs*}; printf "'%s' "  "${conflicts[@]}")
         done
     done
 }
