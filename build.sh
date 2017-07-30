@@ -88,7 +88,7 @@ sign_packages() {
                 # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
                 run_cmd_no_output "su - ${makepkg_nonpriv_user} -c 'GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${f}\"'"
                 if [[ ${run_cmd_return} -ne 0 ]]; then
-                    exit 1
+                    break
                 fi
             fi
         done
@@ -156,6 +156,10 @@ generate_package_files() {
     fi
 
     if [[ ! -z ${zfs_pkgbuild_path} ]]; then
+        # remove own headers from conflicts
+        zfs_headers_conflicts=${zfs_headers_conflicts_all/"'${zfs_pkgname}-headers'"}
+        spl_headers_conflicts=${spl_headers_conflicts_all/"'${spl_pkgname}-headers'"}
+
         msg2 "Creating spl PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
         msg2 "Creating spl.install"
@@ -273,7 +277,7 @@ fi
 
 msg "$(date) :: ${script_name} started..."
 
-
+get_conflicts
 get_kernel_update_funcs
 debug_print_default_vars
 
@@ -348,4 +352,3 @@ for func in "${update_funcs[@]}"; do
         sign_packages
     fi
 done
-
