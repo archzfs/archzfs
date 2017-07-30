@@ -88,7 +88,7 @@ sign_packages() {
                 # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
                 run_cmd_no_output "su - ${makepkg_nonpriv_user} -c 'GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${f}\"'"
                 if [[ ${run_cmd_return} -ne 0 ]]; then
-                    exit 1
+                    break
                 fi
             fi
         done
