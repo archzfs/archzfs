@@ -2,6 +2,12 @@
 Things To Do
 ============
 
+* Fri Jul 28 12:20 2017: packer qemu provision should run in stdout
+
+  No gui with all output going to stdout would be helpful for copying errors.
+
+  https://stackoverflow.com/questions/19565116/redirect-qemu-window-output-to-terminal-running-qemu
+
 * Mon Jul 17 00:30 2017: Finish documenting how to run tests in testing/README.rst
 
 * Sat Sep 17 01:16 2016: ADD TESTS for run_hook
