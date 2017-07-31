@@ -3,6 +3,7 @@
 *.log
 archiso/out/
 archiso/work/
+testing/files/vm-work/
 
 # TEMPORARY
 packages/linux/*-headers/
