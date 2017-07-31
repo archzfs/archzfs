@@ -114,6 +114,7 @@ push_repo() {
         return
     fi
     run_cmd "rsync -vrtlh --delete-before ${repo_basepath}/${repo_name} ${package_backup_dir} webfaction:/home/jalvarez/webapps/default/ ${dry}"
+    run_cmd_check 1 "Could not push packages to webfaction!"
 }
 
 
