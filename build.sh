@@ -50,9 +50,7 @@ usage() {
     echo "Commands:"
     echo
     echo "    make          Build all packages."
-    echo "    test          Build test packages."
     echo "    update        Update all git PKGBUILDs using conf.sh variables."
-    echo "    update-test   Update all git PKGBUILDs using the testing conf.sh variables."
     echo "    sign          GPG detach sign all compiled packages (default)."
     echo "    sources       Build the package sources. This is done by default when using the make command."
     echo
@@ -62,7 +60,6 @@ usage() {
     echo "    ${script_name} std make -u              :: Update the chroot and build all of the packages"
     echo "    ${script_name} lts update               :: Update PKGBUILDS only"
     echo "    ${script_name} std update make -u       :: Update PKGBUILDs, update the chroot, and make all of the packages"
-    echo "    ${script_name} lts update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
     exit 155
 }
 
@@ -229,12 +226,8 @@ for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "make" ]]; then
         commands+=("make")
         commands+=("sign")
-    elif [[ ${args[$a]} == "test" ]]; then
-        commands+=("test")
     elif [[ ${args[$a]} == "update" ]]; then
         commands+=("update")
-    elif [[ ${args[$a]} == "update-test" ]]; then
-        commands+=("update-test")
     elif [[ ${args[$a]} == "sources" ]]; then
         commands+=("sources")
     elif [[ ${args[$a]} == "sign" ]]; then
