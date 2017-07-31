@@ -1,6 +1,6 @@
 {
     "variables": {
-        "http_dir": "{{env `packer_work_dir`}}",
+        "http_dir": "{{env `vm_work_dir`}}",
         "iso_url": "{{env `archiso_url`}}",
         "iso_checksum": "{{env `archiso_sha`}}",
         "iso_checksum_type": "sha1",
