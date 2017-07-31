@@ -29,3 +29,8 @@ package_backup_dir="/data/pacman/repo/archive_archzfs"
 
 # Used to run mkaurball and mksrcinfo with lower privledges
 makepkg_nonpriv_user="demizer"
+
+# For embedding in the archiso for testing
+ssh_public_key_file="/home/demizer/.ssh/id_rsa_demizer_alvaone_2015-04-12.pub"
+azfstest_static_ip="192.168.1.100\/24"
+azfstest_gateway="192.168.1.1"

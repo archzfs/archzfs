@@ -194,12 +194,17 @@ if [[ "${test_mode}" != "" ]]; then
     # msg2 "Using packer to build the base image ..."
 
     # # Base files
+    run_cmd_no_dry_run "cp -vf '${ssh_public_key_file}' '${script_dir}/../archiso/airootfs/root/sshpubkey'"
+    run_cmd_no_dry_run "cp -vf '${script_dir}/files/25-wired.network' '${script_dir}/../archiso/airootfs/root/25-wired.network'"
+    run_cmd_no_dry_run "sed -i 's/\\(Address=\\)$/\\1${azfstest_static_ip}/' '${script_dir}/../archiso/airootfs/root/25-wired.network'"
+    run_cmd_no_dry_run "sed -i 's/\\(Gateway=\\)$/\\1${azfstest_gateway}/' '${script_dir}/../archiso/airootfs/root/25-wired.network'"
+
     run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/archzfs-qemu-base/packages' '${vm_work_dir}/packages'"
     # run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/archzfs-qemu-base/packer.json' '${vm_work_dir}/packer.json'"
     # run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/archzfs-qemu-base/setup.sh' '${vm_work_dir}/setup.sh'"
     # run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/../lib.sh' '${vm_work_dir}/lib.sh'"
     # run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/../conf.sh' '${vm_work_dir}/archzfs-conf.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/files/poweroff.timer' '${vm_work_dir}/poweroff.timer'"
+    run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/files/poweroff.timer' '${vm_work_dir}/poweroff.timer'"
 
     # # Test files
     # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/archiso.sh' '${vm_work_dir}/test-archiso.sh'"
@@ -228,6 +233,9 @@ if [[ "${test_mode}" != "" ]]; then
 
     # msg "Moving the compiled base image"
     # run_cmd "mv -f ${base_image_output_dir}/output-qemu/packer-qemu ${base_image_path}"
+
+    run_cmd_no_dry_run "rm -rf '${script_dir}/../archiso/airootfs/root/sshpubkey'"
+    run_cmd_no_dry_run "rm -rf '${script_dir}/../archiso/airootfs/root/25-wired.network'"
 
     msg "Resetting ownership"
     run_cmd "chown -R ${makepkg_nonpriv_user}: '${vm_work_dir}'"
