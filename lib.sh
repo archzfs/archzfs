@@ -498,6 +498,15 @@ check_linux_lts_kernel() {
     check_result "x86_64 linux-lts kernel package" "linux-lts x86_64" "$?"
 }
 
+check_linux_hardened_kernel() {
+    #
+    # Check x86_64 linux-hardened kernel version
+    #
+    msg "Checking the online package database for x86_64 linux-hardened kernel version changes..."
+    check_webpage "https://www.archlinux.org/packages/community/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\w\.-]+(?=</h2>)" \
+        "${kernel_version}"
+    check_result "x86_64 linux-hardened kernel package" "linux-hardened x86_64" "$?"
+}
 
 check_zol_version() {
     #

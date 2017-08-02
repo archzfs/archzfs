@@ -83,6 +83,8 @@ check_linux_kernel
 source_safe "${script_dir}/src/kernels/linux-lts.sh"
 check_linux_lts_kernel
 
+source_safe "${script_dir}/src/kernels/linux-hardened.sh"
+check_linux_hardened_kernel
 
 check_zol_version
 
