@@ -765,8 +765,8 @@ git_calc_pkgver() {
             sha=${zfs_git_commit}
         fi
 
-        # use utils package, if no kernel version is set
-        if [ -z "${kernvers}" ]; then
+        # use utils package, if no kernel version is set and not on dkms
+        if [[ -z ${zfs_dkms_pkgbuild_path} && -z "${kernvers}" ]]; then
             pkg=$(eval "echo \${${repo}_utils_pkgname}")
         else
             pkg=$(eval "echo \${${repo}_pkgname}")
