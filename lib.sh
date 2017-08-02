@@ -328,28 +328,28 @@ run_cmd_no_output_no_dry_run() {
 
 package_arch_from_path() {
     # $1: Package path
-    pacman -Qip "$1" | grep "Architecture" | cut -d : -f 2 | tr -d ' '
+    LC_ALL=C pacman -Qip "$1" | grep "Architecture" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
 
 package_name_from_path() {
     # $1: Package path
-    pacman -Qip "$1" | grep "Name" | cut -d : -f 2 | tr -d ' '
+    LC_ALL=C pacman -Qip "$1" | grep "Name" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
 
 package_version_from_path() {
     # $1: Package path
-    pacman -Qip "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
+    LC_ALL=C pacman -Qip "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
 
 package_version_from_syncdb() {
     # $1: Package name
-    pacman -Si "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
+    LC_ALL=C pacman -Si "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 

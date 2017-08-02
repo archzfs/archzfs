@@ -242,11 +242,35 @@ repo_add() {
         exit 1
     fi
 
-    run_cmd "repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_add_list[@]}"
+    run_cmd "su - ${makepkg_nonpriv_user} -c 'repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_add_list[@]}'"
     if [[ ${run_cmd_return} -ne 0 ]]; then
         error "An error occurred adding the package to the repo!"
         exit 1
     fi
+}
+
+sign_packages() {
+    if [[ ${#package_list[@]} == 0 ]]; then
+        error "No packages to process!"
+        exit 1
+    fi
+
+    for ipkg in "${package_list[@]}"; do
+        IFS=';' read -a pkgopt <<< "${ipkg}"
+        name="${pkgopt[0]}"
+        vers="${pkgopt[1]}"
+        pkgp="${pkgopt[2]}"
+        dest="${pkgopt[3]}"
+
+        if [[ ! -f "${pkgp}.sig" ]]; then
+            msg2 "Signing ${pkgp}"
+            # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
+            run_cmd_no_output "su - ${makepkg_nonpriv_user} -c 'GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${script_dir}/${pkgp}\"'"
+            if [[ ${run_cmd_return} -ne 0 ]]; then
+                exit 1
+            fi
+        fi
+    done
 }
 
 
@@ -278,6 +302,7 @@ for func in ${update_funcs[@]}; do
     "${func}"
     repo_package_list
     repo_package_backup
+    sign_packages
     repo_add
 done
 

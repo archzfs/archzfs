@@ -53,7 +53,6 @@ usage() {
     echo "    test          Build test packages."
     echo "    update        Update all git PKGBUILDs using conf.sh variables."
     echo "    update-test   Update all git PKGBUILDs using the testing conf.sh variables."
-    echo "    sign          GPG detach sign all compiled packages (default)."
     echo "    sources       Build the package sources. This is done by default when using the make command."
     echo
     echo "Examples:"
@@ -74,27 +73,6 @@ build_sources() {
         run_cmd "su - ${makepkg_nonpriv_user} -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
     done
 }
-
-
-sign_packages() {
-    for pkg in "${pkg_list[@]}"; do
-        run_cmd_no_output_no_dry_run "find ${script_dir}/packages/${kernel_name} -iname '*${pkg}*-${pkgrel}*.pkg.tar.xz' | tr '\\n' ' '"
-        files="${run_cmd_output}"
-        # debug "Found files: ${files}"
-        for f in ${files}; do
-            # debug "On file: ${f}"
-            if [[ ! -f "${f}.sig" ]]; then
-                msg2 "Signing ${f}"
-                # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
-                run_cmd_no_output "su - ${makepkg_nonpriv_user} -c 'GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${f}\"'"
-                if [[ ${run_cmd_return} -ne 0 ]]; then
-                    break
-                fi
-            fi
-        done
-    done
-}
-
 
 generate_package_files() {
     debug "kernel_version_full: ${kernel_version_full}"
@@ -228,7 +206,6 @@ fi
 for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "make" ]]; then
         commands+=("make")
-        commands+=("sign")
     elif [[ ${args[$a]} == "test" ]]; then
         commands+=("test")
     elif [[ ${args[$a]} == "update" ]]; then
@@ -237,8 +214,6 @@ for (( a = 0; a < $#; a++ )); do
         commands+=("update-test")
     elif [[ ${args[$a]} == "sources" ]]; then
         commands+=("sources")
-    elif [[ ${args[$a]} == "sign" ]]; then
-        commands+=("sign")
     elif [[ ${args[$a]} == "-C" ]]; then
         commands+=("cleanup")
     elif [[ ${args[$a]} == "-u" ]]; then
@@ -347,8 +322,5 @@ for func in "${update_funcs[@]}"; do
     fi
     if have_command "sources"; then
         build_sources
-    fi
-    if have_command "sign"; then
-        sign_packages
     fi
 done

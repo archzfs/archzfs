@@ -5,13 +5,6 @@ mode_desc="Select and use the packages that are common between all kernels"
 # version
 pkgrel="1"
 
-# Version for GIT packages
-pkgrel_git="${pkgrel}"
-zfs_git_commit=""
-spl_git_commit=""
-zfs_git_url="https://github.com/zfsonlinux/zfs.git"
-spl_git_url="https://github.com/zfsonlinux/spl.git"
-
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
 #
@@ -41,41 +34,4 @@ update_common_pkgbuilds() {
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
     spl_utils_replaces='replaces=("spl-utils-linux", "spl-utils-linux-lts")'
     zfs_utils_replaces='replaces=("zfs-utils-linux", "zfs-utils-linux-lts")'
-}
-
-update_common_git_pkgbuilds() {
-    pkg_list=("spl-utils-common-git" "zfs-utils-common-git")
-    archzfs_package_group="archzfs-linux-git"
-    spl_pkgver="" # Set later by call to git_calc_pkgver
-    zfs_pkgver="" # Set later by call to git_calc_pkgver
-    spl_pkgrel=${pkgrel_git}
-    zfs_pkgrel=${pkgrel_git}
-    spl_utils_conflicts="'spl-utils-common' 'spl-utils-linux-git' 'spl-utils-linux' 'spl-utils-linux-lts' 'spl-utils-linux-lts-git'"
-    zfs_utils_conflicts="'zfs-utils-common' 'zfs-utils-linux-git' 'zfs-utils-linux' 'zfs-utils-linux-lts' 'zfs-utils-linux-lts-git'"
-    spl_utils_pkgname="spl-utils-common-git"
-    zfs_utils_pkgname="zfs-utils-common-git"
-    spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
-    zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
-    spl_src_target="git+${spl_git_url}"
-    if [[ ${spl_git_commit} != "" ]]; then
-        spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
-    fi
-    spl_src_hash="SKIP"
-    spl_makedepends="\"git\""
-    zfs_src_target="git+${zfs_git_url}"
-    if [[ ${zfs_git_commit} != "" ]]; then
-        zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
-    fi
-    zfs_src_hash="SKIP"
-    zfs_makedepends="\"git\""
-    spl_workdir="\${srcdir}/spl"
-    zfs_workdir="\${srcdir}/zfs"
-
-    spl_utils_replaces='replaces=("spl-utils-linux", "spl-utils-linux-lts")'
-    zfs_utils_replaces='replaces=("zfs-utils-linux", "zfs-utils-linux-lts")'
-
-    if have_command "update"; then
-        git_check_repo
-        git_calc_pkgver
-    fi
 }
