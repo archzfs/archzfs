@@ -657,7 +657,7 @@ get_kernel_update_funcs() {
 get_conflicts() {
     for kernel in $(ls ${script_dir}/src/kernels); do
         # do not conflict with common or dkms packages
-        if [[ "$kernel" == "common.sh"  || "$kernel" == "dkms.sh" ]]; then
+        if [[ "$kernel" == "common.sh"  || "$kernel" == "common-git.sh" || "$kernel" == "dkms.sh" ]]; then
           continue;
         fi
 
