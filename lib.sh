@@ -480,10 +480,28 @@ check_archiso() {
 }
 
 
+check_linux_hardened_kernel() {
+    #
+    # Check x86_64 linux-hardened kernel version
+    #
+    if ! source ${script_dir}/src/kernels/linux-hardened.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-hardened.sh!"
+        exit 155
+    fi
+    msg "Checking the online package database for x86_64 linux-hardened kernel version changes..."
+    check_webpage "https://www.archlinux.org/packages/community/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
+    check_result "x86_64 linux-hardened kernel package" "linux-hardened x86_64" "$?"
+}
+
+
 check_linux_kernel() {
     #
     # Check x86_64 linux kernel version
     #
+    if ! source ${script_dir}/src/kernels/linux.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux.sh!"
+        exit 155
+    fi
     msg "Checking the online package database for x86_64 linux kernel version changes..."
     check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "${kernel_version}"
     check_result "x86_64 linux kernel package" "linux x86_64" "$?"
@@ -494,6 +512,10 @@ check_linux_lts_kernel() {
     #
     # Check x86_64 linux-lts kernel version
     #
+    if ! source ${script_dir}/src/kernels/linux-lts.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-lts.sh!"
+        exit 155
+    fi
     msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
     check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "${kernel_version}"
     check_result "x86_64 linux-lts kernel package" "linux-lts x86_64" "$?"
