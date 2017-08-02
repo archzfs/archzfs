@@ -470,9 +470,12 @@ check_archiso() {
     #
     # Check archiso kernel version (this will change when the archiso is updated)
     #
+    if ! source ${script_dir}/src/kernels/archiso.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/archiso.sh!"
+        exit 155
+    fi
     msg "Checking archiso download page for linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" \
-        "${kernel_version_archiso}"
+    check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" "${kernel_version::-2}"
     check_result "archiso kernel version" "archiso" "$?"
 }
 
@@ -482,8 +485,7 @@ check_linux_kernel() {
     # Check x86_64 linux kernel version
     #
     msg "Checking the online package database for x86_64 linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" \
-        "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "${kernel_version}"
     check_result "x86_64 linux kernel package" "linux x86_64" "$?"
 }
 
@@ -493,8 +495,7 @@ check_linux_lts_kernel() {
     # Check x86_64 linux-lts kernel version
     #
     msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" \
-        "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "${kernel_version}"
     check_result "x86_64 linux-lts kernel package" "linux-lts x86_64" "$?"
 }
 

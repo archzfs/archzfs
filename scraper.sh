@@ -77,7 +77,6 @@ debug_print_default_vars
 export script_dir mode kernel_name
 source_safe "${script_dir}/src/kernels/linux.sh"
 check_linux_kernel
-# check_archiso
 
 
 source_safe "${script_dir}/src/kernels/linux-lts.sh"
@@ -85,6 +84,9 @@ check_linux_lts_kernel
 
 
 check_zol_version
+
+
+check_archiso
 
 
 #
