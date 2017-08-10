@@ -132,9 +132,6 @@ generate_package_files() {
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
         msg2 "Copying zfs-utils.initcpio.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
-
-        msg2 "Copying zfs-utils manual patch"
-        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/0001-Correct-man-page-generation.patch ${zfs_utils_pkgbuild_path}/0001-Correct-man-page-generation.patch"
     fi
 
     if [[ ! -z ${zfs_pkgbuild_path} ]]; then
@@ -152,7 +149,7 @@ generate_package_files() {
         msg2 "Creating zfs.install"
         run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
     fi
-    
+
     if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
         msg2 "Creating spl-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
@@ -244,12 +241,12 @@ for (( a = 0; a < $#; a++ )); do
         usage
     else
         check_mode "${args[$a]}"
-        debug "have mode '${mode}'"
+        debug_print_array "have modes" "${modes[@]}"
     fi
 done
 
 
-if [[ ${#commands[@]} -eq 0 || ${mode} == "" ]]; then
+if [[ ${#commands[@]} -eq 0 || ${#modes[@]} -eq 0 ]]; then
     echo
     error "A build mode and command must be selected!"
     usage
@@ -264,77 +261,82 @@ if ! check_internet; then
 fi
 
 
-msg "$(date) :: ${script_name} started..."
+for mode_item in ${modes[@]}; do
 
-get_conflicts
-get_kernel_update_funcs
-debug_print_default_vars
+    debug "mode_item: ${mode_item}"
 
+    mode=$(echo ${mode_item} | cut -f1 -d:)
+    kernel_name=$(echo ${mode_item} | cut -f2 -d:)
 
-export script_dir mode kernel_name
-source_safe "src/kernels/${kernel_name}.sh"
+    msg "$(date) :: processing '${mode}' packages"
 
+    get_conflicts
+    get_kernel_update_funcs
+    debug_print_default_vars
 
-if have_command "cleanup"; then
-    msg "Cleaning up work files..."
-    fincs='-iname "*.log" -o -iname "*.pkg.tar.xz*" -o -iname "*.src.tar.gz"'
-    run_cmd "find ${script_dir}/packages/${kernel_name}/ \( ${fincs} \) -print -exec rm -rf {} \\;"
-    run_cmd "rm -rf  */src"
-    run_cmd "rm -rf */*.tar.gz"
-    exit
-fi
+    export script_dir mode kernel_name
+    source_safe "src/kernels/${kernel_name}.sh"
 
+    if have_command "cleanup"; then
+        msg "Cleaning up work files..."
+        fincs='-iname "*.log" -o -iname "*.pkg.tar.xz*" -o -iname "*.src.tar.gz"'
+        run_cmd "find ${script_dir}/packages/${kernel_name}/ \( ${fincs} \) -print -exec rm -rf {} \\;"
+        run_cmd "rm -rf  */src"
+        run_cmd "rm -rf */*.tar.gz"
+        continue
+    fi
 
-if have_command "reset_pkgs"; then
-    msg "Performing git reset for packages/${kernel_name}/*"
-        msg "${update_funcs[@]}"
+    if have_command "reset_pkgs"; then
+        msg "Performing git reset for packages/${kernel_name}/*"
+            msg "${update_funcs[@]}"
+        for func in "${update_funcs[@]}"; do
+            debug "Evaluating '${func}'"
+            "${func}"
+            msg "${pkg_list[@]}"
+            for pkg in "${pkg_list[@]}"; do
+                run_cmd "cd '${script_dir}/packages/${kernel_name}/${pkg}' && git reset --hard HEAD"
+            done
+        done
+    fi
+
+    if have_command "update_sums"; then
+        # Only the files in the zfs-utils package will be updated
+        run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1"
+        azsha1=$(echo ${run_cmd_output} | awk '{ print $1 }')
+        run_cmd_no_output "sed -e 's/^zfs_bash_completion_hash.*/zfs_bash_completion_hash=\"${azsha1}\"/g' -i ${script_dir}/conf.sh"
+
+        run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook"
+        azsha2=$(echo ${run_cmd_output} | awk '{ print $1 }')
+        run_cmd_no_output "sed -e 's/^zfs_initcpio_hook_hash.*/zfs_initcpio_hook_hash=\"${azsha2}\"/g' -i ${script_dir}/conf.sh"
+
+        run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install"
+        azsha3=$(echo ${run_cmd_output} | awk '{ print $1 }')
+        run_cmd_no_output "sed -e 's/^zfs_initcpio_install_hash.*/zfs_initcpio_install_hash=\"${azsha3}\"/g' -i ${script_dir}/conf.sh"
+
+        source_safe "${script_dir}/conf.sh"
+    fi
+
+    if have_command "update_chroot"; then
+        msg "Updating the x86_64 clean chroot..."
+        run_cmd "ccm64 u"
+    fi
+
     for func in "${update_funcs[@]}"; do
         debug "Evaluating '${func}'"
         "${func}"
-        msg "${pkg_list[@]}"
-        for pkg in "${pkg_list[@]}"; do
-            run_cmd "cd '${script_dir}/packages/${kernel_name}/${pkg}' && git reset --hard HEAD"
-        done
+        if have_command "update"; then
+            msg "Updating PKGBUILDs for kernel '${kernel_name}'"
+            generate_package_files
+        fi
+        if have_command "make"; then
+            build_packages
+            build_sources
+        fi
+        if have_command "sources"; then
+            build_sources
+        fi
     done
-fi
 
+    exit 0
 
-if have_command "update_sums"; then
-    # Only the files in the zfs-utils package will be updated
-    run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1"
-    azsha1=$(echo ${run_cmd_output} | awk '{ print $1 }')
-    run_cmd_no_output "sed -e 's/^zfs_bash_completion_hash.*/zfs_bash_completion_hash=\"${azsha1}\"/g' -i ${script_dir}/conf.sh"
-
-    run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook"
-    azsha2=$(echo ${run_cmd_output} | awk '{ print $1 }')
-    run_cmd_no_output "sed -e 's/^zfs_initcpio_hook_hash.*/zfs_initcpio_hook_hash=\"${azsha2}\"/g' -i ${script_dir}/conf.sh"
-
-    run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install"
-    azsha3=$(echo ${run_cmd_output} | awk '{ print $1 }')
-    run_cmd_no_output "sed -e 's/^zfs_initcpio_install_hash.*/zfs_initcpio_install_hash=\"${azsha3}\"/g' -i ${script_dir}/conf.sh"
-
-    source_safe "${script_dir}/conf.sh"
-fi
-
-
-if have_command "update_chroot"; then
-    msg "Updating the x86_64 clean chroot..."
-    run_cmd "ccm64 u"
-fi
-
-
-for func in "${update_funcs[@]}"; do
-    debug "Evaluating '${func}'"
-    "${func}"
-    if have_command "update"; then
-        msg "Updating PKGBUILDs for kernel '${kernel_name}'"
-        generate_package_files
-    fi
-    if have_command "make"; then
-        build_packages
-        build_sources
-    fi
-    if have_command "sources"; then
-        build_sources
-    fi
 done

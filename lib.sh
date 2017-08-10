@@ -6,7 +6,7 @@ shopt -s nullglob
 dry_run=0
 debug_flag=0
 haz_error=0
-mode=""
+modes=()
 test_mode=""
 kernel_name="" # set by generate_mode_list
 mode_list=() # set by generate_mode_list
@@ -358,10 +358,10 @@ kernel_version_has_minor_version() {
     # $1: the kernel version
     # returns: 0 if the version contains a minor version and 1 if it does not
     if [[ ${1} =~ ^[[:digit:]]+\.[[:digit:]]+\.([[:digit:]]+) ]]; then
-        debug "kernel_version_has_minor_version: Have kernel with minor version!"
+        # debug "kernel_version_has_minor_version: Have kernel with minor version!"
         return 0
     fi
-    debug "kernel_version_has_minor_version: Have kernel without minor version!"
+    # debug "kernel_version_has_minor_version: Have kernel without minor version!"
     return 1
 }
 
@@ -391,7 +391,7 @@ kernel_version_full_no_hyphen() {
 
 # from makepkg
 source_safe() {
-    export script_dir mode kernel_name
+    export script_dir modes kernel_name
     shopt -u extglob
     if ! source "$@"; then
         error "Failed to source $1"
@@ -536,19 +536,20 @@ check_mode() {
     # $1 the mode to check for
     debug "check_mode: checking '$1'"
     for m in "${mode_list[@]}"; do
-        debug "check_mode: on '${m}'"
+        # debug "check_mode: on '${m}'"
         local moden=$(echo ${m} | cut -f2 -d:)
-        # debug "moden: ${moden}"
         if [[ "${moden}" == "$1" ]]; then
-            if [[ ${mode} != "" ]]; then
-                error "Already have mode '${moden}', only one mode can be used at a time!"
-                usage
-                exit 155
-            fi
-            mode="$1"
-            kernel_name=$(echo ${m} | cut -f1 -d:)
+            # if [[ ${mode} != "" ]]; then
+            #     error "Already have mode '${moden}', only one mode can be used at a time!"
+            #     usage
+            #     exit 155
+            # fi
+            local kname=$(echo ${m} | cut -f1 -d:)
+            modes+=("$1:${kname}")
+            debug "found mode: $1 kernel_name: ${kname}"
             return
         fi
+        debug "${moden} is not selected"
     done
     error "Unrecognized argument '$1'"
     usage
@@ -599,7 +600,7 @@ check_test_mode() {
 have_command() {
     # $1: The command to check for
     # returns 0 if true, and 1 for false
-    debug "have_command: checking '$1'"
+    # debug "have_command: checking '$1'"
     for cmd in "${commands[@]}"; do
         # debug "have_command: loop '$cmd'"
         if [[ ${cmd} == $1 ]]; then
@@ -607,7 +608,7 @@ have_command() {
             return 0
         fi
     done
-    debug "have_command: '$1' is not defined"
+    # debug "have_command: '$1' is not defined"
     return 1
 }
 
@@ -701,10 +702,12 @@ get_conflicts() {
 debug_print_default_vars() {
     debug "dry_run: "${dry_run}
     debug "debug_flag: "${debug_flag}
-    debug "mode: ${mode}"
     debug "kernel_name: ${kernel_name}"
     if [[ ${#mode_list[@]} -gt 0 ]]; then
         debug_print_array "mode_list" "${mode_list[@]}"
+    fi
+    if [[ ${#modes[@]} -gt 0 ]]; then
+        debug_print_array "selected_modes" "${modes[@]}"
     fi
     if [[ ${#update_funcs[@]} -gt 0 ]]; then
         debug_print_array "update_funcs" "${update_funcs[@]}"
