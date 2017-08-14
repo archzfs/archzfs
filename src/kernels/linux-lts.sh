@@ -4,7 +4,7 @@ mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.9.41-1"
+kernel_version="4.9.42-1"
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
@@ -40,8 +40,8 @@ update_linux_lts_pkgbuilds() {
     kernel_version_major=${kernel_version%-*}
     kernel_mod_path="${kernel_version_full}-lts"
     archzfs_package_group="archzfs-linux-lts"
-    spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
-    zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    spl_pkgver=${zol_version}.${kernel_version_full_pkgver}
+    zfs_pkgver=${zol_version}.${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_conflicts="'spl-linux-lts-git'"
