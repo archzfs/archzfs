@@ -3,8 +3,8 @@ mode_name="zen"
 mode_desc="Select and use the packages for the linux-zen kernel"
 
 # Kernel versions for default ZFS packages
-pkgrel="1"
-kernel_version="4.12.4-1"
+pkgrel="2"
+kernel_version="4.12.5-1"
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
@@ -39,8 +39,8 @@ update_linux_pkgbuilds() {
     kernel_version_major=${kernel_version%-*}
     kernel_mod_path="${kernel_version_full}-zen"
     archzfs_package_group="archzfs-linux-zen"
-    spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
-    zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    spl_pkgver=${zol_version}.${kernel_version_full_pkgver}
+    zfs_pkgver=${zol_version}.${kernel_version_full_pkgver}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_conflicts="'spl-linux-zen-git'"

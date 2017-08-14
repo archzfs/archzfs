@@ -52,3 +52,15 @@
 [submodule "packages/common-git/spl-utils-common-git"]
 	path = packages/common-git/spl-utils-common-git
 	url = ssh+git://aur@aur.archlinux.org/spl-utils-common-git.git
+[submodule "packages/linux-zen/spl-linux-zen"]
+	path = packages/linux-zen/spl-linux-zen
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-zen.git
+[submodule "packages/linux-zen/spl-linux-zen-git"]
+	path = packages/linux-zen/spl-linux-zen-git
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-zen-git.git
+[submodule "packages/linux-zen/zfs-linux-zen-git"]
+	path = packages/linux-zen/zfs-linux-zen-git
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-zen-git.git
+[submodule "packages/linux-zen/zfs-linux-zen"]
+	path = packages/linux-zen/zfs-linux-zen
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-zen.git
