@@ -77,6 +77,9 @@ debug_print_default_vars
 export script_dir mode kernel_name
 
 
+check_linux_zen_kernel
+
+
 check_linux_hardened_kernel
 
 

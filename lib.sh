@@ -493,6 +493,19 @@ check_linux_hardened_kernel() {
     check_result "x86_64 linux-hardened kernel package" "linux-hardened x86_64" "$?"
 }
 
+check_linux_zen_kernel() {
+    #
+    # Check x86_64 linux-hardened kernel version
+    #
+    if ! source ${script_dir}/src/kernels/linux-zen.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-zen.sh!"
+        exit 155
+    fi
+    msg "Checking the online package database for x86_64 linux-zen kernel version changes..."
+    check_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
+    check_result "x86_64 linux-zen kernel package" "linux-zen x86_64" "$?"
+}
+
 
 check_linux_kernel() {
     #
