@@ -328,28 +328,28 @@ run_cmd_no_output_no_dry_run() {
 
 package_arch_from_path() {
     # $1: Package path
-    pacman -Qip "$1" | grep "Architecture" | cut -d : -f 2 | tr -d ' '
+    LC_ALL=C pacman -Qip "$1" | grep "Architecture" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
 
 package_name_from_path() {
     # $1: Package path
-    pacman -Qip "$1" | grep "Name" | cut -d : -f 2 | tr -d ' '
+    LC_ALL=C pacman -Qip "$1" | grep "Name" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
 
 package_version_from_path() {
     # $1: Package path
-    pacman -Qip "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
+    LC_ALL=C pacman -Qip "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
 
 package_version_from_syncdb() {
     # $1: Package name
-    pacman -Si "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
+    LC_ALL=C pacman -Si "$1" | grep "Version" | cut -d : -f 2 | tr -d ' '
     return $?
 }
 
@@ -470,10 +470,40 @@ check_archiso() {
     #
     # Check archiso kernel version (this will change when the archiso is updated)
     #
+    if ! source ${script_dir}/src/kernels/archiso.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/archiso.sh!"
+        exit 155
+    fi
     msg "Checking archiso download page for linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" \
-        "${kernel_version_archiso}"
+    check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" "${kernel_version::-2}"
     check_result "archiso kernel version" "archiso" "$?"
+}
+
+
+check_linux_hardened_kernel() {
+    #
+    # Check x86_64 linux-hardened kernel version
+    #
+    if ! source ${script_dir}/src/kernels/linux-hardened.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-hardened.sh!"
+        exit 155
+    fi
+    msg "Checking the online package database for x86_64 linux-hardened kernel version changes..."
+    check_webpage "https://www.archlinux.org/packages/community/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
+    check_result "x86_64 linux-hardened kernel package" "linux-hardened x86_64" "$?"
+}
+
+check_linux_zen_kernel() {
+    #
+    # Check x86_64 linux-hardened kernel version
+    #
+    if ! source ${script_dir}/src/kernels/linux-zen.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-zen.sh!"
+        exit 155
+    fi
+    msg "Checking the online package database for x86_64 linux-zen kernel version changes..."
+    check_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
+    check_result "x86_64 linux-zen kernel package" "linux-zen x86_64" "$?"
 }
 
 
@@ -481,9 +511,12 @@ check_linux_kernel() {
     #
     # Check x86_64 linux kernel version
     #
+    if ! source ${script_dir}/src/kernels/linux.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux.sh!"
+        exit 155
+    fi
     msg "Checking the online package database for x86_64 linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" \
-        "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "${kernel_version}"
     check_result "x86_64 linux kernel package" "linux x86_64" "$?"
 }
 
@@ -492,9 +525,12 @@ check_linux_lts_kernel() {
     #
     # Check x86_64 linux-lts kernel version
     #
+    if ! source ${script_dir}/src/kernels/linux-lts.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-lts.sh!"
+        exit 155
+    fi
     msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" \
-        "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "${kernel_version}"
     check_result "x86_64 linux-lts kernel package" "linux-lts x86_64" "$?"
 }
 
@@ -654,6 +690,26 @@ get_kernel_update_funcs() {
     done
 }
 
+get_conflicts() {
+    for kernel in $(ls ${script_dir}/src/kernels); do
+        # do not conflict with common or dkms packages
+        if [[ "$kernel" == "common.sh"  || "$kernel" == "common-git.sh" || "$kernel" == "dkms.sh" ]]; then
+          continue;
+        fi
+
+        # get update funcs
+        updatefuncstmp=$(cat "${script_dir}/src/kernels/${kernel}" | grep -v "^.*#" | grep -oh "update_.*_pkgbuilds")
+
+        # generate conflict list
+        for func in ${updatefuncstmp}; do
+          zfs_headers_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//spl*}; printf "'%s-headers' "  "${conflicts[@]}")
+          spl_headers_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//zfs*}; printf "'%s-headers' "  "${conflicts[@]}")
+
+          zfs_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//spl*}; printf "'%s' "  "${conflicts[@]}")
+          spl_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//zfs*}; printf "'%s' "  "${conflicts[@]}")
+        done
+    done
+}
 
 debug_print_default_vars() {
     debug "dry_run: "${dry_run}
@@ -744,14 +800,14 @@ git_calc_pkgver() {
         if [[ ${repo} =~ ^zfs ]]; then
             sha=${zfs_git_commit}
         fi
-        
-        # use utils package, if no kernel version is set
-        if [ -z "${kernvers}" ]; then
+
+        # use utils package, if no kernel version is set and not on dkms
+        if [[ -z ${zfs_dkms_pkgbuild_path} && -z "${kernvers}" ]]; then
             pkg=$(eval "echo \${${repo}_utils_pkgname}")
         else
             pkg=$(eval "echo \${${repo}_pkgname}")
         fi
-            
+
         debug "Using package '${pkg}'"
 
         # Checkout the git repo to a work directory
@@ -766,22 +822,28 @@ git_calc_pkgver() {
         # Get the version number past the last tag
         msg2 "Calculating PKGVER"
         cmd="cd temp/${repo} && "
-        
-        # append kernel version if set
-        if [ ! -z "${kernvers}" ]; then
-            cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')_${kernvers}"
-        else
-            cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')"
-        fi
-        
+        cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')"
+
         run_cmd_no_output_no_dry_run "${cmd}"
 
         if [[ ${repo} =~ ^spl ]]; then
-            spl_pkgver=${run_cmd_output}
+            spl_git_ver=${run_cmd_output}
+            # append kernel version if set
+            if [ ! -z "${kernvers}" ]; then
+              spl_pkgver=${spl_git_ver}_${kernvers};
+            else
+              spl_pkgver=${spl_git_ver};
+            fi
             debug "spl_pkgver: ${spl_pkgver}"
         elif [[ ${repo} =~ ^zfs ]]; then
-            zfs_pkgver=${run_cmd_output}
-            debug "zfs_pkgver: ${zfs_pkgver}"
+          zfs_git_ver=${run_cmd_output}
+          # append kernel version if set
+          if [ ! -z "${kernvers}" ]; then
+            zfs_pkgver=${zfs_git_ver}_${kernvers};
+          else
+            zfs_pkgver=${zfs_git_ver};
+          fi
+          debug "zfs_pkgver: ${zfs_pkgver}"
         fi
 
         # Cleanup
@@ -789,4 +851,3 @@ git_calc_pkgver() {
         run_cmd_no_output_no_dry_run "rm -vrf temp"
     done
 }
-

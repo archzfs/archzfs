@@ -46,9 +46,21 @@
 [submodule "packages/common/zfs-utils-common"]
 	path = packages/common/zfs-utils-common
 	url = ssh+git://aur@aur.archlinux.org/zfs-utils-common.git
-[submodule "packages/common/zfs-utils-common-git"]
-	path = packages/common/zfs-utils-common-git
+[submodule "packages/common-git/zfs-utils-common-git"]
+	path = packages/common-git/zfs-utils-common-git
 	url = ssh+git://aur@aur.archlinux.org/zfs-utils-common-git.git
-[submodule "packages/common/spl-utils-common-git"]
-	path = packages/common/spl-utils-common-git
+[submodule "packages/common-git/spl-utils-common-git"]
+	path = packages/common-git/spl-utils-common-git
 	url = ssh+git://aur@aur.archlinux.org/spl-utils-common-git.git
+[submodule "packages/linux-zen/spl-linux-zen"]
+	path = packages/linux-zen/spl-linux-zen
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-zen.git
+[submodule "packages/linux-zen/spl-linux-zen-git"]
+	path = packages/linux-zen/spl-linux-zen-git
+	url = ssh+git://aur@aur.archlinux.org/spl-linux-zen-git.git
+[submodule "packages/linux-zen/zfs-linux-zen-git"]
+	path = packages/linux-zen/zfs-linux-zen-git
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-zen-git.git
+[submodule "packages/linux-zen/zfs-linux-zen"]
+	path = packages/linux-zen/zfs-linux-zen
+	url = ssh+git://aur@aur.archlinux.org/zfs-linux-zen.git

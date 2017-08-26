@@ -1,7 +1,7 @@
 =====================
 archzfs testing guide
 =====================
-:Modified: Mon Jul 17 00:53 2017
+:Modified: Fri Jul 28 01:06 2017
 
 .. content:
 
@@ -82,8 +82,8 @@ modified to use the archzfs-lts packages to boot.
    cd files/packer_work/
 
    qemu-system-x86_64 -machine type=pc,accel=kvm -boot once=d \
-   -device virtio-net,netdev=user.0 -drive file=output-qemu/archzfs-qemu-lts-test-00-bootfs-archiso-2017.07.16,if=virtio,cache=writeback,discard=ignore \
-   -name archzfs-qemu-lts-test-00-bootfs-archiso-2017.07.16 -netdev user,id=user.0,hostfwd=tcp::2487-:22 -display sdl -m 512M -vnc 0.0.0.0:2
+   -device virtio-net,netdev=user.0 -drive file=output-qemu/archzfs-qemu-std-test-00-bootfs-archiso-2017.07.16,if=virtio,cache=writeback,discard=ignore \
+   -name archzfs-qemu-std-test-00-bootfs-archiso-2017.07.16 -netdev user,id=user.0,hostfwd=tcp::2487-:22 -display sdl -m 512M -vnc 0.0.0.0:2
 
 login as root user and password "azfstest"
 
@@ -285,9 +285,9 @@ Booting the qemu image:
 .. code:: console
 
     sudo /usr/bin/qemu-system-x86_64 -device virtio-net,netdev=user.0 \
-        -drive file=testing/files/packer_work/output-qemu/archzfs-qemu-std-test-00-default-archiso-2016.09.10,if=virtio,cache=writeback,discard=ignore \
+        -drive file=testing/files/packer_work/output-qemu/archzfs-qemu-std-test-00-bootfs-archiso-2017.07.16,if=virtio,cache=writeback,discard=ignore \
         -vnc 0.0.0.0:32 -netdev user,id=user.0,hostfwd=tcp::3333-:22 \
-        -name archzfs-qemu-std-test-00-default-archiso-2016.09.10 -machine type=pc,accel=kvm -display sdl -boot once=d -m 512M
+        -name archzfs-qemu-std-test-00-bootfs-archiso-2017.07.16 -machine type=pc,accel=kvm -display sdl -boot once=d -m 512M
 
 Connection via ssh:
 

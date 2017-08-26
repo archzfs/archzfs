@@ -123,29 +123,22 @@ repo_package_list() {
         vers=$(package_version_from_path ${pkg})
 
 
-        # Version match check: arch: x86_64 name: spl-utils-linux-git vers: 0.7.0_rc1_r0_g4fd75d3_4.7.2_1-4 vers_match: 0.6.5.8.*4.7.2_1-4
-        debug "spl_pkgver: ${spl_pkgver}"
-        debug "zfs_pkgver: ${zfs_pkgver}"
+        if ! [[ ${name} =~ .*-git ]]; then
+            # Version match check: arch: x86_64 name: spl-utils-linux-git vers: 0.7.0_rc1_r0_g4fd75d3_4.7.2_1-4 vers_match: 0.6.5.8.*4.7.2_1-4
+            debug "spl_pkgver: ${spl_pkgver}"
+            debug "zfs_pkgver: ${zfs_pkgver}"
 
-        if [[ ${pkg} =~ .*spl-.* ]]; then
-            match="${spl_pkgver}-${spl_pkgrel}"
-        elif [[ ${pkg} =~ .*zfs-.* ]]; then
-            match="${zfs_pkgver}-${zfs_pkgrel}"
-        fi
-        debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} vers_match: ${match}"
-
-        if ! [[ ${vers} =~ ^${match} ]] ; then
-            debug "Version mismatch!"
-            if [[ ${name} =~ .*-git ]]; then
-                error "Attempting to add Git packages that are out of date!"
-                error "package version from filesystem: ${vers}"
-                error "calculated version from git: ${match}"
-                haz_error=1
-                if [[ ${dry_run} -ne 1 ]]; then
-                    exit 1
-                fi
+            if [[ ${pkg} =~ .*spl-.* ]]; then
+                match="${spl_pkgver}-${spl_pkgrel}"
+            elif [[ ${pkg} =~ .*zfs-.* ]]; then
+                match="${zfs_pkgver}-${zfs_pkgrel}"
             fi
-            continue
+            debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} vers_match: ${match}"
+
+            if ! [[ ${vers} =~ ^${match} ]] ; then
+                debug "Version mismatch!"
+                continue
+            fi
         fi
 
         debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${repo_target}/${arch}"
@@ -249,6 +242,30 @@ repo_add() {
     fi
 }
 
+sign_packages() {
+    if [[ ${#package_list[@]} == 0 ]]; then
+        error "No packages to process!"
+        exit 1
+    fi
+
+    for ipkg in "${package_list[@]}"; do
+        IFS=';' read -a pkgopt <<< "${ipkg}"
+        name="${pkgopt[0]}"
+        vers="${pkgopt[1]}"
+        pkgp="${pkgopt[2]}"
+        dest="${pkgopt[3]}"
+
+        if [[ ! -f "${pkgp}.sig" ]]; then
+            msg2 "Signing ${pkgp}"
+            # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
+            run_cmd_no_output "GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${script_dir}/${pkgp}\""
+            if [[ ${run_cmd_return} -ne 0 ]]; then
+                exit 1
+            fi
+        fi
+    done
+}
+
 
 msg "$(date) :: ${script_name} started..."
 
@@ -271,13 +288,10 @@ export spl_pkgver=""
 
 for func in ${update_funcs[@]}; do
     debug "Evaluating '${func}'"
-    if [[ ${func} =~ .*_git_.* ]]; then
-        # Update the local zfs/spl git repositories, this will change the calculated pkgver version of the PKGBUILD.
-        commands+=("update")
-    fi
     "${func}"
     repo_package_list
     repo_package_backup
+    sign_packages
     repo_add
 done
 

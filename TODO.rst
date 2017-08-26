@@ -4,13 +4,15 @@ Things To Do
 
 * Mon Jul 17 00:30 2017: Finish documenting how to run tests in testing/README.rst
 
-* Mon Jul 17 00:30 2017: Add tests for lts-git
-
 * Sat Sep 17 01:16 2016: ADD TESTS for run_hook
 
   Test the args! Make sure ash can parse them.
 
   These tests will close #76 and #77
+
+* Wed Jul 26 20:25 2017: add run in qemu command for test.sh
+
+  Runs the image built by packer in qemu
 
 * Sun Feb 12 15:57 2017: more scraper stuff
 

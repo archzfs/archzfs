@@ -53,7 +53,6 @@ usage() {
     echo "    test          Build test packages."
     echo "    update        Update all git PKGBUILDs using conf.sh variables."
     echo "    update-test   Update all git PKGBUILDs using the testing conf.sh variables."
-    echo "    sign          GPG detach sign all compiled packages (default)."
     echo "    sources       Build the package sources. This is done by default when using the make command."
     echo
     echo "Examples:"
@@ -71,30 +70,9 @@ build_sources() {
     for pkg in "${pkg_list[@]}"; do
         msg "Building source for ${pkg}";
         run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/${pkg}'"
-        run_cmd "su - ${makepkg_nonpriv_user} -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
+        run_cmd "su - ${makepkg_nonpriv_user} -s /bin/sh -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
     done
 }
-
-
-sign_packages() {
-    for pkg in "${pkg_list[@]}"; do
-        run_cmd_no_output_no_dry_run "find ${script_dir}/packages/${kernel_name} -iname '*${pkg}*-${pkgrel}*.pkg.tar.xz' | tr '\\n' ' '"
-        files="${run_cmd_output}"
-        # debug "Found files: ${files}"
-        for f in ${files}; do
-            # debug "On file: ${f}"
-            if [[ ! -f "${f}.sig" ]]; then
-                msg2 "Signing ${f}"
-                # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
-                run_cmd_no_output "su - ${makepkg_nonpriv_user} -c 'GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${f}\"'"
-                if [[ ${run_cmd_return} -ne 0 ]]; then
-                    exit 1
-                fi
-            fi
-        done
-    done
-}
-
 
 generate_package_files() {
     debug "kernel_version_full: ${kernel_version_full}"
@@ -135,6 +113,10 @@ generate_package_files() {
         run_cmd_no_output "[[ -d "${spl_pkgbuild_path}" ]] || mkdir -p ${spl_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_pkgbuild_path}" ]] || mkdir -p ${zfs_pkgbuild_path}"
     fi
+    if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
+        run_cmd_no_output "[[ -d "${spl_dkms_pkgbuild_path}" ]] || mkdir -p ${spl_dkms_pkgbuild_path}"
+        run_cmd_no_output "[[ -d "${zfs_dkms_pkgbuild_path}" ]] || mkdir -p ${zfs_dkms_pkgbuild_path}"
+    fi
 
     # Finally, generate the update packages ...
     if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
@@ -150,9 +132,16 @@ generate_package_files() {
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
         msg2 "Copying zfs-utils.initcpio.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
+
+        msg2 "Copying zfs-utils manual patch"
+        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/0001-Correct-man-page-generation.patch ${zfs_utils_pkgbuild_path}/0001-Correct-man-page-generation.patch"
     fi
-    
+
     if [[ ! -z ${zfs_pkgbuild_path} ]]; then
+        # remove own headers from conflicts
+        zfs_headers_conflicts=${zfs_headers_conflicts_all/"'${zfs_pkgname}-headers'"}
+        spl_headers_conflicts=${spl_headers_conflicts_all/"'${spl_pkgname}-headers'"}
+
         msg2 "Creating spl PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
         msg2 "Creating spl.install"
@@ -163,12 +152,33 @@ generate_package_files() {
         msg2 "Creating zfs.install"
         run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
     fi
+    
+    if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
+        msg2 "Creating spl-dkms PKGBUILD"
+        run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
+
+        msg2 "Creating zfs-dkms PKGBUILD"
+        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
+        msg2 "Creating zfs.install"
+        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/zfs.install.sh"
+    fi
 
     msg "Update diffs ..."
-    run_cmd "cd ${script_dir}/${spl_utils_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${script_dir}/${spl_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${script_dir}/${zfs_utils_pkgbuild_path} && git --no-pager diff"
-    run_cmd "cd ${script_dir}/${zfs_pkgbuild_path} && git --no-pager diff"
+    if [[ ! -z ${spl_utils_pkgbuild_path} ]]; then
+        run_cmd "cd ${script_dir}/${spl_utils_pkgbuild_path} && git --no-pager diff"
+    fi
+
+    if [[ ! -z ${spl_pkgbuild_path} ]]; then
+        run_cmd "cd ${script_dir}/${spl_pkgbuild_path} && git --no-pager diff"
+    fi
+
+    if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
+        run_cmd "cd ${script_dir}/${zfs_utils_pkgbuild_path} && git --no-pager diff"
+    fi
+
+    if [[ ! -z ${zfs_pkgbuild_path} ]]; then
+        run_cmd "cd ${script_dir}/${zfs_pkgbuild_path} && git --no-pager diff"
+    fi
 
     msg "Resetting ownership"
     run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/'"
@@ -177,14 +187,34 @@ generate_package_files() {
 
 build_packages() {
     for pkg in "${pkg_list[@]}"; do
+
+        # get version of any package that has been build previously
+        run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.pkg.tar.xz | grep \"$pkg\" | grep -v \"headers\" | tail -1"
+        pkg_path=${run_cmd_output}
+        vers=$(package_version_from_path ${pkg_path})
+        
+        # get current version
+        eval $(source "${script_dir}/packages/${kernel_name}/${pkg}/PKGBUILD";
+            echo current_vers="${pkgver}";
+            echo current_rel="${pkgrel}";
+        )
+        # stop if version has already been build
+        if [[ ${run_cmd_return} -eq 0 && ${vers} = ${current_vers}-${current_rel} ]]; then
+            msg "${pkg}=${vers} has already been build, skipping"
+            continue
+        fi
+
         msg "Building ${pkg}..."
         run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm64 s && mksrcinfo"
         if [[ ${run_cmd_return} -ne 0 ]]; then
             error "A problem occurred building the package"
             exit 1
         fi
-        # msg2 "${pkg} package files:"
-        # run_cmd "tree ${chroot_path}/build/${pkg}/pkg"
+        # if [[ "${pkg}" == "zfs-utils-common" ]]; then
+            # msg2 "${pkg} package files:"
+            # run_cmd "tree ${chroot_path}/build/${pkg}/pkg"
+            # exit
+        # fi
     done
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
 }
@@ -207,7 +237,6 @@ fi
 for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "make" ]]; then
         commands+=("make")
-        commands+=("sign")
     elif [[ ${args[$a]} == "test" ]]; then
         commands+=("test")
     elif [[ ${args[$a]} == "update" ]]; then
@@ -216,8 +245,6 @@ for (( a = 0; a < $#; a++ )); do
         commands+=("update-test")
     elif [[ ${args[$a]} == "sources" ]]; then
         commands+=("sources")
-    elif [[ ${args[$a]} == "sign" ]]; then
-        commands+=("sign")
     elif [[ ${args[$a]} == "-C" ]]; then
         commands+=("cleanup")
     elif [[ ${args[$a]} == "-u" ]]; then
@@ -256,7 +283,7 @@ fi
 
 msg "$(date) :: ${script_name} started..."
 
-
+get_conflicts
 get_kernel_update_funcs
 debug_print_default_vars
 
@@ -327,8 +354,4 @@ for func in "${update_funcs[@]}"; do
     if have_command "sources"; then
         build_sources
     fi
-    if have_command "sign"; then
-        sign_packages
-    fi
 done
-
