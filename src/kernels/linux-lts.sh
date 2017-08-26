@@ -4,8 +4,9 @@ mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.9"
-kernel_version_max=$(echo ${kernel_version}| awk -F. '{print $1"."$2+1}')
+kernel_version="4.9.51"
+kernel_version_full=$(kernel_version_full ${kernel_version})
+kernel_version_max=$(echo ${kernel_version_full}| awk -F. '{print $1"."$2"."$3+1}')
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
@@ -37,9 +38,9 @@ header="\
 
 update_linux_lts_pkgbuilds() {
     pkg_list=("spl-linux-lts" "zfs-linux-lts")
-    kernel_mod_path="extramodules-${kernel_version}-lts"
+    kernel_version_major=${kernel_version_full%\.*}
+    kernel_mod_path="extramodules-${kernel_version_major}-lts"
     archzfs_package_group="archzfs-linux-lts"
-    kernel_version_full=$(kernel_version_full ${kernel_version})
     spl_pkgver=${zol_version}.${kernel_version_full}
     zfs_pkgver=${zol_version}.${kernel_version_full}
     spl_pkgrel=${pkgrel}
@@ -66,9 +67,9 @@ update_linux_lts_pkgbuilds() {
 update_linux_lts_git_pkgbuilds() {
     pkg_list=("spl-linux-lts-git" "zfs-linux-lts-git")
     kernel_version=${kernel_version_git}
-    kernel_mod_path="extramodules-${kernel_version}-lts"
+    kernel_version_major=${kernel_version_full%\.*}
+    kernel_mod_path="extramodules-${kernel_version_major}-lts"
     archzfs_package_group="archzfs-linux-lts-git"
-    kernel_version_full=$(kernel_version_full ${kernel_version})
     spl_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     spl_pkgrel=${pkgrel_git}

@@ -4,8 +4,9 @@ mode_desc="Select and use the packages for the archiso linux kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.12"
-kernel_version_max=$(echo ${kernel_version}| awk -F. '{print $1"."$2+1}')
+kernel_version="4.12.8"
+kernel_version_full=$(kernel_version_full ${kernel_version})
+kernel_version_max=$(echo ${kernel_version_full}| awk -F. '{print $1"."$2"."$3+1}')
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
@@ -28,9 +29,9 @@ header="\
 
 update_archiso_linux_pkgbuilds() {
     pkg_list=("spl-archiso-linux" "zfs-archiso-linux")
-    kernel_mod_path="extramodules-${kernel_version}-ARCH"
+    kernel_version_major=${kernel_version_full%\.*}
+    kernel_mod_path="extramodules-${kernel_version_major}-ARCH"
     archzfs_package_group="archzfs-archiso-linux"
-    kernel_version_full=$(kernel_version_full ${kernel_version})
     spl_pkgver=${zol_version}.${kernel_version_full}
     zfs_pkgver=${zol_version}.${kernel_version_full}
     spl_pkgrel=${pkgrel}
