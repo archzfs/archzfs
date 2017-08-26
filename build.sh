@@ -187,6 +187,23 @@ generate_package_files() {
 
 build_packages() {
     for pkg in "${pkg_list[@]}"; do
+
+        # get version of any package that has been build previously
+        run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.pkg.tar.xz | grep \"$pkg\" | grep -v \"headers\" | tail -1"
+        pkg_path=${run_cmd_output}
+        vers=$(package_version_from_path ${pkg_path})
+        
+        # get current version
+        eval $(source "${script_dir}/packages/${kernel_name}/${pkg}/PKGBUILD";
+            echo current_vers="${pkgver}";
+            echo current_rel="${pkgrel}";
+        )
+        # stop if version has already been build
+        if [[ ${run_cmd_return} -eq 0 && ${vers} = ${current_vers}-${current_rel} ]]; then
+            msg "${pkg}=${vers} has already been build, skipping"
+            continue
+        fi
+
         msg "Building ${pkg}..."
         run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm64 s && mksrcinfo"
         if [[ ${run_cmd_return} -ne 0 ]]; then
