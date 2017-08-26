@@ -473,7 +473,7 @@ check_archiso() {
         exit 155
     fi
     msg "Checking archiso download page for linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" "${kernel_version::-2}"
+    check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" "${kernel_version}"
     check_result "archiso kernel version" "archiso" "$?"
 }
 
@@ -487,7 +487,7 @@ check_linux_hardened_kernel() {
         exit 155
     fi
     msg "Checking the online package database for x86_64 linux-hardened kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/community/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/community/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.]+(?=.\w-[\d]+</h2>)" "${kernel_version}"
     check_result "x86_64 linux-hardened kernel package" "linux-hardened x86_64" "$?"
 }
 
@@ -500,7 +500,7 @@ check_linux_zen_kernel() {
         exit 155
     fi
     msg "Checking the online package database for x86_64 linux-zen kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.]+(?=-[\d]+</h2>)" "${kernel_version}"
     check_result "x86_64 linux-zen kernel package" "linux-zen x86_64" "$?"
 }
 
@@ -514,7 +514,7 @@ check_linux_kernel() {
         exit 155
     fi
     msg "Checking the online package database for x86_64 linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.]+(?=-[\d]+</h2>)" "${kernel_version%}"
     check_result "x86_64 linux kernel package" "linux x86_64" "$?"
 }
 
@@ -528,7 +528,7 @@ check_linux_lts_kernel() {
         exit 155
     fi
     msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.]+(?=-[\d]+</h2>)" "${kernel_version}"
     check_result "x86_64 linux-lts kernel package" "linux-lts x86_64" "$?"
 }
 
