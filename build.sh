@@ -66,6 +66,16 @@ usage() {
 }
 
 
+cleanup() {
+    # $1: the package name
+    msg "Cleaning up work files..."
+    fincs='-iname "*.log" -o -iname "*.pkg.tar.xz*" -o -iname "*.src.tar.gz"'
+    run_cmd "find ${script_dir}/packages/${kernel_name}/$1 \( ${fincs} \) -print -exec rm -rf {} \\;"
+    run_cmd "rm -rf  */src"
+    run_cmd "rm -rf */*.tar.gz"
+}
+
+
 build_sources() {
     for pkg in "${pkg_list[@]}"; do
         msg "Building source for ${pkg}";
@@ -73,6 +83,7 @@ build_sources() {
         run_cmd "su - ${makepkg_nonpriv_user} -s /bin/sh -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
     done
 }
+
 
 generate_package_files() {
     debug "kernel_version_full: ${kernel_version_full}"
@@ -152,7 +163,7 @@ generate_package_files() {
         msg2 "Creating zfs.install"
         run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
     fi
-    
+
     if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
         msg2 "Creating spl-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
@@ -205,6 +216,7 @@ build_packages() {
         fi
 
         msg "Building ${pkg}..."
+        cleanup ${pkg}
         run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm64 s && mksrcinfo"
         if [[ ${run_cmd_return} -ne 0 ]]; then
             error "A problem occurred building the package"
@@ -293,12 +305,8 @@ source_safe "src/kernels/${kernel_name}.sh"
 
 
 if have_command "cleanup"; then
-    msg "Cleaning up work files..."
-    fincs='-iname "*.log" -o -iname "*.pkg.tar.xz*" -o -iname "*.src.tar.gz"'
-    run_cmd "find ${script_dir}/packages/${kernel_name}/ \( ${fincs} \) -print -exec rm -rf {} \\;"
-    run_cmd "rm -rf  */src"
-    run_cmd "rm -rf */*.tar.gz"
-    exit
+    cleanup
+    # exit
 fi
 
 

@@ -111,11 +111,34 @@ repo_package_list() {
 
     # Get packages from the backup directory
     path="packages/${kernel_name}/{$(printf '%s,' ${pkg_list[@]} | cut -d ',' -f 1-${#pkg_list[@]})}/"
-    fcmd="find ${path} -iname '*${kernel_version_full_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_full_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
-    run_cmd_show_and_capture_output_no_dry_run "${fcmd}"
-    for pkg in ${run_cmd_output}; do
-        pkgs+=(${pkg})
-    done
+    if [[ ! -z ${kernel_version_full_pkgver} ]]; then
+        debug "kernel_version_full_pkgver: ${kernel_version_full_pkgver}"
+        fcmd="find ${path} -iname '*${kernel_version_full_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_full_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+        run_cmd_no_output_no_dry_run "${fcmd}"
+        for pkg in ${run_cmd_output}; do
+            pkgs+=(${pkg})
+        done
+    elif [[ ! -z ${spl_pkgver} ]] && [[ ! -z ${zfs_pkgver} ]]; then
+        debug "spl_pkgver: ${spl_pkgver}"
+        fcmd="find ${path} -iname '*${spl_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+        run_cmd_no_output_no_dry_run "${fcmd}"
+        for pkg in ${run_cmd_output}; do
+            pkgs+=(${pkg})
+        done
+    else
+        debug "kernel_version_full_pkgver and spl_pkgver (and zfs_pkgver) not set!"
+        debug "Falling back to newest package by mod time for zfs and spl"
+        for z in $(printf '%s ' ${pkg_list[@]} ); do
+            # fcmd="find ${path} -iname '*${kernel_name}*-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+            fcmd="find packages/${kernel_name} -iname '*${z}*.pkg.tar.xz' -printf '%T@ %p\\n' | sort -n | tail -1 | cut -f2- -d' '"
+            run_cmd_no_output_no_dry_run "${fcmd}"
+            for pkg in ${run_cmd_output}; do
+                pkgs+=(${pkg})
+            done
+        done
+    fi
+
+    debug_print_array "pkgs" ${pkgs[@]}
 
     for pkg in ${pkgs[@]}; do
         arch=$(package_arch_from_path ${pkg})
@@ -159,33 +182,39 @@ repo_package_backup() {
     msg "Getting a list of packages to backup..."
     local pkgs=()
     for pkg in ${pkg_list[@]}; do
+        debug "pkg: ${pkg}"
         local o=""
         if [[ ${#pkgs[@]} -ne 0 ]]; then
             local o="-o"
         fi
-        pkgs+=("${o} -iname '*${pkg}-[0-9]*.pkg.tar.xz'")
-    done
-    run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f ${pkgs[@]}"
-    for x in ${run_cmd_output}; do
-        ename=$(package_name_from_path ${x})
-        evers=$(package_version_from_path ${x})
-        debug "repo_package_backup: evers: ${evers}"
-        debug "repo_package_backup: kernel_vers: ${kernel_version_full_pkgver}"
-        # Ignore current packages if they exist
-        if [[ ${evers} == *"${kernel_version_full_pkgver}-${spl_pkgrel}"* ]] || \
-            [[ ${evers} == *"${kernel_version_full_pkgver}-${zfs_pkgrel}"* ]]; then
-            debug "repo_package_backup: Ignoring package '${x}'"
-            continue
+        if [[ ${pkg} =~ .*-git$ ]]; then
+            pkgs+=("${o} -iname '*git*' -regextype egrep -regex '.*${pkg}-(headers-)*[a-z0-9\.\_\-]+-x86_64.pkg.tar.xz'")
+        elif [[ ${pkg} =~ .*-hardened$ ]]; then
+            pkgs+=("${o} -not -iname '*git*' -regextype egrep -regex '.*${pkg}-(headers-)*[a-z0-9\.\_\-]+-x86_64.pkg.tar.xz'")
+        else
+            pkgs+=("${o} -not -iname '*git*' -regextype egrep -regex '.*${pkg}-(headers-)*[0-9\.\_\-]+-x86_64.pkg.tar.xz'")
         fi
+    done
+
+    run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f -iname '*git*' ${pkgs[@]}"
+
+    for x in ${run_cmd_output}; do
+        debug "Evaluating ${x}"
+        pkgname=$(package_name_from_path ${x})
+        pkgvers=$(package_version_from_path ${x})
+        debug "pkgname: ${pkgname}"
+        debug "pkgvers: ${pkgvers}"
         # asterisk globs the package signature
-        epkg="${repo_target}/x86_64/${ename}-${evers}*"
-        debug "repo_package_backup epkg: ${epkg}"
+        epkg="${repo_target}/x86_64/${pkgname}-${pkgvers}*"
+        debug "backing up package: ${epkg}"
         package_exist_list+=("${epkg}")
     done
+
     if [[ ${#package_exist_list[@]} -eq 0 ]]; then
         msg2 "No packages found for backup."
         return
     fi
+
     debug_print_array "package_exist_list" "${package_exist_list[@]}"
     msg "Backing up existing packages..."
     run_cmd "mv ${package_exist_list[@]} ${package_backup_dir}/"

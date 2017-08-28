@@ -140,15 +140,9 @@ debug_print_default_vars
 export script_dir mode kernel_name
 source_safe "src/kernels/${kernel_name}.sh"
 
+
 for func in "${update_funcs[@]}"; do
     debug "Evaluating '${func}'"
     "${func}"
     push_packages
 done
-
-
-# Build the documentation and push it to the remote host
-# msg "Building the documentation..."
-# rst2html2 web_archzfs.rst > /tmp/archzfs_index.html
-# msg2 "Pushing the documentation to the remote host..."
-# scp /tmp/archzfs_index.html $REMOTE_LOGIN:webapps/default/archzfs/index.html

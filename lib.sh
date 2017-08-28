@@ -386,7 +386,7 @@ kernel_version_full() {
 kernel_version_full_no_hyphen() {
     # $1: The full kernel version
     # returns: output is printed to stdout
-    echo $(kernel_version_full ${1} | sed s/-/_/g)
+    echo $(kernel_version_full ${1} | sed s/-/./g)
 }
 
 # from makepkg
@@ -822,7 +822,7 @@ git_calc_pkgver() {
         # Get the version number past the last tag
         msg2 "Calculating PKGVER"
         cmd="cd temp/${repo} && "
-        cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/_/g')"
+        cmd+="echo \$(git describe --long | sed -r 's/^${repo}-//;s/([^-]*-g)/r\1/;s/-/./g')"
 
         run_cmd_no_output_no_dry_run "${cmd}"
 
@@ -830,7 +830,7 @@ git_calc_pkgver() {
             spl_git_ver=${run_cmd_output}
             # append kernel version if set
             if [ ! -z "${kernvers}" ]; then
-              spl_pkgver=${spl_git_ver}_${kernvers};
+              spl_pkgver=${spl_git_ver}.${kernvers};
             else
               spl_pkgver=${spl_git_ver};
             fi
@@ -839,7 +839,7 @@ git_calc_pkgver() {
           zfs_git_ver=${run_cmd_output}
           # append kernel version if set
           if [ ! -z "${kernvers}" ]; then
-            zfs_pkgver=${zfs_git_ver}_${kernvers};
+            zfs_pkgver=${zfs_git_ver}.${kernvers};
           else
             zfs_pkgver=${zfs_git_ver};
           fi
