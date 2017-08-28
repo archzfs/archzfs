@@ -164,6 +164,12 @@ repo_package_list() {
             fi
         fi
 
+        # check if package version is already in repo
+        if [ -f "${repo_target}/${arch}/${name}-${vers}-${arch}.pkg.tar.xz" ]; then
+            msg2 "Package ${name}=${vers} already in repo. Skipping"
+            continue
+        fi
+
         debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${repo_target}/${arch}"
         package_list+=("${name};${vers};${pkg};${repo_target}/${arch}")
 
@@ -180,35 +186,41 @@ repo_package_list() {
 
 repo_package_backup() {
     msg "Getting a list of packages to backup..."
+    
     local pkgs=()
-    for pkg in ${pkg_list[@]}; do
-        debug "pkg: ${pkg}"
+    for ipkg in ${package_list[@]}; do
+        IFS=';' read -a pkgopt <<< "${ipkg}"
+
+        name="${pkgopt[0]}"
+        vers="${pkgopt[1]}"
+        pkgp="${pkgopt[2]}"
+        dest="${pkgopt[3]}"
+        
+        debug "pkg: ${name}"
         local o=""
         if [[ ${#pkgs[@]} -ne 0 ]]; then
             local o="-o"
         fi
-        if [[ ${pkg} =~ .*-git$ ]]; then
-            pkgs+=("${o} -iname '*git*' -regextype egrep -regex '.*${pkg}-(headers-)*[a-z0-9\.\_\-]+-x86_64.pkg.tar.xz'")
-        elif [[ ${pkg} =~ .*-hardened$ ]]; then
-            pkgs+=("${o} -not -iname '*git*' -regextype egrep -regex '.*${pkg}-(headers-)*[a-z0-9\.\_\-]+-x86_64.pkg.tar.xz'")
-        else
-            pkgs+=("${o} -not -iname '*git*' -regextype egrep -regex '.*${pkg}-(headers-)*[0-9\.\_\-]+-x86_64.pkg.tar.xz'")
-        fi
+        
+        pkgs+=("$o -regextype egrep -regex '.*${name}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
     done
+    
+    # only run find, if new packages will be copied
+    if [[ ! ${#pkgs[@]} -eq 0 ]]; then
+        run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f ${pkgs[@]}"
 
-    run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f -iname '*git*' ${pkgs[@]}"
-
-    for x in ${run_cmd_output}; do
-        debug "Evaluating ${x}"
-        pkgname=$(package_name_from_path ${x})
-        pkgvers=$(package_version_from_path ${x})
-        debug "pkgname: ${pkgname}"
-        debug "pkgvers: ${pkgvers}"
-        # asterisk globs the package signature
-        epkg="${repo_target}/x86_64/${pkgname}-${pkgvers}*"
-        debug "backing up package: ${epkg}"
-        package_exist_list+=("${epkg}")
-    done
+        for x in ${run_cmd_output}; do
+            debug "Evaluating ${x}"
+            pkgname=$(package_name_from_path ${x})
+            pkgvers=$(package_version_from_path ${x})
+            debug "pkgname: ${pkgname}"
+            debug "pkgvers: ${pkgvers}"
+            # asterisk globs the package signature
+            epkg="${repo_target}/x86_64/${pkgname}-${pkgvers}*"
+            debug "backing up package: ${epkg}"
+            package_exist_list+=("${epkg}")
+        done
+    fi
 
     if [[ ${#package_exist_list[@]} -eq 0 ]]; then
         msg2 "No packages found for backup."
