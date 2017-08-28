@@ -164,6 +164,12 @@ repo_package_list() {
             fi
         fi
 
+        # check if package version is already in repo
+        if [ -f "${repo_target}/${arch}/${name}-${vers}-${arch}.pkg.tar.xz" ]; then
+            msg2 "Package ${name}=${vers} already in repo. Skipping"
+            continue
+        fi
+
         debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${repo_target}/${arch}"
         package_list+=("${name};${vers};${pkg};${repo_target}/${arch}")
 
