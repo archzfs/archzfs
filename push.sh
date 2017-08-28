@@ -106,7 +106,7 @@ push_packages() {
         local cmd="cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && "
         
         if [[ ${push} -eq 1 ]]; then
-            
+
             if [[ ! -z ${kernel_version_full} ]]; then
                 vers=$(kernel_version_full_no_hyphen ${kernel_version_full})-${zfs_pkgrel}
             elif [[ ! -z ${zfs_pkgver} ]]; then
@@ -114,7 +114,7 @@ push_packages() {
             else
                 vers="latest git commit"
             fi
-            
+
             cmd+="git --no-pager diff && echo && echo && git checkout master && git add . && "
             cmd+="git commit -m 'Semi-automated update for $vers'; git push"
         else
@@ -131,7 +131,7 @@ push_repo() {
     elif [[ ${push_repo} -ne 1 ]]; then
         return
     fi
-    run_cmd "rsync -vrtlh --delete-before ${repo_basepath}/${repo_basename} ${package_backup_dir} webfaction:/home/jalvarez/webapps/default/ ${dry}"
+    run_cmd "rsync -vrtlh --delete-before ${repo_basepath}/${repo_basename} ${package_backup_dir} ${remote_login}:${repo_remote_basepath}/ ${dry}"
     run_cmd_check 1 "Could not push packages to webfaction!"
 }
 

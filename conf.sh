@@ -18,6 +18,7 @@ email="jeezusjr@gmail.com"
 # Repository path and name
 repo_basename="archzfs"
 repo_basepath="/repo"
+repo_remote_basepath="/home/jalvarez/webapps/default"
 
 # SSH login address (can use ssh config Hosts)
 remote_login="webfaction"
