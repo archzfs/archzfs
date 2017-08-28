@@ -35,7 +35,7 @@ zfs_decrypt_fs() {
     [ "$(zfs get -H -o value encryption "${dataset}")" != "off" ] || return 0
     
     # check if key is already loaded
-    [ "$(zfs get -H -o value encryption "${dataset}")" != "available" ] || return 0
+    [ "$(zfs get -H -o value keystatus "${dataset}")" != "available" ] || return 0
     
     # get the encryption root
     encryptionroot=$(zfs get -H -o value encryptionroot "${dataset}")
