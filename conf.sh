@@ -16,9 +16,8 @@ zfs_initcpio_hook_hash="3eb874cf2cbb6c6a0e1c11a98af54f682d6225667af944b43435aeab
 email="jeezusjr@gmail.com"
 
 # Repository path and name
-repo_name="archzfs"
+repo_basename="archzfs"
 repo_basepath="/repo"
-repo_name_test="archzfs-testing"
 
 # SSH login address (can use ssh config Hosts)
 remote_login="webfaction"

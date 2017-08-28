@@ -73,9 +73,9 @@ fi
 
 for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "azfs" ]]; then
-        repo_name="archzfs"
+        repo_name=${repo_basename}
     elif [[ ${args[$a]} == "test" ]]; then
-        repo_name="archzfs-testing"
+        repo_name="${repo_basename}-testing"
     elif [[ ${args[$a]} =~ repo=(.*) ]]; then
         repo_name=${BASH_REMATCH[1]}
     elif [[ ${args[$a]} == "ccm" ]]; then
