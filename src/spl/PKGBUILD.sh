@@ -54,4 +54,8 @@ package_${spl_pkgname}-headers() {
 
 EOF
 
+if [[ ${archzfs_package_group} =~ -git$ ]]; then
+	sed -i "/^build()/ i pkgver() { \n    cd \"${spl_workdir}\" \n    echo \$(git describe --long | sed 's/^spl-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g').${kernel_version_full_pkgver} \n}" ${spl_pkgbuild_path}/PKGBUILD
+fi
+
 pkgbuild_cleanup "${spl_pkgbuild_path}/PKGBUILD"

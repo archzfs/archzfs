@@ -41,4 +41,8 @@ package() {
 
 EOF
 
+if [[ ${archzfs_package_group} =~ -git$ ]]; then
+	sed -i "/^build()/ i pkgver() { \n    cd \"${spl_workdir}\" \n    git describe --long | sed 's/^spl-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g' \n}" ${spl_dkms_pkgbuild_path}/PKGBUILD
+fi
+
 pkgbuild_cleanup "${spl_dkms_pkgbuild_path}/PKGBUILD"
