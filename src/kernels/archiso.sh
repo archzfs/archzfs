@@ -4,7 +4,7 @@ mode_desc="Select and use the packages for the archiso linux kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.12.3-1"
+kernel_version="4.12.8-2"
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
