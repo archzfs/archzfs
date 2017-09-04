@@ -186,7 +186,7 @@ repo_package_list() {
 
 repo_package_backup() {
     msg "Getting a list of packages to backup..."
-    
+
     local pkgs=()
     for ipkg in ${package_list[@]}; do
         IFS=';' read -a pkgopt <<< "${ipkg}"
@@ -195,16 +195,16 @@ repo_package_backup() {
         vers="${pkgopt[1]}"
         pkgp="${pkgopt[2]}"
         dest="${pkgopt[3]}"
-        
+
         debug "pkg: ${name}"
         local o=""
         if [[ ${#pkgs[@]} -ne 0 ]]; then
             local o="-o"
         fi
-        
+
         pkgs+=("$o -regextype egrep -regex '.*${name}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
     done
-    
+
     # only run find, if new packages will be copied
     if [[ ! ${#pkgs[@]} -eq 0 ]]; then
         run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f ${pkgs[@]}"

@@ -372,9 +372,15 @@ kernel_version_full() {
     local arg=$1
     if ! kernel_version_has_minor_version $1; then
         debug "kernel_version_full: Have kernel without minor version!"
-        # Kernel version has the format 3.14, so add a 0.
-        local arg=$(echo ${arg} | cut -f1 -d-)
-        local rev=$(echo ${1} | cut -f2 -d-)
+        if [[ ${1} =~ ^([[:digit:]]+\.[[:digit:]]+)\.?([[:alpha:][:digit:]]+)?\-([[:digit:]]+) ]]; then
+            local arg=${BASH_REMATCH[1]}
+            local minor=${BASH_REMATCH[2]}
+            local rev=${BASH_REMATCH[3]}
+            if [[ ${minor} =~ ^[[:alpha:]]+ ]]; then
+                printf "${arg}.0.${minor}-${rev}"
+                return 0
+            fi
+        fi
         printf "${arg}.0-${rev}"
         return 0
     fi
@@ -755,6 +761,7 @@ pkgbuild_cleanup() {
     sed -i '/^\s*$/d' $1
     sed -i 's/"\ )$/")/g' $1
     # Readd blanklines above build and package
+    sed -i '/^pkgver\(\)/{x;p;x;}' $1
     sed -i '/^build\(\)/{x;p;x;}' $1
     sed -i '/^package\(\)/{x;p;x;}' $1
 }

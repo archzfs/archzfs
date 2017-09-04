@@ -57,7 +57,7 @@ package_${zfs_pkgname}-headers() {
 EOF
 
 if [[ ${archzfs_package_group} =~ -git$ ]]; then
-	sed -i "/^build()/ i pkgver() { \n    cd \"${zfs_workdir}\" \n    echo \$(git describe --long | sed 's/^zfs-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g').${kernel_version_full_pkgver} \n}" ${zfs_pkgbuild_path}/PKGBUILD
+	sed -i "/^build()/i pkgver() {\n    cd \"${zfs_workdir}\"\n    echo \$(git describe --long | sed 's/^zfs-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g').${kernel_version_full_pkgver}\n}" ${zfs_pkgbuild_path}/PKGBUILD
 fi
 
 pkgbuild_cleanup "${zfs_pkgbuild_path}/PKGBUILD"

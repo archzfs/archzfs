@@ -31,11 +31,11 @@ package_${spl_pkgname}() {
     groups=("${archzfs_package_group}")
     conflicts=(${spl_conflicts})
     ${spl_replaces}
-    
+
     cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install
     mv "\${pkgdir}/lib" "\${pkgdir}/usr/"
-    
+
     # Remove src dir
     rm -r "\${pkgdir}"/usr/src
 }
@@ -43,11 +43,11 @@ package_${spl_pkgname}() {
 package_${spl_pkgname}-headers() {
     pkgdesc="Solaris Porting Layer kernel headers."
     conflicts=(${spl_headers_conflicts})
-    
+
     cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install
     rm -r "\${pkgdir}/lib"
-    
+
     # Remove reference to \${srcdir}
     sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/spl-*/${kernel_mod_path}/Module.symvers
 }
@@ -55,7 +55,7 @@ package_${spl_pkgname}-headers() {
 EOF
 
 if [[ ${archzfs_package_group} =~ -git$ ]]; then
-	sed -i "/^build()/ i pkgver() { \n    cd \"${spl_workdir}\" \n    echo \$(git describe --long | sed 's/^spl-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g').${kernel_version_full_pkgver} \n}" ${spl_pkgbuild_path}/PKGBUILD
+    sed -i "/^build()/i pkgver() {\n    cd \"${spl_workdir}\"\n    echo \$(git describe --long | sed 's/^spl-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g').${kernel_version_full_pkgver}\n}" ${spl_pkgbuild_path}/PKGBUILD
 fi
 
 pkgbuild_cleanup "${spl_pkgbuild_path}/PKGBUILD"

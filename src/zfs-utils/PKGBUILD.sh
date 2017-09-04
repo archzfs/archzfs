@@ -59,7 +59,7 @@ package() {
 EOF
 
 if [[ ${archzfs_package_group} =~ -git$ ]]; then
-	sed -i "/^build()/ i pkgver() { \n    cd \"${zfs_workdir}\" \n    git describe --long | sed 's/^zfs-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g' \n}" ${zfs_utils_pkgbuild_path}/PKGBUILD
+	sed -i "/^build()/i pkgver() {\n    cd \"${zfs_workdir}\"\n    git describe --long | sed 's/^zfs-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g'\n}" ${zfs_utils_pkgbuild_path}/PKGBUILD
 fi
 
 pkgbuild_cleanup "${zfs_utils_pkgbuild_path}/PKGBUILD"
