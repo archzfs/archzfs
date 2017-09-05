@@ -237,7 +237,6 @@ build_packages() {
             # run_cmd "tree ${chroot_path}/build/${pkg}/pkg"
             # exit
         # fi
-        exit 1
     done
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
 }
