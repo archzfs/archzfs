@@ -50,6 +50,7 @@ usage() {
     echo
     echo "    azfs          Use the archzfs repo. Used by default."
     echo "    test          Use the archzfs-testing repo."
+    echo "    ccm           Install packages to the clean-chroot-manager's repo. Useful incase the chroot neeeds to be nuked."
     echo
     echo "Example Usage:"
     echo
@@ -71,6 +72,8 @@ for (( a = 0; a < $#; a++ )); do
         repo_name="archzfs"
     elif [[ ${args[$a]} == "test" ]]; then
         repo_name="archzfs-testing"
+    elif [[ ${args[$a]} == "ccm" ]]; then
+        repo_name="clean-chroot-manager"
     elif [[ ${args[$a]} == "-n" ]]; then
         dry_run=1
     elif [[ ${args[$a]} == "-d" ]]; then
@@ -171,7 +174,11 @@ repo_package_list() {
         fi
 
         debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${repo_target}/${arch}"
-        package_list+=("${name};${vers};${pkg};${repo_target}/${arch}")
+        if [[ ${repo_name} == "chroot_local" ]]; then
+            package_list+=("${name};${vers};${pkg};${repo_target}")
+        else
+            package_list+=("${name};${vers};${pkg};${repo_target}/${arch}")
+        fi
 
         pkgsrc="packages/${kernel_name}/${name}/${name}-${vers}.src.tar.gz"
         if [[ -f  "${pkgsrc}" ]]; then
@@ -270,17 +277,35 @@ repo_add() {
 
     msg "Copying the new ${arch} packages to the repo..."
 
-    run_cmd "cp -fv ${pkg_cp_list[@]} ${package_src_list[@]} ${repo_target}/${arch}/"
+
+    if [[ ${repo_name} == "chroot_local" ]]; then
+        run_cmd "cp -fv ${pkg_cp_list[@]} ${package_src_list[@]} ${repo_target}/"
+    else
+        run_cmd "cp -fv ${pkg_cp_list[@]} ${package_src_list[@]} ${repo_target}/${arch}/"
+    fi
     if [[ ${run_cmd_return} -ne 0 ]]; then
         error "An error occurred copying the packages to the repo!"
         exit 1
     fi
 
-    run_cmd "repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_add_list[@]}"
+    if [[ ${repo_name} == "chroot_local" ]]; then
+        run_cmd "repo-add ${repo_target}/${repo_name}.db.tar.gz ${pkg_add_list[@]}"
+        # append the local repo to the chroot's pacman.conf
+        repo_root=$(dirname ${repo_target})
+        if [[ -z $(grep clean-chroot ${repo_root}/etc/pacman.conf) ]]; then
+            # add a local repo to chroot
+            run_cmd_no_output "sed -i '/\\\[testing\\\]/i # Added by clean-chroot-manager\\\n\\\[chroot_local\\\]\\\nSigLevel = Never\\\nServer = file:///repo\\\n' ${repo_root}/etc/pacman.conf $(realpath ${repo_root}/../)/${makepkg_nonpriv_user}/etc/pacman.conf"
+        fi
+        run_cmd_no_output "sudo rsync --chown=${makepkg_nonpriv_user}: -ax ${repo_root}/repo/ $(realpath ${repo_root}/../)/${makepkg_nonpriv_user}/repo/"
+    else
+        run_cmd "repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_add_list[@]}"
+    fi
+
     if [[ ${run_cmd_return} -ne 0 ]]; then
         error "An error occurred adding the package to the repo!"
         exit 1
     fi
+
 }
 
 sign_packages() {
@@ -312,7 +337,16 @@ msg "$(date) :: ${script_name} started..."
 
 
 # The abs path to the repo
-repo_target=${repo_basepath}/${repo_name}
+if [[ ${repo_name} == "clean-chroot-manager" ]]; then
+    repo_name="chroot_local"
+    repo_target="$(dirname ${chroot_path})/root/repo"
+    if [[ ! -d ${repo_target} ]]; then
+        # XXX: NEED TO TEST THIS
+        run_cmd_no_output_no_dry_run "sudo mkdir -p ${repo_target} && sudo chown ${makepkg_nonpriv_user}: -R ${repo_target}"
+    fi
+else
+    repo_target=${repo_basepath}/${repo_name}
+fi
 
 
 get_kernel_update_funcs
@@ -331,7 +365,9 @@ for func in ${update_funcs[@]}; do
     debug "Evaluating '${func}'"
     "${func}"
     repo_package_list
-    repo_package_backup
+    if [[ ${repo_name} != "chroot_local" ]]; then
+        repo_package_backup
+    fi
     sign_packages
     repo_add
 done
