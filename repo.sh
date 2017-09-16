@@ -243,7 +243,7 @@ repo_package_backup() {
 repo_add() {
     if [[ ${#package_list[@]} == 0 ]]; then
         error "No packages to process!"
-        exit 1
+        return
     fi
 
     debug_print_array "package_list" ${#package_list}
@@ -311,7 +311,7 @@ repo_add() {
 sign_packages() {
     if [[ ${#package_list[@]} == 0 ]]; then
         error "No packages to process!"
-        exit 1
+        return
     fi
 
     for ipkg in "${package_list[@]}"; do
