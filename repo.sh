@@ -348,7 +348,12 @@ sign_packages() {
         if [[ ! -f "${pkgp}.sig" ]]; then
             msg2 "Signing ${pkgp}"
             # GPG_TTY prevents "gpg: signing failed: Inappropriate ioctl for device"
-            run_cmd_no_output "GPG_TTY=$(tty) gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${script_dir}/${pkgp}\""
+            if [[ "$(tty)" == "not a tty" ]]; then
+                tty=""
+            else
+                tty="GPG_TTY=$(tty) "
+            fi
+            run_cmd_no_output "${tty}gpg --batch --yes --detach-sign --use-agent -u ${gpg_sign_key} \"${script_dir}/${pkgp}\""
             if [[ ${run_cmd_return} -ne 0 ]]; then
                 exit 1
             fi
