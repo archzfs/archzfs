@@ -4,7 +4,9 @@ mode_desc="Select and use the packages for the archiso linux kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.12.8-2"
+kernel_version="4.12.8"
+kernel_version_full=$(kernel_version_full ${kernel_version})
+kernel_version_max=$(echo ${kernel_version_full}| awk -F. '{print $1"."$2"."$3+1}')
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
@@ -27,13 +29,11 @@ header="\
 
 update_archiso_linux_pkgbuilds() {
     pkg_list=("spl-archiso-linux" "zfs-archiso-linux")
-    kernel_version_full=$(kernel_version_full ${kernel_version})
-    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
-    kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full}-ARCH"
+    kernel_version_major=${kernel_version_full%\.*}
+    kernel_mod_path="extramodules-${kernel_version_major}-ARCH"
     archzfs_package_group="archzfs-archiso-linux"
-    spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
-    zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    spl_pkgver=${zol_version}.${kernel_version_full}
+    zfs_pkgver=${zol_version}.${kernel_version_full}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_utils_pkgname="spl-utils-common>=${zol_version}"
@@ -46,7 +46,7 @@ update_archiso_linux_pkgbuilds() {
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux=${kernel_version_major}\""
-    linux_headers_depends="\"linux-headers=${kernel_version_major}\""
+    linux_depends="\"linux>=${kernel_version}\" \"linux<${kernel_version_max}\""
+    linux_headers_depends="\"linux-headers>=${kernel_version}\" \"linux-headers<${kernel_version_max}\""
     zfs_makedepends="\"${spl_pkgname}-headers\""
 }

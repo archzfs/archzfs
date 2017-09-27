@@ -366,33 +366,25 @@ kernel_version_has_minor_version() {
 }
 
 
-# Returns the full kernel version. If $1 is "3.14-1" then kernel_version_full returns "3.14.0-1".
+# Returns the full kernel version. If $1 is "3.14" then kernel_version_full returns "3.14.0".
 kernel_version_full() {
     # $1: the kernel version
     local arg=$1
     if ! kernel_version_has_minor_version $1; then
         debug "kernel_version_full: Have kernel without minor version!"
-        if [[ ${1} =~ ^([[:digit:]]+\.[[:digit:]]+)\.?([[:alpha:][:digit:]]+)?\-([[:digit:]]+) ]]; then
+        if [[ ${1} =~ ^([[:digit:]]+\.[[:digit:]]+)\.?([[:alpha:][:digit:]]+)? ]]; then
             local arg=${BASH_REMATCH[1]}
             local minor=${BASH_REMATCH[2]}
             local rev=${BASH_REMATCH[3]}
             if [[ ${minor} =~ ^[[:alpha:]]+ ]]; then
-                printf "${arg}.0.${minor}-${rev}"
+                printf "${arg}.0.${minor}"
                 return 0
             fi
         fi
-        printf "${arg}.0-${rev}"
+        printf "${arg}.0"
         return 0
     fi
     printf ${arg}
-}
-
-
-# Returns the full kernel version. If $1 is "3.14-1" then kernel_version_full returns "3.14.0_1".
-kernel_version_full_no_hyphen() {
-    # $1: The full kernel version
-    # returns: output is printed to stdout
-    echo $(kernel_version_full ${1} | sed s/-/./g)
 }
 
 # from makepkg
@@ -481,7 +473,7 @@ check_archiso() {
         exit 155
     fi
     msg "Checking archiso download page for linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" "${kernel_version::-2}"
+    check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" "${kernel_version}"
     check_result "archiso kernel version" "archiso" "$?"
 }
 
@@ -495,7 +487,7 @@ check_linux_hardened_kernel() {
         exit 155
     fi
     msg "Checking the online package database for x86_64 linux-hardened kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/community/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/community/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.]+(?=.\w-[\d]+</h2>)" "${kernel_version}"
     check_result "x86_64 linux-hardened kernel package" "linux-hardened x86_64" "$?"
 }
 
@@ -508,7 +500,7 @@ check_linux_zen_kernel() {
         exit 155
     fi
     msg "Checking the online package database for x86_64 linux-zen kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.]+(?=-[\d]+</h2>)" "${kernel_version}"
     check_result "x86_64 linux-zen kernel package" "linux-zen x86_64" "$?"
 }
 
@@ -522,7 +514,7 @@ check_linux_kernel() {
         exit 155
     fi
     msg "Checking the online package database for x86_64 linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.]+(?=-[\d]+</h2>)" "${kernel_version%}"
     check_result "x86_64 linux kernel package" "linux x86_64" "$?"
 }
 
@@ -536,7 +528,7 @@ check_linux_lts_kernel() {
         exit 155
     fi
     msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.]+(?=-[\d]+</h2>)" "${kernel_version}"
     check_result "x86_64 linux-lts kernel package" "linux-lts x86_64" "$?"
 }
 
@@ -803,7 +795,7 @@ git_calc_pkgver() {
     for repo in "spl" "zfs"; do
         msg2 "Cloning working copy for ${repo}"
         local sha=${spl_git_commit}
-        local kernvers=${kernel_version_full_pkgver}
+        local kernvers=${kernel_version_full}
         if [[ ${repo} =~ ^zfs ]]; then
             sha=${zfs_git_commit}
         fi

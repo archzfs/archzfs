@@ -114,9 +114,9 @@ repo_package_list() {
 
     # Get packages from the backup directory
     path="packages/${kernel_name}/{$(printf '%s,' ${pkg_list[@]} | cut -d ',' -f 1-${#pkg_list[@]})}/"
-    if [[ ! -z ${kernel_version_full_pkgver} ]]; then
-        debug "kernel_version_full_pkgver: ${kernel_version_full_pkgver}"
-        fcmd="find ${path} -iname '*${kernel_version_full_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_full_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+    if [[ ! -z ${kernel_version_full} ]]; then
+        debug "kernel_version_full: ${kernel_version_full}"
+        fcmd="find ${path} -iname '*${kernel_version_full}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_full}-${zfs_pkgrel}*.pkg.tar.xz' "
         run_cmd_no_output_no_dry_run "${fcmd}"
         for pkg in ${run_cmd_output}; do
             pkgs+=(${pkg})
@@ -129,7 +129,7 @@ repo_package_list() {
             pkgs+=(${pkg})
         done
     else
-        debug "kernel_version_full_pkgver and spl_pkgver (and zfs_pkgver) not set!"
+        debug "kernel_version_pkgver and spl_pkgver (and zfs_pkgver) not set!"
         debug "Falling back to newest package by mod time for zfs and spl"
         for z in $(printf '%s ' ${pkg_list[@]} ); do
             # fcmd="find ${path} -iname '*${kernel_name}*-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
