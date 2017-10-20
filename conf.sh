@@ -1,9 +1,10 @@
 # ZFSonLinux stable version
-zol_version="0.7.2"
+zol_version="0.7.3"
 
 # The ZOL source hashes are from zfsonlinux.org
-zfs_src_hash="f75f4d8bbb8241e3d06321b53914e53fa22d1ccc8be89819b578b46e5d3e5cf4"
-spl_src_hash="c22e410c661a29acfa16caee21b82f8bb166f5b6611ec56431cd9c172ab4729e"
+zfs_src_hash="cb8fc606835d3f91471e49aca31a6a0a71733b1cbe74fa510e0fe0efa670fe51"
+spl_src_hash="cd8b8624163577bdec1d1d214c942c5771f183432a04d35c00fc6e7f12fa836b"
+
 zfs_bash_completion_hash="b60214f70ffffb62ffe489cbfabd2e069d14ed2a391fac0e36f914238394b540"
 zfs_initcpio_install_hash="e33adabbe3f2f4866802c9d63c7810c7a42b4df2288d0cdd23376519b15b36e4"
 zfs_initcpio_hook_hash="b5f87d1d1d10443d8919125a4c139d5f4c579ca4433b2905ee826bb01defa56a"
