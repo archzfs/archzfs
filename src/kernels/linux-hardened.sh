@@ -46,9 +46,9 @@ update_linux_hardened_pkgbuilds() {
     zfs_pkgrel=${pkgrel}
     spl_conflicts="'spl-linux-hardened-git'"
     zfs_conflicts="'zfs-linux-hardened-git'"
-    spl_utils_pkgname="spl-utils-common>=${zol_version}"
+    spl_utils_pkgname="spl-utils-common=${zol_version}"
     spl_pkgname="spl-linux-hardened"
-    zfs_utils_pkgname="zfs-utils-common>=${zol_version}"
+    zfs_utils_pkgname="zfs-utils-common=${zol_version}"
     zfs_pkgname="zfs-linux-hardened"
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
