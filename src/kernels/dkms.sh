@@ -34,8 +34,8 @@ update_dkms_pkgbuilds() {
     zfs_conflicts="'zfs-dkms-git'"
     spl_pkgname="spl-dkms"
     zfs_pkgname="zfs-dkms"
-    spl_utils_pkgname="spl-utils-common>=${zol_version}"
-    zfs_utils_pkgname="zfs-utils-common>=${zol_version}"
+    spl_utils_pkgname="spl-utils-common=${zol_version}"
+    zfs_utils_pkgname="zfs-utils-common=${zol_version}"
     # Paths are relative to build.sh
     spl_dkms_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_dkms_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"

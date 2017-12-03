@@ -47,9 +47,9 @@ update_linux_lts_pkgbuilds() {
     spl_conflicts="'spl-linux-lts-git'"
     zfs_conflicts="'zfs-linux-lts-git'"
     spl_pkgname="spl-linux-lts"
-    spl_utils_pkgname="spl-utils-common>=${zol_version}"
+    spl_utils_pkgname="spl-utils-common=${zol_version}"
     zfs_pkgname="zfs-linux-lts"
-    zfs_utils_pkgname="zfs-utils-common>=${zol_version}"
+    zfs_utils_pkgname="zfs-utils-common=${zol_version}"
     # Paths are relative to build.sh
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"

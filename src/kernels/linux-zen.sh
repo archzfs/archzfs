@@ -45,9 +45,9 @@ update_linux_pkgbuilds() {
     zfs_pkgrel=${pkgrel}
     spl_conflicts="'spl-linux-zen-git'"
     zfs_conflicts="'zfs-linux-zen-git'"
-    spl_utils_pkgname="spl-utils-common>=${zol_version}"
+    spl_utils_pkgname="spl-utils-common=${zol_version}"
     spl_pkgname="spl-linux-zen"
-    zfs_utils_pkgname="zfs-utils-common>=${zol_version}"
+    zfs_utils_pkgname="zfs-utils-common=${zol_version}"
     zfs_pkgname="zfs-linux-zen"
     # Paths are relative to build.sh
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
