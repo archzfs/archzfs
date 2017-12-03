@@ -4,7 +4,7 @@ mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.9.64-1"
+kernel_version="4.9.66-1"
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
