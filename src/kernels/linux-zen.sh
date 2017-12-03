@@ -3,7 +3,7 @@ mode_name="zen"
 mode_desc="Select and use the packages for the linux-zen kernel"
 
 # Kernel versions for default ZFS packages
-pkgrel="1"
+pkgrel="2"
 kernel_version="4.14.3-1"
 
 # Kernel version for GIT packages

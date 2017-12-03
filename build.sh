@@ -157,6 +157,9 @@ generate_package_files() {
         run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
         msg2 "Creating spl.install"
         run_cmd_no_output "source ${script_dir}/src/spl/spl.install.sh"
+        msg2 "Copying linux4.14.patch"
+        run_cmd_no_output "cp ${script_dir}/src/spl/linux4.14.patch ${spl_pkgbuild_path}/linux4.14.patch"
+
 
         msg2 "Creating zfs PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs/PKGBUILD.sh"
