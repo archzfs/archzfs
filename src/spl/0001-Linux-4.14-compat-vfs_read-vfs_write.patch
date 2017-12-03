@@ -1,5 +1,30 @@
+From ed19bccfb651843fa208232b3a2d3d22a4152bc8 Mon Sep 17 00:00:00 2001
+From: Brian Behlendorf <behlendorf1@llnl.gov>
+Date: Wed, 15 Nov 2017 17:19:23 -0800
+Subject: [PATCH] Linux 4.14 compat: vfs_read & vfs_write
+
+The kernel_read & kernel_write functions have always wrapped the
+vfs_read & vfs_write functions respectively.  However, they could
+not be used by vn_rdwr() since the offset wasn't passed as a
+pointer.  This prevented us from being able to properly update
+the file offset.
+
+Linux 4.14 unexported vfs_read & vfs_write but also changed the
+signature of kernel_read & kernel_write to provide the needed
+functionality.  Use these updated functions when available.
+
+Reviewed-by: Pritam Baral <pritam@pritambaral.com>
+Signed-off-by: Brian Behlendorf <behlendorf1@llnl.gov>
+Closes #656
+Closes #667
+---
+ config/spl-build.m4         | 60 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/file_compat.h | 41 +++++++++++++++++++++++++++++++
+ module/spl/spl-vnode.c      | 21 +++-------------
+ 3 files changed, 105 insertions(+), 17 deletions(-)
+
 diff --git a/config/spl-build.m4 b/config/spl-build.m4
-index 8e9dc99f..7b66f2c8 100644
+index 8e9dc99..7b66f2c 100644
 --- a/config/spl-build.m4
 +++ b/config/spl-build.m4
 @@ -52,6 +52,8 @@ AC_DEFUN([SPL_AC_CONFIG_KERNEL], [
@@ -74,7 +99,7 @@ index 8e9dc99f..7b66f2c8 100644
 +	EXTRA_KCFLAGS="$tmp_flags"
 +])
 diff --git a/include/linux/file_compat.h b/include/linux/file_compat.h
-index 7d61ba5f..55ba2cc7 100644
+index 7d61ba5..55ba2cc 100644
 --- a/include/linux/file_compat.h
 +++ b/include/linux/file_compat.h
 @@ -26,6 +26,7 @@
@@ -133,7 +158,7 @@ index 7d61ba5f..55ba2cc7 100644
  #define	spl_filp_fsync(fp, sync)	vfs_fsync(fp, sync)
  #else
 diff --git a/module/spl/spl-vnode.c b/module/spl/spl-vnode.c
-index 0e4c386a..19b3b76c 100644
+index 0e4c386..19b3b76 100644
 --- a/module/spl/spl-vnode.c
 +++ b/module/spl/spl-vnode.c
 @@ -211,35 +211,22 @@ int
@@ -176,3 +201,6 @@ index 0e4c386a..19b3b76c 100644
  	fp->f_pos = offset;
  
  	if (rc < 0)
+-- 
+2.15.1
+

@@ -9,8 +9,8 @@ pkgrel=${spl_pkgrel}
 makedepends=(${linux_headers_depends} ${spl_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("${spl_src_target}" "linux4.14.patch")
-sha256sums=("${spl_src_hash}" "ed304df2b990f095496582465f40e509cc918d581420901b205975bbf1926072")
+source=("${spl_src_target}" '0001-Linux-4.14-compat-vfs_read-vfs_write.patch')
+sha256sums=("${spl_src_hash}" 'd20506fbe6e9ee928005e8a73c03e4b4d207268348f684b9c7a33301067793b8')
 license=("GPL")
 depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
 
@@ -57,7 +57,7 @@ EOF
 if [[ ${archzfs_package_group} =~ -git$ ]]; then
     sed -i "/^build()/i pkgver() {\n    cd \"${spl_workdir}\"\n    echo \$(git describe --long | sed 's/^spl-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g').${kernel_version_full_pkgver}\n}" ${spl_pkgbuild_path}/PKGBUILD
 else
-    sed -i "/^build()/i prepare() {\n    cd \"${spl_workdir}\"\n    patch -Np1 -i \${srcdir}/linux4.14.patch\n}" ${spl_pkgbuild_path}/PKGBUILD
+    sed -i "/^build()/i prepare() {\n    cd \"${spl_workdir}\"\n    patch -Np1 -i \${srcdir}/0001-Linux-4.14-compat-vfs_read-vfs_write.patch\n}" ${spl_pkgbuild_path}/PKGBUILD
 fi
 
 pkgbuild_cleanup "${spl_pkgbuild_path}/PKGBUILD"

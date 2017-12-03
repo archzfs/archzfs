@@ -133,19 +133,26 @@ generate_package_files() {
     if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
         msg2 "Creating spl-utils PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
+
+        msg2 "Copying spl-utils patches (if any)"
+        run_cmd_no_output "cp ${script_dir}/src/spl-utils/*.patch ${spl_utils_pkgbuild_path}/"
+
+        msg2 "Copying zfs-utils patches (if any)"
+        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/*.patch ${zfs_utils_pkgbuild_path}/"
+
         msg2 "Creating zfs-utils PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-utils/PKGBUILD.sh"
+
         msg2 "Copying zfs-utils.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.install ${zfs_utils_pkgbuild_path}/zfs-utils.install"
+
         msg2 "Copying zfs-utils.bash-completion"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1 ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
+
         msg2 "Copying zfs-utils.initcpio.hook"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
         msg2 "Copying zfs-utils.initcpio.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
-
-        msg2 "Copying zfs-utils manual patch"
-        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/0001-Correct-man-page-generation.patch ${zfs_utils_pkgbuild_path}/0001-Correct-man-page-generation.patch"
     fi
 
     if [[ ! -z ${zfs_pkgbuild_path} ]]; then
@@ -155,16 +162,19 @@ generate_package_files() {
 
         msg2 "Creating spl PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
+        msg2 "Copying spl patches (if any)"
+        run_cmd_no_output "cp ${script_dir}/src/spl/*.patch ${spl_pkgbuild_path}/"
         msg2 "Creating spl.install"
         run_cmd_no_output "source ${script_dir}/src/spl/spl.install.sh"
         msg2 "Copying linux4.14.patch"
         run_cmd_no_output "cp ${script_dir}/src/spl/linux4.14.patch ${spl_pkgbuild_path}/linux4.14.patch"
 
-
         msg2 "Creating zfs PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs/PKGBUILD.sh"
         msg2 "Creating zfs.install"
         run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
+        msg2 "Copying zfs patches (if any)"
+        run_cmd_no_output "cp ${script_dir}/src/zfs/*.patch ${zfs_pkgbuild_path}/"
     fi
 
     if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
@@ -235,11 +245,6 @@ build_packages() {
             error "A problem occurred building the package"
             exit 1
         fi
-        # if [[ "${pkg}" == "spl-linux-hardened-git" ]]; then
-            # msg2 "${pkg} package files:"
-            # run_cmd "tree ${chroot_path}/build/${pkg}/pkg"
-            # exit
-        # fi
     done
     run_cmd "find . -iname \"*.log\" -print -exec rm {} \\;"
 }
