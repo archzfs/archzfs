@@ -742,6 +742,53 @@ get_conflicts() {
     done
 }
 
+check_skip_build() {
+    # $1: Name of package to check
+    pkg=${1}
+
+    # get version of any package that has been built previously
+    run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.pkg.tar.xz | grep \"$pkg\" | grep -v \"headers\" | tail -1"
+    pkg_path=${run_cmd_output}
+
+    if [[ ${pkg_path} == "" ]]; then
+        msg2 "No previously built packages exist for ${pkg}!"
+    else
+        vers=$(package_version_from_path ${pkg_path})
+
+        # get current version
+        eval $(source "${script_dir}/packages/${kernel_name}/${pkg}/PKGBUILD";
+               echo current_vers="${pkgver}";
+               echo current_rel="${pkgrel}";
+        )
+
+        # check if version has already been built
+        if [[ ${run_cmd_return} -eq 0 && ${vers} == ${current_vers}-${current_rel} ]]; then
+            msg "${pkg}=${vers} has already been built"
+            return 0
+        fi
+    fi
+    
+    return 1
+}
+
+check_skip_src() {
+    # $1: Name of package to check
+    pkg=${1}
+
+    # check for any source package that has been generated previously
+    run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.src.tar.gz | grep \"$pkg\" | grep -v \"headers\" | tail -1"
+    pkg_path=${run_cmd_output}
+
+    if [[ ${pkg_path} == "" ]]; then
+        msg2 "No previously generated source package exist for ${pkg}!"
+    else
+        msg "sources for ${pkg} have already been built"
+        return 0
+    fi
+    
+    return 1
+}
+
 debug_print_default_vars() {
     debug "dry_run: "${dry_run}
     debug "debug_flag: "${debug_flag}

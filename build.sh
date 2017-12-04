@@ -79,6 +79,12 @@ cleanup() {
 
 build_sources() {
     for pkg in "${pkg_list[@]}"; do
+
+        if check_skip_src $pkg; then
+            msg "skipping"
+            continue;
+        fi
+
         msg "Building source for ${pkg}";
         run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/${pkg}'"
         run_cmd "su - ${makepkg_nonpriv_user} -s /bin/sh -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
@@ -207,27 +213,9 @@ generate_package_files() {
 build_packages() {
     for pkg in "${pkg_list[@]}"; do
 
-        # get version of any package that has been built previously
-        run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.pkg.tar.xz | grep \"$pkg\" | grep -v \"headers\" | tail -1"
-        pkg_path=${run_cmd_output}
-
-        if [[ ${pkg_path} == "" ]]; then
-            msg2 "No previously built packages exist for ${pkg}!"
-        else
-            vers=$(package_version_from_path ${pkg_path})
-
-            # get current version
-            eval $(source "${script_dir}/packages/${kernel_name}/${pkg}/PKGBUILD";
-                echo current_vers="${pkgver}";
-                echo current_rel="${pkgrel}";
-            )
-
-            # stop if version has already been built
-            if [[ ${run_cmd_return} -eq 0 && ${vers} == ${current_vers}-${current_rel} ]]; then
-                msg "${pkg}=${vers} has already been built, skipping"
-                continue
-            fi
-
+        if check_skip_build $pkg; then
+            msg "skipping"
+            continue;
         fi
 
         msg "Building ${pkg}..."
