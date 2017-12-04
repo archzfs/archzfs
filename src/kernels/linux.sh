@@ -101,6 +101,6 @@ update_linux_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
-    spl_utils_pkgname="spl-utils-common-git>=${spl_git_ver}"
-    zfs_utils_pkgname="zfs-utils-common-git>=${zfs_git_ver}"
+    spl_utils_pkgname="spl-utils-common-git=${spl_git_ver}"
+    zfs_utils_pkgname="zfs-utils-common-git=${zfs_git_ver}"
 }
