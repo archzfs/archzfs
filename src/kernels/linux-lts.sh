@@ -1,5 +1,6 @@
 # For build.sh
 mode_name="lts"
+package_base="linux-lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
 # Kernel versions for LTS packages

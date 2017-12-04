@@ -1,5 +1,6 @@
 # For build.sh
 mode_name="vfio"
+package_base="linux-vfio"
 mode_desc="Select and use the packages for the linux-vfio kernel"
 
 # Kernel versions for default ZFS packages

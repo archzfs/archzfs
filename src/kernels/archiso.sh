@@ -1,5 +1,6 @@
 # For build.sh
 mode_name="iso"
+package_base="archiso-linux"
 mode_desc="Select and use the packages for the archiso linux kernel"
 
 # Kernel versions for LTS packages

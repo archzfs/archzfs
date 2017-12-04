@@ -727,18 +727,12 @@ get_conflicts() {
         if [[ "$kernel" == "common.sh"  || "$kernel" == "common-git.sh" || "$kernel" == "dkms.sh" ]]; then
           continue;
         fi
-
-        # get update funcs
-        updatefuncstmp=$(cat "${script_dir}/src/kernels/${kernel}" | grep -v "^.*#" | grep -oh "update_.*_pkgbuilds")
-
-        # generate conflict list
-        for func in ${updatefuncstmp}; do
-          zfs_headers_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//spl*}; printf "'%s-headers' "  "${conflicts[@]}")
-          spl_headers_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//zfs*}; printf "'%s-headers' "  "${conflicts[@]}")
-
-          zfs_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//spl*}; printf "'%s' "  "${conflicts[@]}")
-          spl_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//zfs*}; printf "'%s' "  "${conflicts[@]}")
-        done
+        
+        source_safe "src/kernels/${kernel}"
+        zfs_headers_conflicts_all+="'zfs-${package_base}-headers' 'zfs-${package_base}-git-headers' "
+        spl_headers_conflicts_all+="'spl-${package_base}-headers' 'spl-${package_base}-git-headers' "
+        zfs_conflicts_all+="'zfs-${package_base}' 'zfs-${package_base}-git' "
+        spl_conflicts_all+="'spl-${package_base}' 'spl-${package_base}-git' "
     done
 }
 
