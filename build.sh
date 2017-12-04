@@ -46,6 +46,7 @@ usage() {
             echo -e "    ${mn}\t\t  ${md}"
         fi
     done
+    echo "    all           Select and use all available packages"
     echo
     echo "Commands:"
     echo

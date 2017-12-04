@@ -561,20 +561,35 @@ check_zol_version() {
 check_mode() {
     # $1 the mode to check for
     debug "check_mode: checking '$1'"
+    
+    # add all available modes
+    if [[ "${1}" == "all" ]]; then
+        for m in "${mode_list[@]}"; do
+            mode=("$(echo ${m} | cut -f2 -d:)")
 
-    for m in "${mode_list[@]}"; do
-        debug "check_mode: on '${m}'"
-        local moden=$(echo ${m} | cut -f2 -d:)
-        # debug "moden: ${moden}"
-        if [[ "${moden}" == "$1" ]]; then
-            modes+=("$1")
+            # do not add archiso
+            if [[ "${mode}" == "iso" ]]; then
+                continue
+            fi
+
+            modes+=("${mode}")
             kernel_names+=("$(echo ${m} | cut -f1 -d:)")
-            return
-        fi
-    done
-    error "Unrecognized argument '$1'"
-    usage
-    exit 155
+        done
+    else
+        for m in "${mode_list[@]}"; do
+            debug "check_mode: on '${m}'"
+            local moden=$(echo ${m} | cut -f2 -d:)
+            # debug "moden: ${moden}"
+            if [[ "${moden}" == "$1" ]]; then
+                modes+=("$1")
+                kernel_names+=("$(echo ${m} | cut -f1 -d:)")
+                return
+            fi
+        done
+        error "Unrecognized argument '$1'"
+        usage
+        exit 155
+    fi
 }
 
 
