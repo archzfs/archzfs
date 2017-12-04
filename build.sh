@@ -285,12 +285,12 @@ for (( a = 0; a < $#; a++ )); do
         usage
     else
         check_mode "${args[$a]}"
-        debug "have mode '${mode}'"
+        debug "have modes '${modes[*]}'"
     fi
 done
 
 
-if [[ ${#commands[@]} -eq 0 || ${mode} == "" ]]; then
+if [[ ${#commands[@]} -eq 0 || ${#modes[@]} -eq 0 ]]; then
     echo
     error "A build mode and command must be selected!"
     usage
@@ -306,35 +306,6 @@ fi
 
 
 msg "$(date) :: ${script_name} started..."
-
-get_conflicts
-get_kernel_update_funcs
-debug_print_default_vars
-
-
-export script_dir mode kernel_name
-source_safe "src/kernels/${kernel_name}.sh"
-
-
-if have_command "cleanup"; then
-    cleanup
-    # exit
-fi
-
-
-if have_command "reset_pkgs"; then
-    msg "Performing git reset for packages/${kernel_name}/*"
-        msg "${update_funcs[@]}"
-    for func in "${update_funcs[@]}"; do
-        debug "Evaluating '${func}'"
-        "${func}"
-        msg "${pkg_list[@]}"
-        for pkg in "${pkg_list[@]}"; do
-            run_cmd "cd '${script_dir}/packages/${kernel_name}/${pkg}' && git reset --hard HEAD"
-        done
-    done
-fi
-
 
 if have_command "update_sums"; then
     # Only the files in the zfs-utils package will be updated
@@ -359,19 +330,51 @@ if have_command "update_chroot"; then
     run_cmd "ccm64 u"
 fi
 
+for (( i = 0; i < ${#modes[@]}; i++ )); do
+    mode=${modes[i]}
+    kernel_name=${kernel_names[i]}
 
-for func in "${update_funcs[@]}"; do
-    debug "Evaluating '${func}'"
-    "${func}"
-    if have_command "update"; then
-        msg "Updating PKGBUILDs for kernel '${kernel_name}'"
-        generate_package_files
+    get_conflicts
+    get_kernel_update_funcs
+    debug_print_default_vars
+
+    export script_dir mode kernel_name
+    source_safe "src/kernels/${kernel_name}.sh"
+
+
+    if have_command "cleanup"; then
+        cleanup
+        # exit
     fi
-    if have_command "make"; then
-        build_packages
-        build_sources
+
+
+    if have_command "reset_pkgs"; then
+        msg "Performing git reset for packages/${kernel_name}/*"
+            msg "${update_funcs[@]}"
+        for func in "${update_funcs[@]}"; do
+            debug "Evaluating '${func}'"
+            "${func}"
+            msg "${pkg_list[@]}"
+            for pkg in "${pkg_list[@]}"; do
+                run_cmd "cd '${script_dir}/packages/${kernel_name}/${pkg}' && git reset --hard HEAD"
+            done
+        done
     fi
-    if have_command "sources"; then
-        build_sources
-    fi
+
+
+    for func in "${update_funcs[@]}"; do
+        debug "Evaluating '${func}'"
+        "${func}"
+        if have_command "update"; then
+            msg "Updating PKGBUILDs for kernel '${kernel_name}'"
+            generate_package_files
+        fi
+        if have_command "make"; then
+            build_packages
+            build_sources
+        fi
+        if have_command "sources"; then
+            build_sources
+        fi
+    done
 done

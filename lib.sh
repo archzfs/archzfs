@@ -6,9 +6,9 @@ shopt -s nullglob
 dry_run=0
 debug_flag=0
 haz_error=0
-mode=""
+modes=()
 test_mode=""
-kernel_name="" # set by generate_mode_list
+kernel_names=() # set by generate_mode_list
 mode_list=() # set by generate_mode_list
 test_commands_list=() # set by generate_test_commands_list
 update_funcs=() # set by generate_mode_list
@@ -397,6 +397,13 @@ kernel_version_full_no_hyphen() {
 
 # from makepkg
 source_safe() {
+    # reset variables
+    kernel_version_full_pkgver=""
+    kernel_version_full=""
+    kernel_version=""
+    zfs_pkgver=""
+    spl_pkgver=""
+
     export script_dir mode kernel_name
     shopt -u extglob
     if ! source "$@"; then
@@ -554,18 +561,14 @@ check_zol_version() {
 check_mode() {
     # $1 the mode to check for
     debug "check_mode: checking '$1'"
+
     for m in "${mode_list[@]}"; do
         debug "check_mode: on '${m}'"
         local moden=$(echo ${m} | cut -f2 -d:)
         # debug "moden: ${moden}"
         if [[ "${moden}" == "$1" ]]; then
-            if [[ ${mode} != "" ]]; then
-                error "Already have mode '${moden}', only one mode can be used at a time!"
-                usage
-                exit 155
-            fi
-            mode="$1"
-            kernel_name=$(echo ${m} | cut -f1 -d:)
+            modes+=("$1")
+            kernel_names+=("$(echo ${m} | cut -f1 -d:)")
             return
         fi
     done
@@ -687,6 +690,8 @@ generate_test_commands_list() {
 
 
 get_kernel_update_funcs() {
+    update_funcs=()
+
     for kernel in $(ls ${script_dir}/src/kernels); do
         if [[ ${kernel%.*} != ${kernel_name} ]]; then
             continue
@@ -697,6 +702,11 @@ get_kernel_update_funcs() {
 }
 
 get_conflicts() {
+    zfs_headers_conflicts_all=()
+    spl_headers_conflicts_all=()
+    zfs_conflicts_all=()
+    spl_conflicts_all=()
+
     for kernel in $(ls ${script_dir}/src/kernels); do
         # do not conflict with common or dkms packages
         if [[ "$kernel" == "common.sh"  || "$kernel" == "common-git.sh" || "$kernel" == "dkms.sh" ]]; then

@@ -82,7 +82,7 @@ for (( a = 0; a < $#; a++ )); do
         usage
     else
         check_mode "${args[$a]}"
-        debug "have mode '${mode}'"
+        debug "have modes '${modes[*]}'"
     fi
 done
 
@@ -92,7 +92,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 
-if [[ ${mode} == "" ]]; then
+if [[ ${#modes[@]} -eq 0 ]]; then
     echo
     error "A mode must be selected!"
     usage
@@ -349,27 +349,33 @@ else
 fi
 
 
-get_kernel_update_funcs
-debug_print_default_vars
 debug "repo_name: ${repo_name}"
 debug "repo_target: ${repo_target}"
 
+for (( i = 0; i < ${#modes[@]}; i++ )); do
+    mode=${modes[i]}
+    kernel_name=${kernel_names[i]}
 
-source_safe "src/kernels/${kernel_name}.sh"
+    get_kernel_update_funcs
+    debug_print_default_vars
+
+    export script_dir mode kernel_name
+    source_safe "src/kernels/${kernel_name}.sh"
 
 
-export zfs_pkgver=""
-export spl_pkgver=""
+    export zfs_pkgver=""
+    export spl_pkgver=""
 
-for func in ${update_funcs[@]}; do
-    debug "Evaluating '${func}'"
-    "${func}"
-    repo_package_list
-    if [[ ${repo_name} != "chroot_local" ]]; then
-        repo_package_backup
-    fi
-    sign_packages
-    repo_add
+    for func in ${update_funcs[@]}; do
+        debug "Evaluating '${func}'"
+        "${func}"
+        repo_package_list
+        if [[ ${repo_name} != "chroot_local" ]]; then
+            repo_package_backup
+        fi
+        sign_packages
+        repo_add
+    done
 done
 
 if [[ ${haz_error} -ne 0 ]]; then

@@ -76,12 +76,12 @@ for (( a = 0; a < $#; a++ )); do
         usage
     else
         check_mode "${args[$a]}"
-        debug "have mode '${mode}'"
+        debug "have modes '${modes[*]}'"
     fi
 done
 
 
-if [[ ${mode} == "" && ${push_repo} -eq 0 ]]; then
+if [[ ${#modes[@]} -eq 0 && ${push_repo} -eq 0 ]]; then
     echo
     error "A mode must be selected!"
     usage
@@ -128,21 +128,25 @@ push_repo() {
 
 
 push_repo
-if [[ ${mode} == "" ]]; then
+if [[ ${#modes[@]} -eq 0 ]]; then
     exit
 fi
 
 
-get_kernel_update_funcs
-debug_print_default_vars
+for (( i = 0; i < ${#modes[@]}; i++ )); do
+    mode=${modes[i]}
+    kernel_name=${kernel_names[i]}
+
+    get_kernel_update_funcs
+    debug_print_default_vars
+
+    export script_dir mode kernel_name
+    source_safe "src/kernels/${kernel_name}.sh"
 
 
-export script_dir mode kernel_name
-source_safe "src/kernels/${kernel_name}.sh"
-
-
-for func in "${update_funcs[@]}"; do
-    debug "Evaluating '${func}'"
-    "${func}"
-    push_packages
+    for func in "${update_funcs[@]}"; do
+        debug "Evaluating '${func}'"
+        "${func}"
+        push_packages
+    done
 done
