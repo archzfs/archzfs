@@ -116,21 +116,19 @@ generate_package_files() {
     debug "zfs_initcpio_hook_hash: ${zfs_initcpio_hook_hash}"
 
     # Make sure our target directory exists
-    if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
+    if [[ "${kernel_name}" == "common" ]] || [[ "${kernel_name}" == "common-git" ]]; then
         run_cmd_no_output "[[ -d "${spl_utils_pkgbuild_path}" ]] || mkdir -p ${spl_utils_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_utils_pkgbuild_path}" ]] || mkdir -p ${zfs_utils_pkgbuild_path}"
-    fi
-    if [[ ! -z ${zfs_pkgbuild_path} ]]; then
+    elif [[ "${kernel_name}" == "dkms" ]]; then
+        run_cmd_no_output "[[ -d "${spl_dkms_pkgbuild_path}" ]] || mkdir -p ${spl_dkms_pkgbuild_path}"
+        run_cmd_no_output "[[ -d "${zfs_dkms_pkgbuild_path}" ]] || mkdir -p ${zfs_dkms_pkgbuild_path}"
+    else
         run_cmd_no_output "[[ -d "${spl_pkgbuild_path}" ]] || mkdir -p ${spl_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_pkgbuild_path}" ]] || mkdir -p ${zfs_pkgbuild_path}"
     fi
-    if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
-        run_cmd_no_output "[[ -d "${spl_dkms_pkgbuild_path}" ]] || mkdir -p ${spl_dkms_pkgbuild_path}"
-        run_cmd_no_output "[[ -d "${zfs_dkms_pkgbuild_path}" ]] || mkdir -p ${zfs_dkms_pkgbuild_path}"
-    fi
 
     # Finally, generate the update packages ...
-    if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
+    if [[ "${kernel_name}" == "common" ]] || [[ "${kernel_name}" == "common-git" ]]; then
         msg2 "Creating spl-utils PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
 
@@ -153,9 +151,15 @@ generate_package_files() {
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
         msg2 "Copying zfs-utils.initcpio.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
-    fi
+    elif [[ "${kernel_name}" == "dkms" ]]; then
+        msg2 "Creating spl-dkms PKGBUILD"
+        run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
 
-    if [[ ! -z ${zfs_pkgbuild_path} ]]; then
+        msg2 "Creating zfs-dkms PKGBUILD"
+        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
+        msg2 "Creating zfs.install"
+        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/zfs.install.sh"
+    else
         # remove own headers from conflicts
         zfs_headers_conflicts=${zfs_headers_conflicts_all/"'${zfs_pkgname}-headers'"}
         spl_headers_conflicts=${spl_headers_conflicts_all/"'${spl_pkgname}-headers'"}
@@ -175,16 +179,6 @@ generate_package_files() {
         run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
         msg2 "Copying zfs patches (if any)"
         run_cmd_no_output "cp ${script_dir}/src/zfs/*.patch ${zfs_pkgbuild_path}/"
-    fi
-
-    if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
-        msg2 "Creating spl-dkms PKGBUILD"
-        run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
-
-        msg2 "Creating zfs-dkms PKGBUILD"
-        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
-        msg2 "Creating zfs.install"
-        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/zfs.install.sh"
     fi
 
     msg "Update diffs ..."
