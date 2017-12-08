@@ -2,7 +2,6 @@
 
 cat << EOF > ${zfs_dkms_pkgbuild_path}/PKGBUILD
 ${header}
-pkgbase="${zfs_pkgname}"
 pkgname="${zfs_pkgname}"
 pkgdesc="Kernel modules for the Zettabyte File System."
 pkgver=${zfs_pkgver}
@@ -46,7 +45,7 @@ package() {
 EOF
 
 if [[ ${archzfs_package_group} =~ -git$ ]]; then
-	sed -i "/^build()/i pkgver() {\n    cd \"${zfs_workdir}\"\n    git describe --long | sed 's/^zfs-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g'\n}" ${zfs_dkms_pkgbuild_path}/PKGBUILD
+	sed -i "/^build()/i pkgver() {\n    cd \"${zfs_workdir}\"\n    printf \"%s.r%s.%s\" \"\$(git log -n 1 --pretty=format:'%cd' --date=short | sed 's/-/./g')\" \"\$(git rev-list --count HEAD)\" \"\$(git rev-parse --short HEAD)\" \n}" ${zfs_dkms_pkgbuild_path}/PKGBUILD
 fi
 
 pkgbuild_cleanup "${zfs_dkms_pkgbuild_path}/PKGBUILD"

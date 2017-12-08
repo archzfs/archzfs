@@ -17,7 +17,7 @@ provides=("spl")
 groups=("${archzfs_package_group}")
 conflicts=(${spl_conflicts} ${spl_conflicts_all} ${spl_headers_conflicts_all})
 ${spl_replaces}
-    
+
 build() {
     cd "${spl_workdir}"
     ./autogen.sh
@@ -42,7 +42,7 @@ package() {
 EOF
 
 if [[ ${archzfs_package_group} =~ -git$ ]]; then
-	sed -i "/^build()/ i pkgver() { \n    cd \"${spl_workdir}\" \n    git describe --long | sed 's/^spl-//;s/\\\([^-]*-g\\\)/r\\\1/;s/-/./g' \n}" ${spl_dkms_pkgbuild_path}/PKGBUILD
+	sed -i "/^build()/i pkgver() { \n    cd \"${spl_workdir}\" \n\    printf \"%s.r%s.%s\" \"\$(git log -n 1 --pretty=format:'%cd' --date=short | sed 's/-/./g' )\" \"\$(git rev-list --count HEAD)\" \"\$(git rev-parse --short HEAD)\" \n}" ${spl_dkms_pkgbuild_path}/PKGBUILD
 fi
 
 pkgbuild_cleanup "${spl_dkms_pkgbuild_path}/PKGBUILD"
