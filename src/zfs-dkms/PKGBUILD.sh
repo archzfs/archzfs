@@ -44,8 +44,4 @@ package() {
 
 EOF
 
-if [[ ${archzfs_package_group} =~ -git$ ]]; then
-	sed -i "/^build()/i pkgver() {\n    cd \"${zfs_workdir}\"\n    printf \"%s.r%s.%s\" \"\$(git log -n 1 --pretty=format:'%cd' --date=short | sed 's/-/./g')\" \"\$(git rev-list --count HEAD)\" \"\$(git rev-parse --short HEAD)\" \n}" ${zfs_dkms_pkgbuild_path}/PKGBUILD
-fi
-
 pkgbuild_cleanup "${zfs_dkms_pkgbuild_path}/PKGBUILD"
