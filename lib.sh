@@ -6,9 +6,9 @@ shopt -s nullglob
 dry_run=0
 debug_flag=0
 haz_error=0
-mode=""
+modes=()
 test_mode=""
-kernel_name="" # set by generate_mode_list
+kernel_names=() # set by generate_mode_list
 mode_list=() # set by generate_mode_list
 test_commands_list=() # set by generate_test_commands_list
 update_funcs=() # set by generate_mode_list
@@ -397,6 +397,13 @@ kernel_version_full_no_hyphen() {
 
 # from makepkg
 source_safe() {
+    # reset variables
+    kernel_version_full_pkgver=""
+    kernel_version_full=""
+    kernel_version=""
+    zfs_pkgver=""
+    spl_pkgver=""
+
     export script_dir mode kernel_name
     shopt -u extglob
     if ! source "$@"; then
@@ -554,24 +561,35 @@ check_zol_version() {
 check_mode() {
     # $1 the mode to check for
     debug "check_mode: checking '$1'"
-    for m in "${mode_list[@]}"; do
-        debug "check_mode: on '${m}'"
-        local moden=$(echo ${m} | cut -f2 -d:)
-        # debug "moden: ${moden}"
-        if [[ "${moden}" == "$1" ]]; then
-            if [[ ${mode} != "" ]]; then
-                error "Already have mode '${moden}', only one mode can be used at a time!"
-                usage
-                exit 155
+    
+    # add all available modes
+    if [[ "${1}" == "all" ]]; then
+        for m in "${mode_list[@]}"; do
+            mode=("$(echo ${m} | cut -f2 -d:)")
+
+            # do not add archiso
+            if [[ "${mode}" == "iso" ]]; then
+                continue
             fi
-            mode="$1"
-            kernel_name=$(echo ${m} | cut -f1 -d:)
-            return
-        fi
-    done
-    error "Unrecognized argument '$1'"
-    usage
-    exit 155
+
+            modes+=("${mode}")
+            kernel_names+=("$(echo ${m} | cut -f1 -d:)")
+        done
+    else
+        for m in "${mode_list[@]}"; do
+            debug "check_mode: on '${m}'"
+            local moden=$(echo ${m} | cut -f2 -d:)
+            # debug "moden: ${moden}"
+            if [[ "${moden}" == "$1" ]]; then
+                modes+=("$1")
+                kernel_names+=("$(echo ${m} | cut -f1 -d:)")
+                return
+            fi
+        done
+        error "Unrecognized argument '$1'"
+        usage
+        exit 155
+    fi
 }
 
 
@@ -687,6 +705,8 @@ generate_test_commands_list() {
 
 
 get_kernel_update_funcs() {
+    update_funcs=()
+
     for kernel in $(ls ${script_dir}/src/kernels); do
         if [[ ${kernel%.*} != ${kernel_name} ]]; then
             continue
@@ -697,6 +717,11 @@ get_kernel_update_funcs() {
 }
 
 get_conflicts() {
+    zfs_headers_conflicts_all=()
+    spl_headers_conflicts_all=()
+    zfs_conflicts_all=()
+    spl_conflicts_all=()
+
     for kernel in $(ls ${script_dir}/src/kernels); do
         # do not conflict with common or dkms packages
         if [[ "$kernel" == "common.sh"  || "$kernel" == "common-git.sh" || "$kernel" == "dkms.sh" ]]; then
@@ -715,6 +740,53 @@ get_conflicts() {
           spl_conflicts_all+=$(source ${script_dir}/src/kernels/${kernel}; commands=(); ${func}; conflicts=${pkg_list[@]//zfs*}; printf "'%s' "  "${conflicts[@]}")
         done
     done
+}
+
+check_skip_build() {
+    # $1: Name of package to check
+    pkg=${1}
+
+    # get version of any package that has been built previously
+    run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.pkg.tar.xz | grep \"$pkg\" | grep -v \"headers\" | tail -1"
+    pkg_path=${run_cmd_output}
+
+    if [[ ${pkg_path} == "" ]]; then
+        msg2 "No previously built packages exist for ${pkg}!"
+    else
+        vers=$(package_version_from_path ${pkg_path})
+
+        # get current version
+        eval $(source "${script_dir}/packages/${kernel_name}/${pkg}/PKGBUILD";
+               echo current_vers="${pkgver}";
+               echo current_rel="${pkgrel}";
+        )
+
+        # check if version has already been built
+        if [[ ${run_cmd_return} -eq 0 && ${vers} == ${current_vers}-${current_rel} ]]; then
+            msg "${pkg}=${vers} has already been built"
+            return 0
+        fi
+    fi
+    
+    return 1
+}
+
+check_skip_src() {
+    # $1: Name of package to check
+    pkg=${1}
+
+    # check for any source package that has been generated previously
+    run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.src.tar.gz | grep \"$pkg\" | grep -v \"headers\" | tail -1"
+    pkg_path=${run_cmd_output}
+
+    if [[ ${pkg_path} == "" ]]; then
+        msg2 "No previously generated source package exist for ${pkg}!"
+    else
+        msg "sources for ${pkg} have already been built"
+        return 0
+    fi
+    
+    return 1
 }
 
 debug_print_default_vars() {

@@ -46,6 +46,7 @@ usage() {
             echo -e "    ${mn}\t\t  ${md}"
         fi
     done
+    echo "    all           Select and use all available packages"
     echo
     echo "Commands:"
     echo
@@ -78,6 +79,12 @@ cleanup() {
 
 build_sources() {
     for pkg in "${pkg_list[@]}"; do
+
+        if check_skip_src $pkg; then
+            msg "skipping"
+            continue;
+        fi
+
         msg "Building source for ${pkg}";
         run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/${pkg}'"
         run_cmd "su - ${makepkg_nonpriv_user} -s /bin/sh -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
@@ -116,21 +123,19 @@ generate_package_files() {
     debug "zfs_initcpio_hook_hash: ${zfs_initcpio_hook_hash}"
 
     # Make sure our target directory exists
-    if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
+    if [[ "${kernel_name}" == "common" ]] || [[ "${kernel_name}" == "common-git" ]]; then
         run_cmd_no_output "[[ -d "${spl_utils_pkgbuild_path}" ]] || mkdir -p ${spl_utils_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_utils_pkgbuild_path}" ]] || mkdir -p ${zfs_utils_pkgbuild_path}"
-    fi
-    if [[ ! -z ${zfs_pkgbuild_path} ]]; then
+    elif [[ "${kernel_name}" == "dkms" ]]; then
+        run_cmd_no_output "[[ -d "${spl_dkms_pkgbuild_path}" ]] || mkdir -p ${spl_dkms_pkgbuild_path}"
+        run_cmd_no_output "[[ -d "${zfs_dkms_pkgbuild_path}" ]] || mkdir -p ${zfs_dkms_pkgbuild_path}"
+    else
         run_cmd_no_output "[[ -d "${spl_pkgbuild_path}" ]] || mkdir -p ${spl_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_pkgbuild_path}" ]] || mkdir -p ${zfs_pkgbuild_path}"
     fi
-    if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
-        run_cmd_no_output "[[ -d "${spl_dkms_pkgbuild_path}" ]] || mkdir -p ${spl_dkms_pkgbuild_path}"
-        run_cmd_no_output "[[ -d "${zfs_dkms_pkgbuild_path}" ]] || mkdir -p ${zfs_dkms_pkgbuild_path}"
-    fi
 
     # Finally, generate the update packages ...
-    if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
+    if [[ "${kernel_name}" == "common" ]] || [[ "${kernel_name}" == "common-git" ]]; then
         msg2 "Creating spl-utils PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
 
@@ -153,9 +158,15 @@ generate_package_files() {
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
         msg2 "Copying zfs-utils.initcpio.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
-    fi
+    elif [[ "${kernel_name}" == "dkms" ]]; then
+        msg2 "Creating spl-dkms PKGBUILD"
+        run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
 
-    if [[ ! -z ${zfs_pkgbuild_path} ]]; then
+        msg2 "Creating zfs-dkms PKGBUILD"
+        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
+        msg2 "Creating zfs.install"
+        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/zfs.install.sh"
+    else
         # remove own headers from conflicts
         zfs_headers_conflicts=${zfs_headers_conflicts_all/"'${zfs_pkgname}-headers'"}
         spl_headers_conflicts=${spl_headers_conflicts_all/"'${spl_pkgname}-headers'"}
@@ -175,16 +186,6 @@ generate_package_files() {
         run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
         msg2 "Copying zfs patches (if any)"
         run_cmd_no_output "cp ${script_dir}/src/zfs/*.patch ${zfs_pkgbuild_path}/"
-    fi
-
-    if [[ ! -z ${zfs_dkms_pkgbuild_path} ]]; then
-        msg2 "Creating spl-dkms PKGBUILD"
-        run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
-
-        msg2 "Creating zfs-dkms PKGBUILD"
-        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
-        msg2 "Creating zfs.install"
-        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/zfs.install.sh"
     fi
 
     msg "Update diffs ..."
@@ -212,27 +213,9 @@ generate_package_files() {
 build_packages() {
     for pkg in "${pkg_list[@]}"; do
 
-        # get version of any package that has been built previously
-        run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.pkg.tar.xz | grep \"$pkg\" | grep -v \"headers\" | tail -1"
-        pkg_path=${run_cmd_output}
-
-        if [[ ${pkg_path} == "" ]]; then
-            msg2 "No previously built packages exist for ${pkg}!"
-        else
-            vers=$(package_version_from_path ${pkg_path})
-
-            # get current version
-            eval $(source "${script_dir}/packages/${kernel_name}/${pkg}/PKGBUILD";
-                echo current_vers="${pkgver}";
-                echo current_rel="${pkgrel}";
-            )
-
-            # stop if version has already been built
-            if [[ ${run_cmd_return} -eq 0 && ${vers} == ${current_vers}-${current_rel} ]]; then
-                msg "${pkg}=${vers} has already been built, skipping"
-                continue
-            fi
-
+        if check_skip_build $pkg; then
+            msg "skipping"
+            continue;
         fi
 
         msg "Building ${pkg}..."
@@ -291,12 +274,12 @@ for (( a = 0; a < $#; a++ )); do
         usage
     else
         check_mode "${args[$a]}"
-        debug "have mode '${mode}'"
+        debug "have modes '${modes[*]}'"
     fi
 done
 
 
-if [[ ${#commands[@]} -eq 0 || ${mode} == "" ]]; then
+if [[ ${#commands[@]} -eq 0 || ${#modes[@]} -eq 0 ]]; then
     echo
     error "A build mode and command must be selected!"
     usage
@@ -312,35 +295,6 @@ fi
 
 
 msg "$(date) :: ${script_name} started..."
-
-get_conflicts
-get_kernel_update_funcs
-debug_print_default_vars
-
-
-export script_dir mode kernel_name
-source_safe "src/kernels/${kernel_name}.sh"
-
-
-if have_command "cleanup"; then
-    cleanup
-    # exit
-fi
-
-
-if have_command "reset_pkgs"; then
-    msg "Performing git reset for packages/${kernel_name}/*"
-        msg "${update_funcs[@]}"
-    for func in "${update_funcs[@]}"; do
-        debug "Evaluating '${func}'"
-        "${func}"
-        msg "${pkg_list[@]}"
-        for pkg in "${pkg_list[@]}"; do
-            run_cmd "cd '${script_dir}/packages/${kernel_name}/${pkg}' && git reset --hard HEAD"
-        done
-    done
-fi
-
 
 if have_command "update_sums"; then
     # Only the files in the zfs-utils package will be updated
@@ -365,19 +319,51 @@ if have_command "update_chroot"; then
     run_cmd "ccm64 u"
 fi
 
+for (( i = 0; i < ${#modes[@]}; i++ )); do
+    mode=${modes[i]}
+    kernel_name=${kernel_names[i]}
 
-for func in "${update_funcs[@]}"; do
-    debug "Evaluating '${func}'"
-    "${func}"
-    if have_command "update"; then
-        msg "Updating PKGBUILDs for kernel '${kernel_name}'"
-        generate_package_files
+    get_conflicts
+    get_kernel_update_funcs
+    debug_print_default_vars
+
+    export script_dir mode kernel_name
+    source_safe "src/kernels/${kernel_name}.sh"
+
+
+    if have_command "cleanup"; then
+        cleanup
+        # exit
     fi
-    if have_command "make"; then
-        build_packages
-        build_sources
+
+
+    if have_command "reset_pkgs"; then
+        msg "Performing git reset for packages/${kernel_name}/*"
+            msg "${update_funcs[@]}"
+        for func in "${update_funcs[@]}"; do
+            debug "Evaluating '${func}'"
+            "${func}"
+            msg "${pkg_list[@]}"
+            for pkg in "${pkg_list[@]}"; do
+                run_cmd "cd '${script_dir}/packages/${kernel_name}/${pkg}' && git reset --hard HEAD"
+            done
+        done
     fi
-    if have_command "sources"; then
-        build_sources
-    fi
+
+
+    for func in "${update_funcs[@]}"; do
+        debug "Evaluating '${func}'"
+        "${func}"
+        if have_command "update"; then
+            msg "Updating PKGBUILDs for kernel '${kernel_name}'"
+            generate_package_files
+        fi
+        if have_command "make"; then
+            build_packages
+            build_sources
+        fi
+        if have_command "sources"; then
+            build_sources
+        fi
+    done
 done
