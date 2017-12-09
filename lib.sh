@@ -561,7 +561,7 @@ check_zol_version() {
 check_mode() {
     # $1 the mode to check for
     debug "check_mode: checking '$1'"
-    
+
     # add all available modes
     if [[ "${1}" == "all" ]]; then
         for m in "${mode_list[@]}"; do
@@ -767,7 +767,7 @@ check_skip_build() {
             return 0
         fi
     fi
-    
+
     return 1
 }
 
@@ -785,7 +785,7 @@ check_skip_src() {
         msg "sources for ${pkg} have already been built"
         return 0
     fi
-    
+
     return 1
 }
 
@@ -923,6 +923,16 @@ git_calc_pkgver() {
             zfs_pkgver=${zfs_git_ver};
           fi
           debug "zfs_pkgver: ${zfs_pkgver}"
+        fi
+
+        # get latest commit sha
+        cmd="cd temp/${repo} && "
+        cmd+="git rev-parse HEAD"
+        run_cmd_no_output_no_dry_run "${cmd}"
+        if [[ ${repo} =~ ^zfs ]]; then
+          latest_zfs_git_commit=${run_cmd_output}
+        else
+          latest_spl_git_commit=${run_cmd_output}
         fi
 
         # Cleanup

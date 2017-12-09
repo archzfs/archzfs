@@ -82,17 +82,11 @@ update_linux_lts_git_pkgbuilds() {
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
     spl_src_target="git+${spl_git_url}"
-    if [[ ${spl_git_commit} != "" ]]; then
-        spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
-    fi
     spl_src_hash="SKIP"
     linux_depends="\"linux-lts=${kernel_version_full}\""
     linux_headers_depends="\"linux-lts-headers=${kernel_version_full}\""
     spl_makedepends="\"libelf\" \"git\""
     zfs_src_target="git+${zfs_git_url}"
-    if [[ ${zfs_git_commit} != "" ]]; then
-        zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
-    fi
     zfs_src_hash="SKIP"
     zfs_makedepends="\"libelf\" \"git\" \"${spl_pkgname}-headers\""
     spl_workdir="\${srcdir}/spl"
@@ -103,4 +97,6 @@ update_linux_lts_git_pkgbuilds() {
     fi
     spl_utils_pkgname="spl-utils-common-git=${spl_git_ver}"
     zfs_utils_pkgname="zfs-utils-common-git=${zfs_git_ver}"
+    spl_src_target="git+${spl_git_url}#commit=${latest_spl_git_commit}"
+    zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
 }

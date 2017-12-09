@@ -32,15 +32,9 @@ update_common_git_pkgbuilds() {
     spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     spl_src_target="git+${spl_git_url}"
-    if [[ ${spl_git_commit} != "" ]]; then
-        spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
-    fi
     spl_src_hash="SKIP"
     spl_makedepends="\"git\""
     zfs_src_target="git+${zfs_git_url}"
-    if [[ ${zfs_git_commit} != "" ]]; then
-        zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
-    fi
     zfs_src_hash="SKIP"
     zfs_makedepends="\"git\""
     spl_workdir="\${srcdir}/spl"
@@ -53,4 +47,6 @@ update_common_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
+    spl_src_target="git+${spl_git_url}#commit=${latest_spl_git_commit}"
+    zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
 }
