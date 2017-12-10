@@ -28,8 +28,5 @@ gpg_sign_key='0EE7A126'
 
 chroot_path="/repo/chroot/x86_64/$(whoami)"
 
-# Package backup directory
-package_backup_dir="/repo/archive_archzfs"
-
 # Used to run mkaurball and mksrcinfo with lower privledges
 makepkg_nonpriv_user="demizer"

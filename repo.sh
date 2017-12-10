@@ -74,8 +74,10 @@ fi
 for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "azfs" ]]; then
         repo_name=${repo_basename}
+        pull_remote_repo=1
     elif [[ ${args[$a]} == "test" ]]; then
         repo_name="${repo_basename}-testing"
+        pull_remote_testing_repo=1
     elif [[ ${args[$a]} =~ repo=(.*) ]]; then
         repo_name=${BASH_REMATCH[1]}
     elif [[ ${args[$a]} == "ccm" ]]; then
@@ -93,6 +95,8 @@ for (( a = 0; a < $#; a++ )); do
         debug "have modes '${modes[*]}'"
     fi
 done
+
+package_backup_dir="${repo_basepath}/archive_${repo_basename}"
 
 
 if [[ $# -lt 1 ]]; then
@@ -112,6 +116,23 @@ if [[ ${repo_name} == "" ]]; then
     exit 155
 fi
 
+pull_repo() {
+    msg "Downloading remote repo..."
+    if [[ ${dry_run} -eq 1 ]]; then
+        dry="-n"
+    fi
+    run_cmd "rsync -vrtlh --delete-before ${remote_login}:${repo_remote_basepath}/${repo_name} ${remote_login}:${repo_remote_basepath}/archive_${repo_basename} ${repo_basepath}/ ${dry}"
+    run_cmd_check 1 "Could not pull packages from remote repo!"
+}
+
+pull_testing_repo() {
+    msg "Downloading remote testing repo..."
+    if [[ ${dry_run} -eq 1 ]]; then
+        dry="-n"
+    fi
+    run_cmd "rsync -vrtlh --delete-before ${remote_login}:${repo_remote_basepath}/${repo_basename}-testing ${remote_login}:${repo_remote_basepath}/archive_${repo_basename}-testing ${repo_basepath}/ ${dry}"
+    run_cmd_check 1 "Could not pull packages from remote testing repo!"
+}
 
 repo_package_list() {
     msg "Generating a list of packages to add..."
@@ -380,6 +401,13 @@ fi
 
 debug "repo_name: ${repo_name}"
 debug "repo_target: ${repo_target}"
+
+if [[ ${pull_remote_repo} -eq 1 ]]; then
+    pull_repo
+fi
+if [[ ${pull_remote_testing_repo} -eq 1 ]]; then
+    pull_testing_repo
+fi
 
 if [[ ${sign_packages} -eq 1 ]]; then
     for (( i = 0; i < ${#modes[@]}; i++ )); do
