@@ -54,9 +54,7 @@ package_${spl_pkgname}-headers() {
 
 EOF
 
-if [[ ${archzfs_package_group} =~ -git$ ]]; then
-    sed -i "/^build()/i pkgver() {\n    cd \"${spl_workdir}\"\n    printf \"%s.r%s.%s\" \"\$(git log -n 1 --pretty=format:'%cd' --date=short | sed 's/-/./g' )\" \"\$(git rev-list --count HEAD)\" \"\$(git rev-parse --short HEAD)\".${kernel_version_full_pkgver} \n}" ${spl_pkgbuild_path}/PKGBUILD
-else
+if [[ ! ${archzfs_package_group} =~ -git$ ]]; then
     sed -i "/^build()/i prepare() {\n    cd \"${spl_workdir}\"\n    patch -Np1 -i \${srcdir}/0001-Linux-4.14-compat-vfs_read-vfs_write.patch\n}" ${spl_pkgbuild_path}/PKGBUILD
 fi
 
