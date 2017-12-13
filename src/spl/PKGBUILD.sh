@@ -9,8 +9,8 @@ pkgrel=${spl_pkgrel}
 makedepends=(${linux_headers_depends} ${spl_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("${spl_src_target}" '0001-Linux-4.14-compat-vfs_read-vfs_write.patch')
-sha256sums=("${spl_src_hash}" 'd20506fbe6e9ee928005e8a73c03e4b4d207268348f684b9c7a33301067793b8')
+source=("${spl_src_target}")
+sha256sums=("${spl_src_hash}")
 license=("GPL")
 depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
 
@@ -53,9 +53,5 @@ package_${spl_pkgname}-headers() {
 }
 
 EOF
-
-if [[ ! ${archzfs_package_group} =~ -git$ ]]; then
-    sed -i "/^build()/i prepare() {\n    cd \"${spl_workdir}\"\n    patch -Np1 -i \${srcdir}/0001-Linux-4.14-compat-vfs_read-vfs_write.patch\n}" ${spl_pkgbuild_path}/PKGBUILD
-fi
 
 pkgbuild_cleanup "${spl_pkgbuild_path}/PKGBUILD"

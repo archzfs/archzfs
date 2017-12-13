@@ -64,3 +64,15 @@
 [submodule "packages/linux-zen/zfs-linux-zen"]
 	path = packages/linux-zen/zfs-linux-zen
 	url = ssh+git://aur@aur.archlinux.org/zfs-linux-zen.git
+[submodule "packages/linux-vfio/zfs-linux-vfio"]
+	path = packages/linux-vfio/zfs-linux-vfio
+	url = ssh://aur@aur.archlinux.org/zfs-linux-vfio.git
+[submodule "packages/linux-vfio/zfs-linux-vfio-git"]
+	path = packages/linux-vfio/zfs-linux-vfio-git
+	url = ssh://aur@aur.archlinux.org/zfs-linux-vfio-git.git
+[submodule "packages/linux-vfio/spl-linux-vfio-git"]
+	path = packages/linux-vfio/spl-linux-vfio-git
+	url = ssh://aur@aur.archlinux.org/spl-linux-vfio-git.git
+[submodule "packages/linux-vfio/spl-linux-vfio"]
+	path = packages/linux-vfio/spl-linux-vfio
+	url = ssh://aur@aur.archlinux.org/spl-linux-vfio.git
