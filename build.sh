@@ -148,8 +148,8 @@ generate_package_files() {
         msg2 "Creating zfs-utils PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-utils/PKGBUILD.sh"
 
-        msg2 "Copying zfs-utils.install"
-        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.install ${zfs_utils_pkgbuild_path}/zfs-utils.install"
+        msg2 "Creating zfs-utils.install"
+        run_cmd_no_output "source ${script_dir}/src/zfs-utils/zfs-utils.install.sh"
 
         msg2 "Copying zfs-utils.bash-completion"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1 ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
