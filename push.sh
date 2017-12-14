@@ -96,7 +96,15 @@ push_packages() {
     for pkg in "${pkg_list[@]}"; do
         msg "Packaging ${pkg}..."
         debug "PWD=${PWD}"
+        
+        run_cmd_no_output "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && git rev-parse --show-superproject-working-tree"
+        if [[ -z "${run_cmd_output}" ]]; then
+            error "${pkg} is not a submodule! Skipping"
+            continue
+        fi
+        
         local cmd="cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && "
+        
         if [[ ${push} -eq 1 ]]; then
             
             if [[ ! -z ${kernel_version_full} ]]; then
