@@ -1,5 +1,5 @@
-*.tar.gz
 *.tar.xz
+*.tar.gz
 *.sig
 *.log
 zfs/
