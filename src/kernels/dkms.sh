@@ -3,7 +3,7 @@ mode_name="dkms"
 mode_desc="Select and use the dkms packages"
 
 # version
-pkgrel="1"
+pkgrel="2"
 
 # Version for GIT packages
 pkgrel_git="${pkgrel}"
@@ -73,8 +73,8 @@ update_dkms_git_pkgbuilds() {
     fi
     spl_utils_pkgname="spl-utils-common-git=${spl_git_ver}"
     zfs_utils_pkgname="zfs-utils-common-git=${zfs_git_ver}"
-    spl_mod_ver=${spl_git_ver%%_*}
-    zfs_mod_ver=${zfs_git_ver%%_*}
+    spl_mod_ver="git"
+    zfs_mod_ver="git"
     spl_src_target="git+${spl_git_url}#commit=${latest_spl_git_commit}"
     zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
 }

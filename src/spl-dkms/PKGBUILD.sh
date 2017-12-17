@@ -35,7 +35,7 @@ package() {
     make clean
     make distclean
     find . -name ".git*" -print0 | xargs -0 rm -fr --
-    scripts/dkms.mkconf -v ${zfs_mod_ver} -f dkms.conf -n spl
+    scripts/dkms.mkconf -v ${spl_mod_ver} -f dkms.conf -n spl
     chmod g-w,o-w -R .
 }
 
