@@ -21,9 +21,6 @@ ${spl_replaces}
 build() {
     cd "${spl_workdir}"
     ./autogen.sh
-    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \\
-                --with-config=user
-    make
 }
 
 package() {
@@ -32,8 +29,6 @@ package() {
     cp -a ${spl_workdir}/. \${dkmsdir}
 
     cd "\${dkmsdir}"
-    make clean
-    make distclean
     find . -name ".git*" -print0 | xargs -0 rm -fr --
     scripts/dkms.mkconf -v ${spl_mod_ver} -f dkms.conf -n spl
     chmod g-w,o-w -R .
