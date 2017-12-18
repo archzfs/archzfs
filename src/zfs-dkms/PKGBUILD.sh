@@ -22,10 +22,6 @@ ${zfs_replaces}
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh
-    ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \\
-                --datadir=/usr/share --includedir=/usr/include --with-udevdir=/lib/udev \\
-                --libexecdir=/usr/lib/zfs-${zol_version} --with-config=user
-    make
 }
 
 package() {
@@ -34,8 +30,6 @@ package() {
     cp -a ${zfs_workdir}/. \${dkmsdir}
 
     cd "\${dkmsdir}"
-    make clean
-    make distclean
     find . -name ".git*" -print0 | xargs -0 rm -fr --
     scripts/dkms.mkconf -v ${zfs_mod_ver} -f dkms.conf -n zfs
     chmod g-w,o-w -R .
