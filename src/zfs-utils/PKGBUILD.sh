@@ -51,6 +51,9 @@ package() {
     mkdir -p "\${pkgdir}/etc/modules-load.d"
     printf "%s\n" "zfs" > "\${pkgdir}/etc/modules-load.d/zfs.conf"
 
+    # fix permissions
+    chmod 750 \${pkgdir}/etc/sudoers.d
+
     # Install the support files
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.hook "\${pkgdir}"/usr/lib/initcpio/hooks/zfs
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.install "\${pkgdir}"/usr/lib/initcpio/install/zfs
