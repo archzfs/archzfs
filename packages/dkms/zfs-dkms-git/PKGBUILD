@@ -8,15 +8,15 @@
 pkgname="zfs-dkms-git"
 pkgdesc="Kernel modules for the Zettabyte File System."
 
-pkgver=2017.12.08.r3208.4e9b15696
-pkgrel=1
+pkgver=2017.12.18.r3214.bbffb59ef
+pkgrel=3
 makedepends=("git")
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("git+https://github.com/zfsonlinux/zfs.git#commit=4e9b156960562373e005798575a3fbc6d66e32ff")
+source=("git+https://github.com/zfsonlinux/zfs.git#commit=bbffb59efc49baba1d131d497202e8cda0068c3d")
 sha256sums=("SKIP")
 license=("CDDL")
-depends=("spl-dkms-git" "zfs-utils-common-git=2017.12.08.r3208.4e9b15696")
+depends=("spl-dkms-git" "zfs-utils-common-git=2017.12.18.r3214.bbffb59ef")
 install=zfs.install
 provides=("zfs")
 groups=("archzfs-dkms-git")
@@ -25,20 +25,14 @@ conflicts=('zfs-dkms' 'zfs-archiso-linux' 'zfs-linux-hardened' 'zfs-linux-harden
 build() {
     cd "${srcdir}/zfs"
     ./autogen.sh
-    ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \
-                --datadir=/usr/share --includedir=/usr/include --with-udevdir=/lib/udev \
-                --libexecdir=/usr/lib/zfs-0.7.4 --with-config=user
-    make
 }
 
 package() {
-    dkmsdir="${pkgdir}/usr/src/zfs-2017.12.08.r3208.4e9b15696"
+    dkmsdir="${pkgdir}/usr/src/zfs-git"
     install -d "${dkmsdir}"
     cp -a ${srcdir}/zfs/. ${dkmsdir}
     cd "${dkmsdir}"
-    make clean
-    make distclean
     find . -name ".git*" -print0 | xargs -0 rm -fr --
-    scripts/dkms.mkconf -v 2017.12.08.r3208.4e9b15696 -f dkms.conf -n zfs
+    scripts/dkms.mkconf -v git -f dkms.conf -n zfs
     chmod g-w,o-w -R .
 }

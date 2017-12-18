@@ -9,7 +9,7 @@ pkgname="zfs-dkms"
 pkgdesc="Kernel modules for the Zettabyte File System."
 
 pkgver=0.7.4
-pkgrel=1
+pkgrel=3
 makedepends=("git")
 arch=("x86_64")
 url="http://zfsonlinux.org/"
@@ -25,10 +25,6 @@ conflicts=('zfs-dkms-git' 'zfs-archiso-linux' 'zfs-linux-hardened' 'zfs-linux-ha
 build() {
     cd "${srcdir}/zfs-0.7.4"
     ./autogen.sh
-    ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \
-                --datadir=/usr/share --includedir=/usr/include --with-udevdir=/lib/udev \
-                --libexecdir=/usr/lib/zfs-0.7.4 --with-config=user
-    make
 }
 
 package() {
@@ -36,8 +32,6 @@ package() {
     install -d "${dkmsdir}"
     cp -a ${srcdir}/zfs-0.7.4/. ${dkmsdir}
     cd "${dkmsdir}"
-    make clean
-    make distclean
     find . -name ".git*" -print0 | xargs -0 rm -fr --
     scripts/dkms.mkconf -v 0.7.4 -f dkms.conf -n zfs
     chmod g-w,o-w -R .

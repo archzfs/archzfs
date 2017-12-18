@@ -1,7 +1,7 @@
 post_install() {
     # https://bugs.archlinux.org/task/52901
     echo '>>> If DKMS fails to build ZFS, run this command:'
-    echo -e '# dkms install -m zfs/2017.12.08.r3208.4e9b15696 -k <kernel_version>\n'
+    echo -e '# dkms install -m zfs/git -k <kernel_version>\n'
     
     echo 'If you are using ZFS on your root partition run this afterwards:'
     echo '# mkinitcpio -P'

@@ -3,8 +3,8 @@ mode_name="std"
 mode_desc="Select and use the packages for the default linux kernel"
 
 # Kernel versions for default ZFS packages
-pkgrel="1"
-kernel_version="4.14.5-1"
+pkgrel="2"
+kernel_version="4.14.6-1"
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"

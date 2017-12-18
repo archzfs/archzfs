@@ -9,7 +9,7 @@ pkgname="spl-dkms-git"
 pkgdesc="Solaris Porting Layer kernel modules."
 
 pkgver=2017.11.15.r1059.ed19bcc
-pkgrel=1
+pkgrel=3
 makedepends=("git")
 arch=("x86_64")
 url="http://zfsonlinux.org/"
@@ -24,19 +24,14 @@ conflicts=('spl-dkms' 'spl-archiso-linux' 'spl-linux-hardened' 'spl-linux-harden
 build() {
     cd "${srcdir}/spl"
     ./autogen.sh
-    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \
-                --with-config=user
-    make
 }
 
 package() {
-    dkmsdir="${pkgdir}/usr/src/spl-2017.11.15.r1059.ed19bcc"
+    dkmsdir="${pkgdir}/usr/src/spl-git"
     install -d "${dkmsdir}"
     cp -a ${srcdir}/spl/. ${dkmsdir}
     cd "${dkmsdir}"
-    make clean
-    make distclean
     find . -name ".git*" -print0 | xargs -0 rm -fr --
-    scripts/dkms.mkconf -v 2017.12.08.r3208.4e9b15696 -f dkms.conf -n spl
+    scripts/dkms.mkconf -v git -f dkms.conf -n spl
     chmod g-w,o-w -R .
 }
