@@ -31,7 +31,7 @@ build() {
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
                 --with-udevdir=/lib/udev --libexecdir=/usr/lib/zfs-${zol_version} \\
-                --with-config=user
+                --with-config=user --with-systemd
     make
 }
 
