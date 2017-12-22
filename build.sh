@@ -168,8 +168,6 @@ generate_package_files() {
 
         msg2 "Creating zfs-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
-        msg2 "Creating zfs.install"
-        run_cmd_no_output "source ${script_dir}/src/zfs-dkms/zfs.install.sh"
     else
         # remove own headers from conflicts
         zfs_headers_conflicts=${zfs_headers_conflicts_all/"'${zfs_pkgname}-headers'"}
