@@ -1,5 +1,6 @@
 # For build.sh
 mode_name="zen"
+package_base="linux-zen"
 mode_desc="Select and use the packages for the linux-zen kernel"
 
 # Kernel versions for default ZFS packages

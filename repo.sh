@@ -13,6 +13,7 @@ repo_name="" # The destination repo for the packages
 package_list=() # A list of packages to add. Array items are in the form of "name;pkg.tar.xz;repo_path".
 package_src_list=() # A list of package sources to move
 package_exist_list=()
+all_added_pkgs=() # A list of all packages, that were added to the repo
 haz_error=0
 
 
@@ -271,6 +272,7 @@ repo_add() {
 
         bname=$(basename ${pkgp})
         pkg_add_list+=("${dest}/${bname}")
+        all_added_pkgs+=("${bname}")
     done
 
     debug_print_array "pkg_cp_list" "${pkg_cp_list[@]}"
@@ -378,6 +380,13 @@ for (( i = 0; i < ${#modes[@]}; i++ )); do
         repo_add
     done
 done
+
+if [[ ${#all_added_pkgs[@]} -gt 0 ]]; then
+    msg2 "${#all_added_pkgs[@]} packages were added to the repo:"
+    printf '%s\n' "${all_added_pkgs[@]}"
+else
+    msg2 "No packages were added to the repo"
+fi
 
 if [[ ${haz_error} -ne 0 ]]; then
     warning "An error has been detected! Inspect output above closely..."

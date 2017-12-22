@@ -1,5 +1,6 @@
 # For build.sh
 mode_name="hardened"
+package_base="linux-hardened"
 mode_desc="Select and use the packages for the linux-hardened kernel"
 
 # Kernel versions for hardened packages
