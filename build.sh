@@ -159,6 +159,10 @@ generate_package_files() {
         msg2 "Copying zfs-utils.initcpio.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
     elif [[ "${kernel_name}" == "dkms" ]]; then
+        msg2 "Copying 60-spl-dkms-install.hook"
+        run_cmd_no_output "cp ${script_dir}/src/spl-dkms/60-spl-dkms-install.hook ${spl_dkms_pkgbuild_path}/"
+        msg2 "Copying spl-dkms-alpm-hook"
+        run_cmd_no_output "cp ${script_dir}/src/spl-dkms/spl-dkms-alpm-hook ${spl_dkms_pkgbuild_path}/"
         msg2 "Creating spl-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
 
