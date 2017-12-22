@@ -8,15 +8,15 @@
 pkgname="spl-dkms-git"
 pkgdesc="Solaris Porting Layer kernel modules."
 
-pkgver=2017.11.15.r1059.ed19bcc
-pkgrel=3
+pkgver=2017.12.21.r1060.c9821f1
+pkgrel=1
 makedepends=("git")
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("git+https://github.com/zfsonlinux/spl.git#commit=ed19bccfb651843fa208232b3a2d3d22a4152bc8")
+source=("git+https://github.com/zfsonlinux/spl.git#commit=c9821f1ccc647dfbd506f381b736c664d862d126")
 sha256sums=("SKIP")
 license=("GPL")
-depends=("spl-utils-common-git=2017.11.15.r1059.ed19bcc" "dkms")
+depends=("spl-utils-common-git=2017.12.21.r1060.c9821f1" "dkms")
 provides=("spl")
 groups=("archzfs-dkms-git")
 conflicts=('spl-dkms' 'spl-archiso-linux' 'spl-linux-hardened' 'spl-linux-hardened-git' 'spl-linux-lts' 'spl-linux-lts-git' 'spl-linux' 'spl-linux-git' 'spl-linux-vfio' 'spl-linux-vfio-git' 'spl-linux-zen' 'spl-linux-zen-git'  'spl-archiso-linux-headers' 'spl-linux-hardened-headers' 'spl-linux-hardened-git-headers' 'spl-linux-lts-headers' 'spl-linux-lts-git-headers' 'spl-linux-headers' 'spl-linux-git-headers' 'spl-linux-vfio-headers' 'spl-linux-vfio-git-headers' 'spl-linux-zen-headers' 'spl-linux-zen-git-headers' )
