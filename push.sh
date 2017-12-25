@@ -107,16 +107,19 @@ push_packages() {
         
         if [[ ${push} -eq 1 ]]; then
 
+            vers=""
             if [[ ! -z ${kernel_version_full} ]]; then
-                vers=$(kernel_version_full_no_hyphen ${kernel_version_full})-${zfs_pkgrel}
-            elif [[ ! -z ${zfs_pkgver} ]]; then
-                vers=$zfs_pkgver
+                vers="kernel ${kernel_version_full} + "
+            fi
+
+            if [[ ! -z ${zfs_pkgver} ]]; then
+                vers+="zfs ${zol_version}"
             else
-                vers="latest git commit"
+                vers+="latest git commit"
             fi
 
             cmd+="git --no-pager diff && echo && echo && git checkout master && git add . && "
-            cmd+="git commit -m 'Semi-automated update for $vers'; git push"
+            cmd+="git commit -m 'Automated update for $vers'; git push"
         else
             cmd+="git --no-pager diff"
         fi
