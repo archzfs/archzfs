@@ -1,0 +1,12 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = File
+Target = usr/src/spl-*/dkms.conf
+Target = usr/lib/modules/*/build/include/
+
+[Action]
+Description = Installing SPL
+Depends = dkms
+When = PostTransaction
+Exec = /usr/lib/dkms/spl-dkms-alpm-hook
