@@ -403,6 +403,8 @@ source_safe() {
     kernel_version=""
     zfs_pkgver=""
     spl_pkgver=""
+    spl_src_hash=${spl_src_hash_conf}
+    zfs_src_hash=${zfs_src_hash_conf}
 
     export script_dir mode kernel_name
     shopt -u extglob
