@@ -165,6 +165,8 @@ generate_package_files() {
         run_cmd_no_output "cp ${script_dir}/src/spl-dkms/spl-dkms-alpm-hook ${spl_dkms_pkgbuild_path}/"
         msg2 "Creating spl-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
+        msg2 "Copying spl patches (if any)"
+        run_cmd_no_output "cp ${script_dir}/src/spl-dkms/*.patch ${spl_dkms_pkgbuild_path}/"
 
         msg2 "Creating zfs-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
