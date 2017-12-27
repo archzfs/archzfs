@@ -139,29 +139,32 @@ generate_package_files() {
 
     # Finally, generate the update packages ...
     if [[ "${kernel_name}" == "common" ]] || [[ "${kernel_name}" == "common-git" ]]; then
+        msg2 "Removing old spl-utils patches (if any)"
+        run_cmd_no_output "rm -f ${spl_utils_pkgbuild_path}/*.patch"
+        msg2 "Copying spl-utils patches (if any)"
+        run_cmd_no_output "find ${script_dir}/src/spl-utils -name \*.patch -exec cp {} ${spl_utils_pkgbuild_path} \;"
         msg2 "Creating spl-utils PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
 
-        msg2 "Copying spl-utils patches (if any)"
-        run_cmd_no_output "cp ${script_dir}/src/spl-utils/*.patch ${spl_utils_pkgbuild_path}/"
-
+        msg2 "Removing old zfs-utils patches (if any)"
+        run_cmd_no_output "rm -f ${zfs_utils_pkgbuild_path}/*.patch"
         msg2 "Copying zfs-utils patches (if any)"
-        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/*.patch ${zfs_utils_pkgbuild_path}/"
-
+        run_cmd_no_output "find ${script_dir}/src/zfs-utils -name \*.patch -exec cp {} ${zfs_utils_pkgbuild_path} \;"
         msg2 "Creating zfs-utils PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-utils/PKGBUILD.sh"
-
         msg2 "Creating zfs-utils.install"
         run_cmd_no_output "source ${script_dir}/src/zfs-utils/zfs-utils.install.sh"
-
         msg2 "Copying zfs-utils.bash-completion"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1 ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
-
         msg2 "Copying zfs-utils.initcpio.hook"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
         msg2 "Copying zfs-utils.initcpio.install"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
     elif [[ "${kernel_name}" == "dkms" ]]; then
+        msg2 "Removing old spl patches (if any)"
+        run_cmd_no_output "rm -f ${spl_dkms_pkgbuild_path}/*.patch"
+        msg2 "Copying spl patches (if any)"
+        run_cmd_no_output "find ${script_dir}/src/spl-dkms -name \*.patch -exec cp {} ${spl_dkms_pkgbuild_path} \;"
         msg2 "Copying 60-spl-dkms-install.hook"
         run_cmd_no_output "cp ${script_dir}/src/spl-dkms/60-spl-dkms-install.hook ${spl_dkms_pkgbuild_path}/"
         msg2 "Copying spl-dkms-alpm-hook"
@@ -169,6 +172,10 @@ generate_package_files() {
         msg2 "Creating spl-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
 
+        msg2 "Removing old zfs patches (if any)"
+        run_cmd_no_output "rm -f ${zfs_dkms_pkgbuild_path}/*.patch"
+        msg2 "Copying zfs patches (if any)"
+        run_cmd_no_output "find ${script_dir}/src/zfs-dkms -name \*.patch -exec cp {} ${zfs_dkms_pkgbuild_path} \;"
         msg2 "Creating zfs-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
     else
@@ -176,21 +183,23 @@ generate_package_files() {
         zfs_headers_conflicts=${zfs_headers_conflicts_all/"'${zfs_pkgname}-headers'"}
         spl_headers_conflicts=${spl_headers_conflicts_all/"'${spl_pkgname}-headers'"}
 
+        msg2 "Removing old spl patches (if any)"
+        run_cmd_no_output "rm -f ${spl_pkgbuild_path}/*.patch"
+        msg2 "Copying spl patches (if any)"
+        run_cmd_no_output "find ${script_dir}/src/spl -name \*.patch -exec cp {} ${spl_pkgbuild_path} \;"
         msg2 "Creating spl PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
-        msg2 "Copying spl patches (if any)"
-        run_cmd_no_output "cp ${script_dir}/src/spl/*.patch ${spl_pkgbuild_path}/"
         msg2 "Creating spl.install"
         run_cmd_no_output "source ${script_dir}/src/spl/spl.install.sh"
-        msg2 "Copying linux4.14.patch"
-        run_cmd_no_output "cp ${script_dir}/src/spl/linux4.14.patch ${spl_pkgbuild_path}/linux4.14.patch"
 
+        msg2 "Removing old zfs patches (if any)"
+        run_cmd_no_output "rm -f ${zfs_pkgbuild_path}/*.patch"
+        msg2 "Copying zfs patches (if any)"
+        run_cmd_no_output "find ${script_dir}/src/zfs -name \*.patch -exec cp {} ${zfs_pkgbuild_path} \;"
         msg2 "Creating zfs PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs/PKGBUILD.sh"
         msg2 "Creating zfs.install"
         run_cmd_no_output "source ${script_dir}/src/zfs/zfs.install.sh"
-        msg2 "Copying zfs patches (if any)"
-        run_cmd_no_output "cp ${script_dir}/src/zfs/*.patch ${zfs_pkgbuild_path}/"
     fi
 
     msg "Update diffs ..."
