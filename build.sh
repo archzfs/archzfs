@@ -87,7 +87,7 @@ build_sources() {
 
         msg "Building source for ${pkg}";
         run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/${pkg}'"
-        run_cmd "su - ${makepkg_nonpriv_user} -s /bin/sh -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && makepkg --printsrcinfo > .SRCINFO && mkaurball -f'"
+        run_cmd "su - ${makepkg_nonpriv_user} -s /bin/sh -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && makepkg --printsrcinfo > .SRCINFO && makepkg --source'"
     done
 }
 
