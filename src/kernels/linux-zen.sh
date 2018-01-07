@@ -5,7 +5,7 @@ mode_desc="Select and use the packages for the linux-zen kernel"
 
 # Kernel versions for default ZFS packages
 pkgrel="1"
-kernel_version="4.14.11-1"
+kernel_version="4.14.12-1"
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
