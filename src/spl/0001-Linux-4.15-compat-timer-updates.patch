@@ -1,0 +1,133 @@
+From 60b22baa553df00ee9145c44fe47aad9d6574890 Mon Sep 17 00:00:00 2001
+From: Tony Hutter <hutter2@llnl.gov>
+Date: Tue, 12 Dec 2017 13:00:31 -0800
+Subject: [PATCH] Linux 4.15 compat: timer updates
+
+Use timer_setup() macro and new timeout function definition.
+
+Signed-off-by: Tony Hutter <hutter2@llnl.gov>
+Closes: #670
+---
+ config/spl-build.m4    | 34 ++++++++++++++++++++++++++++++++++
+ module/spl/spl-taskq.c | 27 +++++++++++++++++++++++++--
+ 2 files changed, 59 insertions(+), 2 deletions(-)
+
+diff --git a/config/spl-build.m4 b/config/spl-build.m4
+index 7b66f2c8..926abd5c 100644
+--- a/config/spl-build.m4
++++ b/config/spl-build.m4
+@@ -54,6 +54,7 @@ AC_DEFUN([SPL_AC_CONFIG_KERNEL], [
+ 	SPL_AC_WAIT_QUEUE_HEAD_ENTRY
+ 	SPL_AC_KERNEL_WRITE
+ 	SPL_AC_KERNEL_READ
++	SPL_AC_KERNEL_TIMER_FUNCTION_TIMER_LIST
+ ])
+ 
+ AC_DEFUN([SPL_AC_MODULE_SYMVERS], [
+@@ -1654,3 +1655,36 @@ AC_DEFUN([SPL_AC_KERNEL_READ], [
+ 	])
+ 	EXTRA_KCFLAGS="$tmp_flags"
+ ])
++
++dnl #
++dnl # 4.15 API change
++dnl # https://lkml.org/lkml/2017/11/25/90
++dnl # Check if timer_list.func get passed a timer_list or an unsigned long
++dnl # (older kernels).  Also sanity check the from_timer() and timer_setup()
++dnl # macros are available as well, since they will be used in the same newer
++dnl # kernels that support the new timer_list.func signature.
++dnl #
++AC_DEFUN([SPL_AC_KERNEL_TIMER_FUNCTION_TIMER_LIST], [
++	AC_MSG_CHECKING([whether timer_list.function gets a timer_list])
++	tmp_flags="$EXTRA_KCFLAGS"
++	EXTRA_KCFLAGS="-Werror"
++	SPL_LINUX_TRY_COMPILE([
++		#include <linux/timer.h>
++		void task_expire(struct timer_list *tl) {}
++	],[
++		#ifndef from_timer
++		#error "No from_timer() macro"
++		#endif
++
++		struct timer_list timer;
++		timer.function = task_expire;
++		timer_setup(&timer, NULL, 0);
++	],[
++		AC_MSG_RESULT(yes)
++		AC_DEFINE(HAVE_KERNEL_TIMER_FUNCTION_TIMER_LIST, 1,
++		    [timer_list.function gets a timer_list])
++	],[
++		AC_MSG_RESULT(no)
++	])
++	EXTRA_KCFLAGS="$tmp_flags"
++])
+diff --git a/module/spl/spl-taskq.c b/module/spl/spl-taskq.c
+index 50f6f520..ae26bdb2 100644
+--- a/module/spl/spl-taskq.c
++++ b/module/spl/spl-taskq.c
+@@ -206,9 +206,9 @@ task_done(taskq_t *tq, taskq_ent_t *t)
+  * add it to the priority list in order for immediate processing.
+  */
+ static void
+-task_expire(unsigned long data)
++task_expire_impl(taskq_ent_t *t)
+ {
+-	taskq_ent_t *w, *t = (taskq_ent_t *)data;
++	taskq_ent_t *w;
+ 	taskq_t *tq = t->tqent_taskq;
+ 	struct list_head *l;
+ 	unsigned long flags;
+@@ -242,6 +242,21 @@ task_expire(unsigned long data)
+ 	wake_up(&tq->tq_work_waitq);
+ }
+ 
++#ifdef HAVE_KERNEL_TIMER_FUNCTION_TIMER_LIST
++static void
++task_expire(struct timer_list *tl)
++{
++	taskq_ent_t *t = from_timer(t, tl, tqent_timer);
++	task_expire_impl(t);
++}
++#else
++static void
++task_expire(unsigned long data)
++{
++	task_expire_impl((taskq_ent_t *)data);
++}
++#endif
++
+ /*
+  * Returns the lowest incomplete taskqid_t.  The taskqid_t may
+  * be queued on the pending list, on the priority list, on the
+@@ -581,7 +596,9 @@ taskq_dispatch(taskq_t *tq, task_func_t func, void *arg, uint_t flags)
+ 	t->tqent_func = func;
+ 	t->tqent_arg = arg;
+ 	t->tqent_taskq = tq;
++#ifndef HAVE_KERNEL_TIMER_FUNCTION_TIMER_LIST
+ 	t->tqent_timer.data = 0;
++#endif
+ 	t->tqent_timer.function = NULL;
+ 	t->tqent_timer.expires = 0;
+ 	t->tqent_birth = jiffies;
+@@ -631,7 +648,9 @@ taskq_dispatch_delay(taskq_t *tq, task_func_t func, void *arg,
+ 	t->tqent_func = func;
+ 	t->tqent_arg = arg;
+ 	t->tqent_taskq = tq;
++#ifndef HAVE_KERNEL_TIMER_FUNCTION_TIMER_LIST
+ 	t->tqent_timer.data = (unsigned long)t;
++#endif
+ 	t->tqent_timer.function = task_expire;
+ 	t->tqent_timer.expires = (unsigned long)expire_time;
+ 	add_timer(&t->tqent_timer);
+@@ -723,7 +742,11 @@ taskq_init_ent(taskq_ent_t *t)
+ {
+ 	spin_lock_init(&t->tqent_lock);
+ 	init_waitqueue_head(&t->tqent_waitq);
++#ifdef HAVE_KERNEL_TIMER_FUNCTION_TIMER_LIST
++	timer_setup(&t->tqent_timer, NULL, 0);
++#else
+ 	init_timer(&t->tqent_timer);
++#endif
+ 	INIT_LIST_HEAD(&t->tqent_list);
+ 	t->tqent_id = 0;
+ 	t->tqent_func = NULL; 
