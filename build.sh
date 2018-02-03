@@ -90,7 +90,7 @@ build_sources() {
 
         msg "Building source for ${pkg}";
         run_cmd "chown -R ${makepkg_nonpriv_user}: '${script_dir}/packages/${kernel_name}/${pkg}'"
-        run_cmd "su - ${makepkg_nonpriv_user} -s /bin/sh -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && mksrcinfo && mkaurball -f'"
+        run_cmd "su - ${makepkg_nonpriv_user} -s /bin/sh -c 'cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && makepkg --printsrcinfo > .SRCINFO && makepkg --source'"
     done
 }
 
@@ -228,7 +228,7 @@ build_packages() {
         # Cleanup all previously built packages for the current package
         cleanup ${pkg}
 
-        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm64 s && mksrcinfo"
+        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm64 s"
         if [[ ${run_cmd_return} -ne 0 ]]; then
             error "A problem occurred building the package"
             exit 1
