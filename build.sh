@@ -19,6 +19,9 @@ if ! source ${script_dir}/lib.sh; then
 fi
 source_safe "${script_dir}/conf.sh"
 
+# save conf variables
+spl_src_hash_conf=${spl_src_hash}
+zfs_src_hash_conf=${zfs_src_hash}
 
 usage() {
     echo "${script_name} - A build script for archzfs"
