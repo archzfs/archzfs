@@ -24,6 +24,7 @@ provides=("zfs-utils")
 install=zfs-utils.install
 conflicts=(${zfs_utils_conflicts})
 ${zfs_utils_replaces}
+backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs')
 
 build() {
     cd "${zfs_workdir}"
