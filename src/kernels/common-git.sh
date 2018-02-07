@@ -3,7 +3,7 @@ mode_name="common-git"
 mode_desc="Select and use the packages that are common between all kernels (git version)"
 
 # Version for GIT packages
-pkgrel_git="1"
+pkgrel_git="2"
 zfs_git_commit=""
 spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
