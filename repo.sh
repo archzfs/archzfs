@@ -365,7 +365,6 @@ for (( i = 0; i < ${#modes[@]}; i++ )); do
     export script_dir mode kernel_name
     source_safe "src/kernels/${kernel_name}.sh"
 
-
     export zfs_pkgver=""
     export spl_pkgver=""
 

@@ -78,20 +78,11 @@ export script_dir mode kernel_name
 
 
 check_linux_zen_kernel
-
-
 check_linux_hardened_kernel
-
-
 check_linux_kernel
-
-
 check_linux_lts_kernel
-
-
 check_zol_version
-
-
+check_linux_vfio
 check_archiso
 
 

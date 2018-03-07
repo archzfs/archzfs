@@ -1,4 +1,7 @@
 # ZFSonLinux stable version
+#
+# FIXME: reset all kernel configs set to pkgrel=1 when this changes
+#
 zol_version="0.7.6"
 
 # The ZOL source hashes are from zfsonlinux.org

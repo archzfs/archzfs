@@ -481,6 +481,20 @@ check_result() {
 }
 
 
+check_linux_vfio() {
+    #
+    # Check linux-vfio kernel version (this will change when the linux-vfio is updated)
+    #
+    if ! source ${script_dir}/src/kernels/linux-vfio.sh; then
+        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-vfio.sh!"
+        exit 155
+    fi
+    msg "Checking linux-vfio download page for linux kernel version changes..."
+    check_webpage "https://aur.archlinux.org/packages/linux-vfio" "(?<=linux-vfio )[\d\.]+" "${kernel_version::-2}"
+    check_result "linux-vfio kernel version" "linux-vfio" "$?"
+}
+
+
 check_archiso() {
     #
     # Check archiso kernel version (this will change when the archiso is updated)
