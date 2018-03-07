@@ -23,7 +23,7 @@ license=("GPL")
 depends=("spl-utils-common-git=2018.02.24.r1068.3673d03" "dkms")
 provides=("spl")
 groups=("archzfs-dkms-git")
-conflicts=('spl-dkms' 'spl-archiso-linux' 'spl-archiso-linux-git' 'spl-linux-hardened' 'spl-linux-hardened-git' 'spl-linux-lts' 'spl-linux-lts-git' 'spl-linux' 'spl-linux-git' 'spl-linux-vfio' 'spl-linux-vfio-git' 'spl-linux-zen' 'spl-linux-zen-git'  )
+conflicts=('spl-dkms' 'spl-archiso-linux' 'spl-archiso-linux-git' 'spl-linux-hardened' 'spl-linux-hardened-git' 'spl-linux-lts' 'spl-linux-lts-git' 'spl-linux' 'spl-linux-git' 'spl-linux-threadripper' 'spl-linux-threadripper-git' 'spl-linux-vfio' 'spl-linux-vfio-git' 'spl-linux-zen' 'spl-linux-zen-git'  )
 
 build() {
     cd "${srcdir}/spl"
