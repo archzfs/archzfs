@@ -10,7 +10,7 @@ pkgdesc="Solaris Porting Layer kernel modules."
 
 pkgver=0.7.6
 pkgrel=1
-makedepends=("git")
+makedepends=()
 arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("https://github.com/zfsonlinux/zfs/releases/download/zfs-0.7.6/spl-0.7.6.tar.gz"
@@ -23,7 +23,7 @@ license=("GPL")
 depends=("spl-utils-common=0.7.6" "dkms")
 provides=("spl")
 groups=("archzfs-dkms")
-conflicts=('spl-dkms-git' 'spl-archiso-linux' 'spl-archiso-linux-git' 'spl-linux-hardened' 'spl-linux-hardened-git' 'spl-linux-lts' 'spl-linux-lts-git' 'spl-linux' 'spl-linux-git' 'spl-linux-threadripper' 'spl-linux-threadripper-git' 'spl-linux-vfio' 'spl-linux-vfio-git' 'spl-linux-zen' 'spl-linux-zen-git'  )
+conflicts=('spl-dkms-git' 'spl-archiso-linux' 'spl-archiso-linux-git' 'spl-linux-hardened' 'spl-linux-hardened-git' 'spl-linux-lts' 'spl-linux-lts-git' 'spl-linux' 'spl-linux-git' 'spl-linux-vfio' 'spl-linux-vfio-git' 'spl-linux-zen' 'spl-linux-zen-git'  )
 
 build() {
     cd "${srcdir}/spl-0.7.6"
