@@ -8,30 +8,30 @@
 pkgname="zfs-dkms"
 pkgdesc="Kernel modules for the Zettabyte File System."
 
-pkgver=0.7.6
+pkgver=0.7.7
 pkgrel=1
 makedepends=("git")
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("https://github.com/zfsonlinux/zfs/releases/download/zfs-0.7.6/zfs-0.7.6.tar.gz")
-sha256sums=("1687f4041a990e35caccc4751aa736e8e55123b81d5f5a35b11916d9e580c23d")
+source=("https://github.com/zfsonlinux/zfs/releases/download/zfs-0.7.7/zfs-0.7.7.tar.gz")
+sha256sums=("db8ca69dc1d257175421a86bc81c861b2b24cc48db0832c954d9553fe50d0bb9")
 license=("CDDL")
-depends=("spl-dkms" "zfs-utils-common=0.7.6")
+depends=("spl-dkms" "zfs-utils-common=0.7.7")
 provides=("zfs")
 groups=("archzfs-dkms")
 conflicts=('zfs-dkms-git' 'zfs-archiso-linux' 'zfs-archiso-linux-git' 'zfs-linux-hardened' 'zfs-linux-hardened-git' 'zfs-linux-lts' 'zfs-linux-lts-git' 'zfs-linux' 'zfs-linux-git' 'zfs-linux-vfio' 'zfs-linux-vfio-git' 'zfs-linux-zen' 'zfs-linux-zen-git'  'zfs-archiso-linux-headers' 'zfs-archiso-linux-git-headers' 'zfs-linux-hardened-headers' 'zfs-linux-hardened-git-headers' 'zfs-linux-lts-headers' 'zfs-linux-lts-git-headers' 'zfs-linux-headers' 'zfs-linux-git-headers' 'zfs-linux-vfio-headers' 'zfs-linux-vfio-git-headers' 'zfs-linux-zen-headers' 'zfs-linux-zen-git-headers' )
 
 build() {
-    cd "${srcdir}/zfs-0.7.6"
+    cd "${srcdir}/zfs-0.7.7"
     ./autogen.sh
 }
 
 package() {
-    dkmsdir="${pkgdir}/usr/src/zfs-0.7.6"
+    dkmsdir="${pkgdir}/usr/src/zfs-0.7.7"
     install -d "${dkmsdir}"
-    cp -a ${srcdir}/zfs-0.7.6/. ${dkmsdir}
+    cp -a ${srcdir}/zfs-0.7.7/. ${dkmsdir}
     cd "${dkmsdir}"
     find . -name ".git*" -print0 | xargs -0 rm -fr --
-    scripts/dkms.mkconf -v 0.7.6 -f dkms.conf -n zfs
+    scripts/dkms.mkconf -v 0.7.7 -f dkms.conf -n zfs
     chmod g-w,o-w -R .
 }

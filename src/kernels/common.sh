@@ -3,7 +3,7 @@ mode_name="common"
 mode_desc="Select and use the packages that are common between all kernels"
 
 # version
-pkgrel="3"
+pkgrel="1"
 
 header="\
 # Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
