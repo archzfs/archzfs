@@ -54,6 +54,7 @@ usage() {
     echo "    azfs          Use the archzfs repo. Used by default."
     echo "    test          Use the archzfs-testing repo."
     echo "    ccm           Install packages to the clean-chroot-manager's repo. Useful incase the chroot neeeds to be nuked."
+    echo "    repo=<repo>   Install packages to a custom repo."
     echo
     echo "Example Usage:"
     echo
@@ -75,6 +76,8 @@ for (( a = 0; a < $#; a++ )); do
         repo_name="archzfs"
     elif [[ ${args[$a]} == "test" ]]; then
         repo_name="archzfs-testing"
+    elif [[ ${args[$a]} =~ repo=(.*) ]]; then
+        repo_name=${BASH_REMATCH[1]}
     elif [[ ${args[$a]} == "ccm" ]]; then
         repo_name="clean-chroot-manager"
     elif [[ ${args[$a]} == "-s" ]]; then
