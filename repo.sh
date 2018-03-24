@@ -34,6 +34,7 @@ usage() {
     echo "    -h:           Show help information."
     echo "    -n:           Dryrun; Output commands, but don't do anything."
     echo "    -d:           Show debug info."
+    echo "    -s:           Sign packages only."
     echo
     echo "Modes:"
     echo
@@ -76,6 +77,8 @@ for (( a = 0; a < $#; a++ )); do
         repo_name="archzfs-testing"
     elif [[ ${args[$a]} == "ccm" ]]; then
         repo_name="clean-chroot-manager"
+    elif [[ ${args[$a]} == "-s" ]]; then
+        sign_packages=1
     elif [[ ${args[$a]} == "-n" ]]; then
         dry_run=1
     elif [[ ${args[$a]} == "-d" ]]; then
@@ -354,6 +357,30 @@ fi
 
 debug "repo_name: ${repo_name}"
 debug "repo_target: ${repo_target}"
+
+if [[ ${sign_packages} -eq 1 ]]; then
+    for (( i = 0; i < ${#modes[@]}; i++ )); do
+        mode=${modes[i]}
+        kernel_name=${kernel_names[i]}
+
+        get_kernel_update_funcs
+        debug_print_default_vars
+
+        export script_dir mode kernel_name
+        source_safe "src/kernels/${kernel_name}.sh"
+
+        export zfs_pkgver=""
+        export spl_pkgver=""
+
+        for func in ${update_funcs[@]}; do
+            debug "Evaluating '${func}'"
+            "${func}"
+            repo_package_list
+            sign_packages
+        done
+    done
+    exit 0
+fi
 
 for (( i = 0; i < ${#modes[@]}; i++ )); do
     mode=${modes[i]}
