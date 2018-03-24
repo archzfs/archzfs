@@ -17,7 +17,7 @@ email="jeezusjr@gmail.com"
 
 # Repository path and name
 repo_name="archzfs"
-repo_basepath="/data/pacman/repo"
+repo_basepath="/repo"
 repo_name_test="archzfs-testing"
 
 # SSH login address (can use ssh config Hosts)
@@ -26,10 +26,10 @@ remote_login="webfaction"
 # The signing key to use to sign packages
 gpg_sign_key='0EE7A126'
 
-chroot_path="/opt/chroot/x86_64/$(whoami)"
+chroot_path="/repo/chroot/x86_64/$(whoami)"
 
 # Package backup directory
-package_backup_dir="/data/pacman/repo/archive_archzfs"
+package_backup_dir="/repo/archive_archzfs"
 
 # Used to run mkaurball and mksrcinfo with lower privledges
 makepkg_nonpriv_user="demizer"
