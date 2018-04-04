@@ -6,7 +6,6 @@ pkgbase = zfs-dkms
 	arch = x86_64
 	groups = archzfs-dkms
 	license = CDDL
-	makedepends = git
 	depends = spl-dkms
 	depends = zfs-utils-common=0.7.7
 	provides = zfs
