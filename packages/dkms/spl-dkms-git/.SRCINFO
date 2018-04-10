@@ -1,13 +1,13 @@
 pkgbase = spl-dkms-git
 	pkgdesc = Solaris Porting Layer kernel modules.
-	pkgver = 2018.04.04.r1070.581bc01
+	pkgver = 2018.04.09.r1071.9125f8f
 	pkgrel = 1
 	url = http://zfsonlinux.org/
 	arch = x86_64
 	groups = archzfs-dkms-git
 	license = GPL
 	makedepends = git
-	depends = spl-utils-common-git=2018.04.04.r1070.581bc01
+	depends = spl-utils-common-git=2018.04.09.r1071.9125f8f
 	depends = dkms
 	provides = spl
 	conflicts = spl-dkms
@@ -23,7 +23,7 @@ pkgbase = spl-dkms-git
 	conflicts = spl-linux-vfio-git
 	conflicts = spl-linux-zen
 	conflicts = spl-linux-zen-git
-	source = git+https://github.com/zfsonlinux/spl.git#commit=581bc01a0765eed9ea7dc17132b3943a5efc966d
+	source = git+https://github.com/zfsonlinux/spl.git#commit=9125f8f5bdb36bfbd2d816d30b6b29b9f89ae3d8
 	source = 60-spl-dkms-install.hook
 	source = spl-dkms-alpm-hook
 	sha256sums = SKIP

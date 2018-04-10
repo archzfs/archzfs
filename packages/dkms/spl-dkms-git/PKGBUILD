@@ -8,19 +8,19 @@
 pkgname="spl-dkms-git"
 pkgdesc="Solaris Porting Layer kernel modules."
 
-pkgver=2018.04.04.r1070.581bc01
+pkgver=2018.04.09.r1071.9125f8f
 pkgrel=1
 makedepends=("git")
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("git+https://github.com/zfsonlinux/spl.git#commit=581bc01a0765eed9ea7dc17132b3943a5efc966d"
+source=("git+https://github.com/zfsonlinux/spl.git#commit=9125f8f5bdb36bfbd2d816d30b6b29b9f89ae3d8"
         "60-spl-dkms-install.hook"
         "spl-dkms-alpm-hook")
 sha256sums=("SKIP"
             "15f71a9ceccf795cdac65743bee338e9987ec77e217721f32d55099be6ecf3d7"
             "836002f310b9e1d4b1a0e5c30d5b0ac5aa120d335b3ea223228a0b9f037ef8b8")
 license=("GPL")
-depends=("spl-utils-common-git=2018.04.04.r1070.581bc01" "dkms")
+depends=("spl-utils-common-git=2018.04.09.r1071.9125f8f" "dkms")
 provides=("spl")
 groups=("archzfs-dkms-git")
 conflicts=('spl-dkms' 'spl-archiso-linux' 'spl-archiso-linux-git' 'spl-linux-hardened' 'spl-linux-hardened-git' 'spl-linux-lts' 'spl-linux-lts-git' 'spl-linux' 'spl-linux-git' 'spl-linux-vfio' 'spl-linux-vfio-git' 'spl-linux-zen' 'spl-linux-zen-git'  )
