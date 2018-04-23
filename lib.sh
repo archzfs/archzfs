@@ -911,7 +911,7 @@ git_calc_pkgver() {
         # Get the version number past the last tag
         msg2 "Calculating PKGVER"
         cmd="cd temp/${repo} && "
-        cmd+='printf "%s.r%s.%s" "$(git log -n 1 --pretty=format:"%cd" --date=short | sed "s/-/./g")" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"'
+        cmd+='printf "%s.r%s.g%s" "$(git log -n 1 --pretty=format:"%cd" --date=short | sed "s/-/./g")" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"'
 
         run_cmd_no_output_no_dry_run "${cmd}"
 
