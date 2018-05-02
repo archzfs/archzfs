@@ -1,12 +1,18 @@
 #!/bin/bash
 
+zfs_depends=""
+# pyzfs in zfs-git depends on python2 (https://github.com/zfsonlinux/zfs/pull/7230)
+if [[ ${archzfs_package_group} =~ -git$ ]]; then
+    zfs_depends+="\"python2\""
+fi
+
 cat << EOF > ${zfs_utils_pkgbuild_path}/PKGBUILD
 ${header}
 pkgname="${zfs_utils_pkgname}"
 pkgver=${zfs_pkgver}
 pkgrel=${zfs_pkgrel}
 pkgdesc="Kernel module support files for the Zettabyte File System."
-depends=("${spl_pkgname}")
+depends=(${zfs_depends})
 makedepends=(${zfs_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
