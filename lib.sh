@@ -878,24 +878,32 @@ git_check_repo() {
             reponame="zfs"
         fi
         local repopath="${script_dir}/packages/${kernel_name}/${pkg}/${reponame}"
+        local temprepopath="${script_dir}/temp/${reponame}"
 
         debug "GIT URL: ${url}"
         debug "GIT REPO: ${repopath}"
 
         if [[ ! -d "${repopath}"  ]]; then
             msg2 "Cloning repo '${repopath}'"
-            run_cmd_no_dry_run "git clone --mirror '${url}' '${repopath}'"
-            if [[ ${run_cmd_return} -ne 0 ]]; then
-                error "Failure while cloning ${url} repo"
-                exit 1
+            
+            # clone into temp directory
+            if [[ ! -d "${temprepopath}"  ]]; then
+                run_cmd_no_dry_run "git clone --mirror '${url}' '${temprepopath}'"
+                if [[ ${run_cmd_return} -ne 0 ]]; then
+                    error "Failure while cloning ${url} repo"
+                    exit 1
+                fi
             fi
-        else
-            msg2 "Updating repo '${repopath}'"
-            run_cmd_no_dry_run "cd ${repopath} && git fetch --all -p"
-            if [[ ${run_cmd_return} -ne 0 ]]; then
-                error "Failure while fetching ${url} repo"
-                exit 1
-            fi
+            
+            # copy into package directory from temp
+            run_cmd_no_dry_run "cp -r '${temprepopath}' '${repopath}'"
+        fi
+    
+        msg2 "Updating repo '${repopath}'"
+        run_cmd_no_dry_run "cd ${repopath} && git fetch --all -p"
+        if [[ ${run_cmd_return} -ne 0 ]]; then
+            error "Failure while fetching ${url} repo"
+            exit 1
         fi
     done
 }
@@ -921,16 +929,16 @@ git_calc_pkgver() {
 
         # Checkout the git repo to a work directory
         local cmd="/usr/bin/bash -s << EOF 2>/dev/null\\n"
-        cmd+="[[ -d temp ]] && rm -r temp\\n"
-        cmd+="mkdir temp && cd temp\\n"
-        cmd+="git clone ../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
+        cmd+="[[ -d temp/version ]] && rm -r temp/version\\n"
+        cmd+="mkdir temp/version && cd temp/version\\n"
+        cmd+="git clone ../../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
         cmd+="git checkout -b azb ${sha}\\n"
         cmd+="EOF"
         run_cmd_no_output_no_dry_run "${cmd}"
 
         # Get the version number past the last tag
         msg2 "Calculating PKGVER"
-        cmd="cd temp/${repo} && "
+        cmd="cd temp/version/${repo} && "
         cmd+='printf "%s.r%s.g%s" "$(git log -n 1 --pretty=format:"%cd" --date=short | sed "s/-/./g")" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"'
 
         run_cmd_no_output_no_dry_run "${cmd}"
@@ -956,7 +964,7 @@ git_calc_pkgver() {
         fi
 
         # get latest commit sha
-        cmd="cd temp/${repo} && "
+        cmd="cd temp/version/${repo} && "
         cmd+="git rev-parse HEAD"
         run_cmd_no_output_no_dry_run "${cmd}"
         if [[ ${repo} =~ ^zfs ]]; then
@@ -967,6 +975,6 @@ git_calc_pkgver() {
 
         # Cleanup
         msg2 "Removing working directory"
-        run_cmd_no_output_no_dry_run "rm -vrf temp"
+        run_cmd_no_output_no_dry_run "rm -vrf temp/version"
     done
 }
