@@ -57,8 +57,8 @@ update_linux_pkgbuilds() {
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux-vfio=${kernel_version_full}\""
-    linux_headers_depends="\"linux-vfio-headers=${kernel_version_full}\""
+    linux_depends="\"linux-vfio=${kernel_version}\""
+    linux_headers_depends="\"linux-vfio-headers=${kernel_version}\""
     zfs_makedepends="\"${spl_pkgname}-headers\""
 }
 
@@ -85,8 +85,8 @@ update_linux_git_pkgbuilds() {
         spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
     fi
     spl_src_hash="SKIP"
-    linux_depends="\"linux-vfio=${kernel_version_full}\""
-    linux_headers_depends="\"linux-vfio-headers=${kernel_version_full}\""
+    linux_depends="\"linux-vfio=${kernel_version}\""
+    linux_headers_depends="\"linux-vfio-headers=${kernel_version}\""
     spl_makedepends="\"git\""
     zfs_src_target="git+${zfs_git_url}"
     if [[ ${zfs_git_commit} != "" ]]; then

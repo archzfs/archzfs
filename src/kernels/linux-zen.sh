@@ -57,8 +57,8 @@ update_linux_pkgbuilds() {
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux-zen=${kernel_version_full}\""
-    linux_headers_depends="\"linux-zen-headers=${kernel_version_full}\""
+    linux_depends="\"linux-zen=${kernel_version}\""
+    linux_headers_depends="\"linux-zen-headers=${kernel_version}\""
     zfs_makedepends="\"${spl_pkgname}-headers\""
 }
 
@@ -82,8 +82,8 @@ update_linux_git_pkgbuilds() {
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
     spl_src_target="git+${spl_git_url}"
     spl_src_hash="SKIP"
-    linux_depends="\"linux-zen=${kernel_version_full}\""
-    linux_headers_depends="\"linux-zen-headers=${kernel_version_full}\""
+    linux_depends="\"linux-zen=${kernel_version}\""
+    linux_headers_depends="\"linux-zen-headers=${kernel_version}\""
     spl_makedepends="\"git\""
     zfs_src_target="git+${zfs_git_url}"
     zfs_src_hash="SKIP"

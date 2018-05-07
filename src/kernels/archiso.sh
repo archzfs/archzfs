@@ -47,7 +47,7 @@ update_archiso_linux_pkgbuilds() {
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux=${kernel_version_major}\""
-    linux_headers_depends="\"linux-headers=${kernel_version_major}\""
+    linux_depends="\"linux=${kernel_version}\""
+    linux_headers_depends="\"linux-headers=${kernel_version}\""
     zfs_makedepends="\"${spl_pkgname}-headers\""
 }
