@@ -4,7 +4,7 @@ package_base="archiso-linux"
 mode_desc="Select and use the packages for the archiso linux kernel"
 
 # Kernel versions for LTS packages
-pkgrel="1"
+pkgrel="2"
 kernel_version="4.16.5-1"
 
 header="\
