@@ -4,7 +4,7 @@ package_base="linux-vfio"
 mode_desc="Select and use the packages for the linux-vfio kernel"
 
 # Kernel versions for default ZFS packages
-pkgrel="2"
+pkgrel="1"
 kernel_version="4.16.5-1"
 
 # Kernel version for GIT packages
