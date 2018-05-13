@@ -403,8 +403,28 @@ source_safe() {
     kernel_version=""
     zfs_pkgver=""
     spl_pkgver=""
+    spl_pkgrel=""
+    zfs_pkgrel=""
+    zfs_makedepends=""
+    spl_makedepends=""
     spl_src_hash=${spl_src_hash_conf}
     zfs_src_hash=${zfs_src_hash_conf}
+    spl_conflicts=""
+    zfs_conflicts=""
+    spl_pkgname=""
+    spl_utils_pkgname=""
+    zfs_pkgname=""
+    zfs_utils_pkgname=""
+    spl_pkgbuild_path=""
+    zfs_pkgbuild_path=""
+    spl_src_target=""
+    zfs_src_target=""
+    spl_workdir=""
+    zfs_workdir=""
+    linux_depends=""
+    linux_headers_depends=""
+    spl_replaces=""
+    zfs_replaces=""
 
     export script_dir mode kernel_name
     shopt -u extglob
