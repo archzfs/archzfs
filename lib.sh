@@ -518,7 +518,7 @@ check_linux_hardened_kernel() {
         exit 155
     fi
     msg "Checking the online package database for x86_64 linux-hardened kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/community/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
+    check_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
     check_result "x86_64 linux-hardened kernel package" "linux-hardened x86_64" "$?"
 }
 
