@@ -96,7 +96,7 @@ for (( a = 0; a < $#; a++ )); do
     fi
 done
 
-package_backup_dir="${repo_basepath}/archive_${repo_basename}"
+package_backup_dir="${repo_basepath}/archive_${repo_name}"
 
 
 if [[ $# -lt 1 ]]; then
