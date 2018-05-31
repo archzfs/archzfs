@@ -225,6 +225,13 @@ repo_package_backup() {
         pkgs+=("$o -regextype egrep -regex '.*${name}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
     done
 
+    # backup old spl-git packages
+    local o=""
+    if [[ ${#pkgs[@]} -ne 0 ]]; then
+        local o="-o"
+    fi
+    pkgs+=("$o -regextype egrep -regex '.*spl-[a-z\-]+-git-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
+
     # only run find, if new packages will be copied
     if [[ ! ${#pkgs[@]} -eq 0 ]]; then
         run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f ${pkgs[@]}"
@@ -312,6 +319,9 @@ repo_add() {
         fi
         run_cmd_no_output "sudo rsync --chown=${makepkg_nonpriv_user}: -ax ${repo_root}/repo/ $(realpath ${repo_root}/../)/${makepkg_nonpriv_user}/repo/"
     else
+        # remove old spl-git packages
+        run_cmd "repo-remove -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz spl-utils-common-git spl-linux-git spl-linux-git-headers spl-linux-lts-git spl-linux-lts-git-headers spl-linux-hardened-git spl-linux-hardened-git-headers spl-linux-zen-git spl-linux-zen-git-headers spl-linux-vfio-git spl-linux-vfio-git-headers spl-dkms-git"
+
         run_cmd "repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_add_list[@]}"
     fi
 
