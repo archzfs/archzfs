@@ -119,9 +119,14 @@ repo_package_list() {
 
     package_list=()
     local pkgs=()
+    if [[ ${#pkg_list[@]} -eq 1 ]]; then
+        local pkg_list_find=${pkg_list[0]}
+    else
+        local pkg_list_find="{$(printf '%s,' ${pkg_list[@]} | cut -d ',' -f 1-${#pkg_list[@]})}"
+    fi
 
     # Get packages from the backup directory
-    path="packages/${kernel_name}/{$(printf '%s,' ${pkg_list[@]} | cut -d ',' -f 1-${#pkg_list[@]})}/"
+    path="packages/${kernel_name}/${pkg_list_find}/"
     if [[ ! -z ${kernel_version_full_pkgver} ]]; then
         debug "kernel_version_full_pkgver: ${kernel_version_full_pkgver}"
         fcmd="find ${path} -iname '*${kernel_version_full_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_full_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
