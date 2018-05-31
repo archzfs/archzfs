@@ -153,21 +153,21 @@ repo_package_list() {
     path="packages/${kernel_name}/${pkg_list_find}/"
     if [[ ! -z ${kernel_version_full_pkgver} ]]; then
         debug "kernel_version_full_pkgver: ${kernel_version_full_pkgver}"
-        fcmd="find ${path} -iname '*${kernel_version_full_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_full_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+        fcmd="find ${path} -iname '*${kernel_version_full_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
         run_cmd_no_output_no_dry_run "${fcmd}"
         for pkg in ${run_cmd_output}; do
             pkgs+=(${pkg})
         done
-    elif [[ ! -z ${spl_pkgver} ]] && [[ ! -z ${zfs_pkgver} ]]; then
-        debug "spl_pkgver: ${spl_pkgver}"
-        fcmd="find ${path} -iname '*${spl_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+    elif [[ ! -z ${zfs_pkgver} ]]; then
+        debug "zfs_pkgver: ${zfs_pkgver}"
+        fcmd="find ${path} -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
         run_cmd_no_output_no_dry_run "${fcmd}"
         for pkg in ${run_cmd_output}; do
             pkgs+=(${pkg})
         done
     else
-        debug "kernel_version_full_pkgver and spl_pkgver (and zfs_pkgver) not set!"
-        debug "Falling back to newest package by mod time for zfs and spl"
+        debug "kernel_version_full_pkgver and zfs_pkgver not set!"
+        debug "Falling back to newest package by mod time for zfs"
         for z in $(printf '%s ' ${pkg_list[@]} ); do
             # fcmd="find ${path} -iname '*${kernel_name}*-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
             fcmd="find packages/${kernel_name} -iname '*${z}*.pkg.tar.xz' -printf '%T@ %p\\n' | sort -n | tail -1 | cut -f2- -d' '"
@@ -188,7 +188,6 @@ repo_package_list() {
 
         if ! [[ ${name} =~ .*-git ]]; then
             # Version match check: arch: x86_64 name: spl-utils-linux-git vers: 0.7.0_rc1_r0_g4fd75d3_4.7.2_1-4 vers_match: 0.6.5.8.*4.7.2_1-4
-            debug "spl_pkgver: ${spl_pkgver}"
             debug "zfs_pkgver: ${zfs_pkgver}"
             debug "kernel_version_full_pkgver: ${kernel_version_full_pkgver}"
 
@@ -197,12 +196,7 @@ repo_package_list() {
             if [ ! -z "${kernel_version_full_pkgver}" ]; then
               kernvers="_${kernel_version_full_pkgver}";
             fi
-
-            if [[ ${pkg} =~ .*spl-.* ]]; then
-                match="${spl_pkgver}${kernvers}-${spl_pkgrel}"
-            elif [[ ${pkg} =~ .*zfs-.* ]]; then
-                match="${zfs_pkgver}${kernvers}-${zfs_pkgrel}"
-            fi
+            match="${zfs_pkgver}${kernvers}-${zfs_pkgrel}"
 
             debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} vers_match: ${match}"
 
@@ -257,12 +251,13 @@ repo_package_backup() {
         pkgs+=("$o -regextype egrep -regex '.*${name}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
     done
 
-    # backup old spl-git packages
+    # backup old spl packages
     local o=""
     if [[ ${#pkgs[@]} -ne 0 ]]; then
         local o="-o"
     fi
-    pkgs+=("$o -regextype egrep -regex '.*spl-[a-z\-]+-git-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
+
+    pkgs+=("$o -regextype egrep -regex '.*spl-[a-z\-]+-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
 
     # only run find, if new packages will be copied
     if [[ ! ${#pkgs[@]} -eq 0 ]]; then
@@ -351,8 +346,8 @@ repo_add() {
         fi
         run_cmd_no_output "sudo rsync --chown=${makepkg_nonpriv_user}: -ax ${repo_root}/repo/ $(realpath ${repo_root}/../)/${makepkg_nonpriv_user}/repo/"
     else
-        # remove old spl-git packages
-        run_cmd "repo-remove -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz spl-utils-common-git spl-linux-git spl-linux-git-headers spl-linux-lts-git spl-linux-lts-git-headers spl-linux-hardened-git spl-linux-hardened-git-headers spl-linux-zen-git spl-linux-zen-git-headers spl-linux-vfio-git spl-linux-vfio-git-headers spl-dkms-git"
+        # remove old spl packages
+        run_cmd "repo-remove -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz spl-utils-common-git spl-linux-git spl-linux-git-headers spl-linux-lts-git spl-linux-lts-git-headers spl-linux-hardened-git spl-linux-hardened-git-headers spl-linux-zen-git spl-linux-zen-git-headers spl-linux-vfio-git spl-linux-vfio-git-headers spl-dkms-git spl-utils-common spl-linux spl-linux-headers spl-linux-lts spl-linux-lts-headers spl-linux-hardened spl-linux-hardened-headers spl-linux-zen spl-linux-zen-headers spl-linux-vfio spl-linux-vfio-headers spl-dkms"
 
         run_cmd "repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_add_list[@]}"
     fi
@@ -432,7 +427,6 @@ if [[ ${sign_packages} -eq 1 ]]; then
         source_safe "src/kernels/${kernel_name}.sh"
 
         export zfs_pkgver=""
-        export spl_pkgver=""
 
         for func in ${update_funcs[@]}; do
             debug "Evaluating '${func}'"
@@ -455,7 +449,6 @@ for (( i = 0; i < ${#modes[@]}; i++ )); do
     source_safe "src/kernels/${kernel_name}.sh"
 
     export zfs_pkgver=""
-    export spl_pkgver=""
 
     for func in ${update_funcs[@]}; do
         debug "Evaluating '${func}'"

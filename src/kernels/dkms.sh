@@ -8,9 +8,7 @@ pkgrel="2"
 # Version for GIT packages
 pkgrel_git="1"
 zfs_git_commit=""
-spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
-spl_git_url="https://github.com/zfsonlinux/spl.git"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
@@ -22,25 +20,18 @@ header="\
 #"
 
 update_dkms_pkgbuilds() {
-    pkg_list=("spl-dkms" "zfs-dkms")
+    pkg_list=("zfs-dkms")
     archzfs_package_group="archzfs-dkms"
-    spl_pkgver=${zol_version}
     zfs_pkgver=${zol_version}
-    spl_mod_ver="\${pkgver}"
     zfs_mod_ver="\${pkgver}"
-    spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
-    spl_pkgname="spl-dkms"
     zfs_pkgname="zfs-dkms"
-    spl_utils_pkgname="spl-utils-common=\${pkgver}"
     zfs_utils_pkgname="zfs-utils-common=\${pkgver}"
     # Paths are relative to build.sh
-    spl_dkms_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_dkms_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${pkgver}/spl-\${pkgver}.tar.gz"
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${pkgver}/zfs-\${pkgver}.tar.gz"
-    spl_workdir="\${srcdir}/spl-\${pkgver}"
     zfs_workdir="\${srcdir}/zfs-\${pkgver}"
+    zfs_replaces='replaces=("spl-dkms")'
 }
 
 update_dkms_git_pkgbuilds() {
@@ -48,7 +39,6 @@ update_dkms_git_pkgbuilds() {
     archzfs_package_group="archzfs-dkms-git"
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgrel=${pkgrel_git}
-    spl_pkgname=""
     zfs_pkgname="zfs-dkms-git"
     zfs_dkms_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
     zfs_src_target="git+${zfs_git_url}"

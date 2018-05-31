@@ -5,9 +5,7 @@ mode_desc="Select and use the packages that are common between all kernels (git 
 # Version for GIT packages
 pkgrel_git="1"
 zfs_git_commit=""
-spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
-spl_git_url="https://github.com/zfsonlinux/spl.git"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
@@ -24,7 +22,6 @@ update_common_git_pkgbuilds() {
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgrel=${pkgrel_git}
     zfs_utils_pkgname="zfs-utils-common-git"
-    spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     zfs_src_hash="SKIP"
     zfs_makedepends="\"git\""

@@ -402,28 +402,17 @@ source_safe() {
     kernel_version_full=""
     kernel_version=""
     zfs_pkgver=""
-    spl_pkgver=""
-    spl_pkgrel=""
     zfs_pkgrel=""
     zfs_makedepends=""
-    spl_makedepends=""
-    spl_src_hash=${spl_src_hash_conf}
     zfs_src_hash=${zfs_src_hash_conf}
-    spl_conflicts=""
     zfs_conflicts=""
-    spl_pkgname=""
-    spl_utils_pkgname=""
     zfs_pkgname=""
     zfs_utils_pkgname=""
-    spl_pkgbuild_path=""
     zfs_pkgbuild_path=""
-    spl_src_target=""
     zfs_src_target=""
-    spl_workdir=""
     zfs_workdir=""
     linux_depends=""
     linux_headers_depends=""
-    spl_replaces=""
     zfs_replaces=""
     zfs_set_commit=""
 
@@ -778,12 +767,8 @@ pkgbuild_cleanup() {
 
 git_check_repo() {
     for pkg in "${pkg_list[@]}"; do
-        local reponame="spl"
-        local url="${spl_git_url}"
-        if [[ ${pkg} =~ ^zfs ]]; then
-            url="${zfs_git_url}"
-            reponame="zfs"
-        fi
+        url="${zfs_git_url}"
+        reponame="zfs"
         local repopath="${script_dir}/packages/${kernel_name}/${pkg}/${reponame}"
         local temprepopath="${script_dir}/temp/${reponame}"
 
@@ -817,61 +802,47 @@ git_check_repo() {
 
 
 git_calc_pkgver() {
-    for repo in "spl" "zfs"; do
-        msg2 "Cloning working copy for ${repo}"
-        local sha=${spl_git_commit}
-        local kernvers=${kernel_version_full_pkgver}
-        if [[ ${repo} =~ ^zfs ]]; then
-            sha=${zfs_git_commit}
-        fi
+    local repo="zfs"
+    msg2 "Cloning working copy for ${repo}"
+    local kernvers=${kernel_version_full_pkgver}
+    sha=${zfs_git_commit}
 
-        # use utils package, if no kernel version is set and not on dkms
-        if [[ -z ${zfs_dkms_pkgbuild_path} && -z "${kernvers}" ]]; then
-            pkg=$(eval "echo \${${repo}_utils_pkgname}")
-        else
-            pkg=$(eval "echo \${${repo}_pkgname}")
-        fi
+    # use utils package, if no kernel version is set and not on dkms
+    if [[ -z ${zfs_dkms_pkgbuild_path} && -z "${kernvers}" ]]; then
+        pkg=$(eval "echo \${${repo}_utils_pkgname}")
+    else
+        pkg=$(eval "echo \${${repo}_pkgname}")
+    fi
 
-        debug "Using package '${pkg}'"
+    debug "Using package '${pkg}'"
 
-        # Checkout the git repo to a work directory
-        local cmd="/usr/bin/bash -s << EOF 2>/dev/null\\n"
-        cmd+="[[ -d temp/version ]] && rm -r temp/version\\n"
-        cmd+="mkdir temp/version && cd temp/version\\n"
-        cmd+="git clone ../../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
-        cmd+="git checkout -b azb ${sha}\\n"
-        cmd+="EOF"
-        run_cmd_no_output_no_dry_run "${cmd}"
+    # Checkout the git repo to a work directory
+    local cmd="/usr/bin/bash -s << EOF 2>/dev/null\\n"
+    cmd+="[[ -d temp/version ]] && rm -r temp/version\\n"
+    cmd+="mkdir temp/version && cd temp/version\\n"
+    cmd+="git clone ../../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
+    cmd+="git checkout -b azb ${sha}\\n"
+    cmd+="EOF"
+    run_cmd_no_output_no_dry_run "${cmd}"
 
-        # Get the version number past the last tag
-        msg2 "Calculating PKGVER"
-        cmd="cd temp/version/${repo} && "
-        cmd+='printf "%s.r%s.g%s" "$(git log -n 1 --pretty=format:"%cd" --date=short | sed "s/-/./g")" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"'
+    # Get the version number past the last tag
+    msg2 "Calculating PKGVER"
+    cmd="cd temp/version/${repo} && "
+    cmd+='printf "%s.r%s.g%s" "$(git log -n 1 --pretty=format:"%cd" --date=short | sed "s/-/./g")" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"'
 
-        run_cmd_no_output_no_dry_run "${cmd}"
+    run_cmd_no_output_no_dry_run "${cmd}"
 
-        if [[ ${repo} =~ ^spl ]]; then
-            spl_git_ver=${run_cmd_output}
-            spl_pkgver=${spl_git_ver}
-            debug "spl_pkgver: ${spl_pkgver}"
-        elif [[ ${repo} =~ ^zfs ]]; then
-            zfs_git_ver=${run_cmd_output}
-            zfs_pkgver=${zfs_git_ver};
-            debug "zfs_pkgver: ${zfs_pkgver}"
-        fi
+    zfs_git_ver=${run_cmd_output}
+    zfs_pkgver=${zfs_git_ver};
+    debug "zfs_pkgver: ${zfs_pkgver}"
 
-        # get latest commit sha
-        cmd="cd temp/version/${repo} && "
-        cmd+="git rev-parse HEAD"
-        run_cmd_no_output_no_dry_run "${cmd}"
-        if [[ ${repo} =~ ^zfs ]]; then
-            latest_zfs_git_commit=${run_cmd_output}
-        else
-            latest_spl_git_commit=${run_cmd_output}
-        fi
+    # get latest commit sha
+    cmd="cd temp/version/${repo} && "
+    cmd+="git rev-parse HEAD"
+    run_cmd_no_output_no_dry_run "${cmd}"
+    latest_zfs_git_commit=${run_cmd_output}
 
-        # Cleanup
-        msg2 "Removing working directory"
-        run_cmd_no_output_no_dry_run "rm -vrf temp/version"
-    done
+    # Cleanup
+    msg2 "Removing working directory"
+    run_cmd_no_output_no_dry_run "rm -vrf temp/version"
 }

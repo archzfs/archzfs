@@ -1,13 +1,5 @@
 #!/bin/bash
 
-# spl is included in git packages (workaround till zfs 0.8)
-git_provides=""
-git_conflicts=""
-if [[ ${archzfs_package_group} =~ -git$ ]]; then
-    git_provides+=' "spl-utils"'
-    git_conflicts+=' "spl-utils"'
-fi
-
 cat << EOF > ${zfs_utils_pkgbuild_path}/PKGBUILD
 ${header}
 pkgname="${zfs_utils_pkgname}"
@@ -30,9 +22,9 @@ sha256sums=("${zfs_src_hash}"
             "29080a84e5d7e36e63c4412b98646043724621245b36e5288f5fed6914da5b68")
 license=("CDDL")
 groups=("${archzfs_package_group}")
-provides=("zfs-utils"${git_provides})
+provides=("zfs-utils" "spl-utils")
 install=zfs-utils.install
-conflicts=("zfs-utils"${git_conflicts})
+conflicts=("zfs-utils" "spl-utils")
 ${zfs_utils_replaces}
 backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs')
 
