@@ -35,6 +35,7 @@ usage() {
     echo "    -n:           Dryrun; Output commands, but don't do anything."
     echo "    -d:           Show debug info."
     echo "    -s:           Sign packages only."
+    echo "    -p:           Do not sync from remote repo."
     echo
     echo "Modes:"
     echo
@@ -84,6 +85,8 @@ for (( a = 0; a < $#; a++ )); do
         repo_name="clean-chroot-manager"
     elif [[ ${args[$a]} == "-s" ]]; then
         sign_packages=1
+    elif [[ ${args[$a]} == "-p" ]]; then
+        no_pull_remote=1
     elif [[ ${args[$a]} == "-n" ]]; then
         dry_run=1
     elif [[ ${args[$a]} == "-d" ]]; then
@@ -402,10 +405,10 @@ fi
 debug "repo_name: ${repo_name}"
 debug "repo_target: ${repo_target}"
 
-if [[ ${pull_remote_repo} -eq 1 ]]; then
+if [[ ${pull_remote_repo} -eq 1 ]] && [[ ${no_pull_remote} -ne 1 ]]; then
     pull_repo
 fi
-if [[ ${pull_remote_testing_repo} -eq 1 ]]; then
+if [[ ${pull_remote_testing_repo} -eq 1 ]] && [[ ${no_pull_remote} -ne 1 ]]; then
     pull_testing_repo
 fi
 
