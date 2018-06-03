@@ -46,35 +46,25 @@ update_dkms_pkgbuilds() {
 }
 
 update_dkms_git_pkgbuilds() {
-    pkg_list=("spl-dkms-git" "zfs-dkms-git")
+    pkg_list=("zfs-dkms-git")
     archzfs_package_group="archzfs-dkms-git"
-    spl_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgver="" # Set later by call to git_calc_pkgver
-    spl_pkgrel=${pkgrel_git}
     zfs_pkgrel=${pkgrel_git}
-    spl_conflicts="'spl-dkms'"
-    zfs_conflicts="'zfs-dkms'"
-    spl_pkgname="spl-dkms-git"
+    zfs_conflicts="'zfs-dkms' 'spl-dkms-git'"
+    spl_pkgname=""
     zfs_pkgname="zfs-dkms-git"
-    spl_dkms_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_dkms_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="git+${spl_git_url}"
-    spl_src_hash="SKIP"
-    spl_makedepends="\"git\""
     zfs_src_target="git+${zfs_git_url}"
     zfs_src_hash="SKIP"
     zfs_makedepends="\"git\""
-    spl_workdir="\${srcdir}/spl"
+    zfs_replaces='replaces=("spl-dkms-git")'
     zfs_workdir="\${srcdir}/zfs"
 
     if have_command "update"; then
         git_check_repo
         git_calc_pkgver
     fi
-    spl_utils_pkgname="spl-utils-common-git=${spl_git_ver}"
     zfs_utils_pkgname="zfs-utils-common-git=${zfs_git_ver}"
-    spl_mod_ver="git"
     zfs_mod_ver="git"
-    spl_src_target="git+${spl_git_url}#commit=${latest_spl_git_commit}"
     zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
 }

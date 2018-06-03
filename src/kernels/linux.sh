@@ -65,40 +65,29 @@ update_linux_pkgbuilds() {
 }
 
 update_linux_git_pkgbuilds() {
-    pkg_list=("spl-linux-git" "zfs-linux-git")
+    pkg_list=("zfs-linux-git")
     kernel_version=${kernel_version_git}
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
     kernel_mod_path="${kernel_version_full}-ARCH"
     archzfs_package_group="archzfs-linux-git"
-    spl_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgver="" # Set later by call to git_calc_pkgver
-    spl_pkgrel=${pkgrel_git}
     zfs_pkgrel=${pkgrel_git}
-    spl_conflicts="'spl-linux'"
-    zfs_conflicts="'zfs-linux'"
-    spl_pkgname="spl-linux-git"
+    zfs_conflicts="'zfs-linux' 'spl-linux-git'"
+    spl_pkgname=""
     zfs_pkgname="zfs-linux-git"
-    spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="git+${spl_git_url}"
-    spl_src_hash="SKIP"
     linux_depends="\"linux=${kernel_version}\""
     linux_headers_depends="\"linux-headers=${kernel_version}\""
-    spl_makedepends="\"git\""
-    zfs_src_target="git+${zfs_git_url}"
-
+    zfs_replaces='replaces=("spl-linux-git")'
     zfs_src_hash="SKIP"
-    zfs_makedepends="\"git\" \"${spl_pkgname}-headers\""
-    spl_workdir="\${srcdir}/spl"
+    zfs_makedepends="\"git\""
     zfs_workdir="\${srcdir}/zfs"
     if have_command "update"; then
         git_check_repo
         git_calc_pkgver
     fi
-    spl_utils_pkgname="spl-utils-common-git=${spl_git_ver}"
     zfs_utils_pkgname="zfs-utils-common-git=${zfs_git_ver}"
-    spl_src_target="git+${spl_git_url}#commit=${latest_spl_git_commit}"
     zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
 }

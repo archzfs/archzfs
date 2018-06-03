@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# remove spl from git packages workaround
+spl_dependency=""
+if [[ -n "${spl_pkgname}" ]]; then
+    spl_dependency="'${spl_pkgname}' "
+fi
+
 cat << EOF > ${zfs_dkms_pkgbuild_path}/PKGBUILD
 ${header}
 pkgname="${zfs_pkgname}"
@@ -12,7 +18,7 @@ url="http://zfsonlinux.org/"
 source=("${zfs_src_target}")
 sha256sums=("${zfs_src_hash}")
 license=("CDDL")
-depends=("${spl_pkgname}" "${zfs_utils_pkgname}")
+depends=(${spl_dependency}"${zfs_utils_pkgname}" "lsb-release")
 provides=("zfs")
 groups=("${archzfs_package_group}")
 conflicts=(${zfs_conflicts} ${zfs_conflicts_all} ${zfs_headers_conflicts_all})
