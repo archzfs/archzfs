@@ -10,7 +10,7 @@ pkgdesc="Solaris Porting Layer kernel modules."
 
 pkgver=0.7.9
 pkgrel=1
-makedepends=("git")
+makedepends=()
 arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("https://github.com/zfsonlinux/zfs/releases/download/zfs-0.7.9/spl-0.7.9.tar.gz"
