@@ -6,7 +6,6 @@ pkgbase = spl-dkms
 	arch = x86_64
 	groups = archzfs-dkms
 	license = GPL
-	makedepends = git
 	depends = spl-utils-common=0.7.9
 	depends = dkms
 	provides = spl
