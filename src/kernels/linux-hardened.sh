@@ -5,7 +5,7 @@ mode_desc="Select and use the packages for the linux-hardened kernel"
 
 # Kernel versions for hardened packages
 pkgrel="1"
-kernel_version="4.16.16.a-1"
+kernel_version="4.17.3.a-1"
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
