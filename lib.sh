@@ -444,13 +444,11 @@ check_internet() {
 }
 
 
-check_webpage() {
+get_webpage() {
     # $1: The url to scrape
     # $2: The Perl regex to match with
-    # $3: Expect match
     debug "Checking webpage: $1"
     debug "Using regex: `printf "%q" "$2"`"
-    debug "Expecting: $3"
 
     run_cmd_no_output "curl -sL ${1}"
 
@@ -468,11 +466,23 @@ check_webpage() {
         return 55
     fi
 
-    local scraped_string=$(echo "${run_cmd_output}" | \grep -Po -m 1 "${2}")
-    debug "Got \"${scraped_string}\" from webpage."
+    webpage_output=$(echo "${run_cmd_output}" | \grep -Po -m 1 "${2}")
+    debug "Got \"${webpage_output}\" from webpage."
+}
 
-    if [[ ${scraped_string} != "$3" ]]; then
-        error "Checking '$1' expected '$3' got '${scraped_string}'"
+check_webpage() {
+    # $1: The url to scrape
+    # $2: The Perl regex to match with
+    # $3: Expect match
+    
+    if ! get_webpage "$1" "$2"; then
+        return $?
+    fi
+
+    debug "Expecting: $3"
+
+    if [[ ${webpage_output} != "$3" ]]; then
+        error "Checking '$1' expected '$3' got '${webpage_return}'"
         debug "Returning 1 from check_webpage()"
         return 1
     fi
@@ -501,17 +511,15 @@ check_result() {
 }
 
 
-check_linux_vfio() {
+get_linux_vfio_kernel_version() {
     #
-    # Check linux-vfio kernel version (this will change when the linux-vfio is updated)
+    # Get linux-vfio kernel version (this will change when the linux-vfio is updated)
     #
-    if ! source ${script_dir}/src/kernels/linux-vfio.sh; then
-        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-vfio.sh!"
-        exit 155
+    msg "Checking linux-vfio download page for the latest linux kernel version..."
+    if ! get_webpage "https://aur.archlinux.org/packages/linux-vfio" "(?<=linux-vfio )[\d\.-]+"; then
+        exit 1
     fi
-    msg "Checking linux-vfio download page for linux kernel version changes..."
-    check_webpage "https://aur.archlinux.org/packages/linux-vfio" "(?<=linux-vfio )[\d\.]+" "${kernel_version::-2}"
-    check_result "linux-vfio kernel version" "linux-vfio" "$?"
+    latest_kernel_version=${webpage_output}
 }
 
 
@@ -529,58 +537,50 @@ check_archiso() {
 }
 
 
-check_linux_hardened_kernel() {
+get_linux_hardened_kernel_version() {
+    #
+    # Get x86_64 linux-hardened kernel version
+    #
+    msg "Checking the online package database for the latest x86_64 linux-hardened kernel version..."
+    if ! get_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.-]+(?=</h2>)"; then
+        exit 1
+    fi
+    latest_kernel_version=${webpage_output}
+}
+
+get_linux_zen_kernel_version() {
     #
     # Check x86_64 linux-hardened kernel version
     #
-    if ! source ${script_dir}/src/kernels/linux-hardened.sh; then
-        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-hardened.sh!"
-        exit 155
+    msg "Checking the online package database for the latest x86_64 linux-zen kernel version..."
+    if ! get_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.-]+(?=</h2>)"; then
+        exit 1
     fi
-    msg "Checking the online package database for x86_64 linux-hardened kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
-    check_result "x86_64 linux-hardened kernel package" "linux-hardened x86_64" "$?"
-}
-
-check_linux_zen_kernel() {
-    #
-    # Check x86_64 linux-hardened kernel version
-    #
-    if ! source ${script_dir}/src/kernels/linux-zen.sh; then
-        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-zen.sh!"
-        exit 155
-    fi
-    msg "Checking the online package database for x86_64 linux-zen kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.-]+(?=</h2>)" "${kernel_version}"
-    check_result "x86_64 linux-zen kernel package" "linux-zen x86_64" "$?"
+    latest_kernel_version=${webpage_output}
 }
 
 
-check_linux_kernel() {
+get_linux_kernel_version() {
     #
     # Check x86_64 linux kernel version
     #
-    if ! source ${script_dir}/src/kernels/linux.sh; then
-        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux.sh!"
-        exit 155
+    msg "Checking the online package database for the latest x86_64 linux kernel version..."
+    if ! get_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)"; then
+        exit 1
     fi
-    msg "Checking the online package database for x86_64 linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)" "${kernel_version}"
-    check_result "x86_64 linux kernel package" "linux x86_64" "$?"
+    latest_kernel_version=${webpage_output}
 }
 
 
-check_linux_lts_kernel() {
+get_linux_lts_kernel_version() {
     #
     # Check x86_64 linux-lts kernel version
     #
-    if ! source ${script_dir}/src/kernels/linux-lts.sh; then
-        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/linux-lts.sh!"
-        exit 155
+    msg "Checking the online package database for the latest x86_64 linux-lts kernel version..."
+    if ! get_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)"; then
+        exit 1
     fi
-    msg "Checking the online package database for x86_64 linux-lts kernel version changes..."
-    check_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)" "${kernel_version}"
-    check_result "x86_64 linux-lts kernel package" "linux-lts x86_64" "$?"
+    latest_kernel_version=${webpage_output}
 }
 
 
@@ -878,24 +878,32 @@ git_check_repo() {
             reponame="zfs"
         fi
         local repopath="${script_dir}/packages/${kernel_name}/${pkg}/${reponame}"
+        local temprepopath="${script_dir}/temp/${reponame}"
 
         debug "GIT URL: ${url}"
         debug "GIT REPO: ${repopath}"
 
         if [[ ! -d "${repopath}"  ]]; then
             msg2 "Cloning repo '${repopath}'"
-            run_cmd_no_dry_run "git clone --mirror '${url}' '${repopath}'"
-            if [[ ${run_cmd_return} -ne 0 ]]; then
-                error "Failure while cloning ${url} repo"
-                exit 1
+            
+            # clone into temp directory
+            if [[ ! -d "${temprepopath}"  ]]; then
+                run_cmd_no_dry_run "git clone --mirror '${url}' '${temprepopath}'"
+                if [[ ${run_cmd_return} -ne 0 ]]; then
+                    error "Failure while cloning ${url} repo"
+                    exit 1
+                fi
             fi
-        else
-            msg2 "Updating repo '${repopath}'"
-            run_cmd_no_dry_run "cd ${repopath} && git fetch --all -p"
-            if [[ ${run_cmd_return} -ne 0 ]]; then
-                error "Failure while fetching ${url} repo"
-                exit 1
-            fi
+            
+            # copy into package directory from temp
+            run_cmd_no_dry_run "cp -r '${temprepopath}' '${repopath}'"
+        fi
+    
+        msg2 "Updating repo '${repopath}'"
+        run_cmd_no_dry_run "cd ${repopath} && git fetch --all -p"
+        if [[ ${run_cmd_return} -ne 0 ]]; then
+            error "Failure while fetching ${url} repo"
+            exit 1
         fi
     done
 }
@@ -921,16 +929,16 @@ git_calc_pkgver() {
 
         # Checkout the git repo to a work directory
         local cmd="/usr/bin/bash -s << EOF 2>/dev/null\\n"
-        cmd+="[[ -d temp ]] && rm -r temp\\n"
-        cmd+="mkdir temp && cd temp\\n"
-        cmd+="git clone ../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
+        cmd+="[[ -d temp/version ]] && rm -r temp/version\\n"
+        cmd+="mkdir temp/version && cd temp/version\\n"
+        cmd+="git clone ../../packages/${kernel_name}/${pkg}/${repo} && cd ${repo}\\n"
         cmd+="git checkout -b azb ${sha}\\n"
         cmd+="EOF"
         run_cmd_no_output_no_dry_run "${cmd}"
 
         # Get the version number past the last tag
         msg2 "Calculating PKGVER"
-        cmd="cd temp/${repo} && "
+        cmd="cd temp/version/${repo} && "
         cmd+='printf "%s.r%s.g%s" "$(git log -n 1 --pretty=format:"%cd" --date=short | sed "s/-/./g")" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"'
 
         run_cmd_no_output_no_dry_run "${cmd}"
@@ -956,7 +964,7 @@ git_calc_pkgver() {
         fi
 
         # get latest commit sha
-        cmd="cd temp/${repo} && "
+        cmd="cd temp/version/${repo} && "
         cmd+="git rev-parse HEAD"
         run_cmd_no_output_no_dry_run "${cmd}"
         if [[ ${repo} =~ ^zfs ]]; then
@@ -967,6 +975,6 @@ git_calc_pkgver() {
 
         # Cleanup
         msg2 "Removing working directory"
-        run_cmd_no_output_no_dry_run "rm -vrf temp"
+        run_cmd_no_output_no_dry_run "rm -vrf temp/version"
     done
 }

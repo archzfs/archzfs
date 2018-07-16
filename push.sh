@@ -12,6 +12,7 @@ script_name=$(basename $0)
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 push=0
 push_repo=0
+push_testing_repo=0
 
 
 if ! source ${script_dir}/lib.sh; then
@@ -32,6 +33,7 @@ usage() {
     echo "    -n:           Dryrun; Output commands, but don't do anything."
     echo "    -d:           Show debug info."
     echo "    -r:           Push the archzfs repositories."
+    echo "    -t:           Push the archzfs testing repositories."
     echo "    -p:           Commit changes and push."
     echo
     echo "Modes:"
@@ -73,6 +75,8 @@ for (( a = 0; a < $#; a++ )); do
         push=1
     elif [[ ${args[$a]} == "-r" ]]; then
         push_repo=1
+    elif [[ ${args[$a]} == "-t" ]]; then
+        push_testing_repo=1
     elif [[ ${args[$a]} == "-h" ]]; then
         usage
     else
@@ -82,7 +86,7 @@ for (( a = 0; a < $#; a++ )); do
 done
 
 
-if [[ ${#modes[@]} -eq 0 && ${push_repo} -eq 0 ]]; then
+if [[ ${#modes[@]} -eq 0 && ${push_repo} -eq 0 && ${push_testing_repo} -eq 0 ]]; then
     echo
     error "A mode must be selected!"
     usage
@@ -106,17 +110,20 @@ push_packages() {
         local cmd="cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && "
         
         if [[ ${push} -eq 1 ]]; then
-            
+
+            vers=""
             if [[ ! -z ${kernel_version_full} ]]; then
-                vers=$(kernel_version_full_no_hyphen ${kernel_version_full})-${zfs_pkgrel}
-            elif [[ ! -z ${zfs_pkgver} ]]; then
-                vers=$zfs_pkgver
-            else
-                vers="latest git commit"
+                vers="kernel ${kernel_version_full} + "
             fi
-            
+
+            if [[ ! -z ${zfs_pkgver} ]]; then
+                vers+="zfs ${zol_version}"
+            else
+                vers+="latest git commit"
+            fi
+
             cmd+="git --no-pager diff && echo && echo && git checkout master && git add . && "
-            cmd+="git commit -m 'Semi-automated update for $vers'; git push"
+            cmd+="git commit -m 'Automated update for $vers'; git push"
         else
             cmd+="git --no-pager diff"
         fi
@@ -131,12 +138,23 @@ push_repo() {
     elif [[ ${push_repo} -ne 1 ]]; then
         return
     fi
-    run_cmd "rsync -vrtlh --delete-before ${repo_basepath}/${repo_name} ${package_backup_dir} webfaction:/home/jalvarez/webapps/default/ ${dry}"
-    run_cmd_check 1 "Could not push packages to webfaction!"
+    run_cmd "rsync -vrtlh --delete-before ${repo_basepath}/${repo_basename} ${repo_basepath}/archive_${repo_basename} ${remote_login}:${repo_remote_basepath}/ ${dry}"
+    run_cmd_check 1 "Could not push packages to remote repo!"
+}
+
+push_testing_repo() {
+    if [[ ${dry_run} -eq 1 ]]; then
+        dry="-n"
+    elif [[ ${push_testing_repo} -ne 1 ]]; then
+        return
+    fi
+    run_cmd "rsync -vrtlh --delete-before ${repo_basepath}/${repo_basename}-testing ${repo_basepath}/archive_${repo_basename}-testing ${remote_login}:${repo_remote_basepath}/ ${dry}"
+    run_cmd_check 1 "Could not push packages to remote testing repo!"
 }
 
 
 push_repo
+push_testing_repo
 if [[ ${#modes[@]} -eq 0 ]]; then
     exit
 fi

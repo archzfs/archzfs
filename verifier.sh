@@ -62,7 +62,7 @@ compute_remote_repo_hash() {
     # $1: The repository to compute
     # Sets remote_repo_hash
     msg2 "Computing remote $1 repository hashes..."
-    run_cmd_show_and_capture_output "ssh ${remote_login} 'cd webapps/default; sha256sum $1/*/*' | sort"
+    run_cmd_show_and_capture_output "ssh ${remote_login} 'cd ${repo_remote_basepath}/; sha256sum $1/*/*' | sort"
     if [[ ${run_cmd_return} != 0 ]]; then
         error "Could not run remote hash!"
         exit 1

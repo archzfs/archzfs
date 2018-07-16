@@ -3,13 +3,11 @@ mode_name="vfio"
 package_base="linux-vfio"
 mode_desc="Select and use the packages for the linux-vfio kernel"
 
-# Kernel versions for default ZFS packages
+# pkgrel for vfio packages
 pkgrel="1"
-kernel_version="4.17.2-1"
 
-# Kernel version for GIT packages
+# pkgrel for GIT packages
 pkgrel_git="${pkgrel}"
-kernel_version_git="${kernel_version}"
 zfs_git_commit=""
 spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
@@ -34,6 +32,9 @@ header="\
 #"
 
 update_linux_pkgbuilds() {
+    get_linux_vfio_kernel_version
+    kernel_version=${latest_kernel_version}
+
     pkg_list=("spl-linux-vfio" "zfs-linux-vfio")
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
@@ -63,8 +64,10 @@ update_linux_pkgbuilds() {
 }
 
 update_linux_git_pkgbuilds() {
+    get_linux_vfio_kernel_version
+    kernel_version=${latest_kernel_version}
+
     pkg_list=("zfs-linux-vfio-git")
-    kernel_version=${kernel_version_git}
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}

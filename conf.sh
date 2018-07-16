@@ -16,9 +16,9 @@ zfs_initcpio_hook_hash="3eb874cf2cbb6c6a0e1c11a98af54f682d6225667af944b43435aeab
 email="jeezusjr@gmail.com"
 
 # Repository path and name
-repo_name="archzfs"
+repo_basename="archzfs"
 repo_basepath="/repo"
-repo_name_test="archzfs-testing"
+repo_remote_basepath="/home/jalvarez/webapps/default"
 
 # SSH login address (can use ssh config Hosts)
 remote_login="webfaction"
@@ -27,9 +27,6 @@ remote_login="webfaction"
 gpg_sign_key='0EE7A126'
 
 chroot_path="/repo/chroot/x86_64/$(whoami)"
-
-# Package backup directory
-package_backup_dir="/repo/archive_archzfs"
 
 # Used to run mkaurball and mksrcinfo with lower privledges
 makepkg_nonpriv_user="demizer"

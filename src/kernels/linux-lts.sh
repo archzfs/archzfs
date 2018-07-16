@@ -3,13 +3,11 @@ mode_name="lts"
 package_base="linux-lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
-# Kernel versions for LTS packages
+# pkgrel for LTS packages
 pkgrel="1"
-kernel_version="4.14.52-1"
 
-# Kernel version for GIT packages
+# pkgrel for GIT packages
 pkgrel_git="${pkgrel}"
-kernel_version_git="${kernel_version}"
 zfs_git_commit=""
 spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
@@ -35,6 +33,9 @@ header="\
 #"
 
 update_linux_lts_pkgbuilds() {
+    get_linux_lts_kernel_version
+    kernel_version=${latest_kernel_version}
+
     pkg_list=("spl-linux-lts" "zfs-linux-lts")
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
@@ -64,8 +65,10 @@ update_linux_lts_pkgbuilds() {
 }
 
 update_linux_lts_git_pkgbuilds() {
+    get_linux_lts_kernel_version
+    kernel_version=${latest_kernel_version}
+
     pkg_list=("zfs-linux-lts-git")
-    kernel_version=${kernel_version_git}
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
