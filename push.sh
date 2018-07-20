@@ -123,7 +123,7 @@ push_packages() {
             fi
 
             cmd+="git --no-pager diff && echo && echo && git checkout master && git add . && "
-            cmd+="git commit -m 'Automated update for $vers'; git push"
+            cmd+="git commit -m 'Semi-automated update for $vers'; git push"
         else
             cmd+="git --no-pager diff"
         fi
