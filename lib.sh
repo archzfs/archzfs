@@ -522,20 +522,16 @@ get_linux_vfio_kernel_version() {
     latest_kernel_version=${webpage_output}
 }
 
-
-check_archiso() {
+get_archiso_kernel_version() {
     #
-    # Check archiso kernel version (this will change when the archiso is updated)
+    # Get archiso kernel version (this will change when the archiso is updated)
     #
-    if ! source ${script_dir}/src/kernels/archiso.sh; then
-        echo "!! ERROR !! -- Could not load ${script_dir}/src/kernels/archiso.sh!"
-        exit 155
+    msg "Checking archiso download page for the latest linux kernel version..."
+    if ! get_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+"; then
+        exit 1
     fi
-    msg "Checking archiso download page for linux kernel version changes..."
-    check_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+" "${kernel_version::-2}"
-    check_result "archiso kernel version" "archiso" "$?"
+    latest_kernel_version=${webpage_output}
 }
-
 
 get_linux_hardened_kernel_version() {
     #

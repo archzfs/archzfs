@@ -78,7 +78,6 @@ export script_dir mode kernel_name
 
 
 check_zol_version
-check_archiso
 
 
 #

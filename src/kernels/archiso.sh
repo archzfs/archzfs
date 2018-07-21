@@ -5,7 +5,6 @@ mode_desc="Select and use the packages for the archiso linux kernel"
 
 # Kernel versions for LTS packages
 pkgrel="1"
-kernel_version="4.16.12-1"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
@@ -27,6 +26,9 @@ header="\
 #"
 
 update_archiso_linux_pkgbuilds() {
+    get_archiso_kernel_version
+    kernel_version=${latest_kernel_version}
+    
     pkg_list=("spl-archiso-linux" "zfs-archiso-linux")
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
