@@ -1,4 +1,5 @@
 *!
+.directory
 */*.tar.*
 *.log
 archiso/out/

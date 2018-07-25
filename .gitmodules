@@ -58,3 +58,12 @@
 [submodule "packages/linux-vfio/spl-linux-vfio"]
 	path = packages/linux-vfio/spl-linux-vfio
 	url = ssh://aur@aur.archlinux.org/spl-linux-vfio.git
+[submodule "packages/dkms/spl-dkms"]
+	path = packages/dkms/spl-dkms
+	url = git@github.com:archzfs/spl-dkms.git
+[submodule "packages/dkms/zfs-dkms"]
+	path = packages/dkms/zfs-dkms
+	url = git@github.com:archzfs/zfs-dkms.git
+[submodule "packages/dkms/zfs-dkms-git"]
+	path = packages/dkms/zfs-dkms-git
+	url = git@github.com:archzfs/zfs-dkms-git.git
