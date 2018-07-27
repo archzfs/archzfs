@@ -599,8 +599,8 @@ check_mode() {
         for m in "${mode_list[@]}"; do
             mode=("$(echo ${m} | cut -f2 -d:)")
 
-            # do not add archiso
-            if [[ "${mode}" == "iso" ]]; then
+            # do not add archiso or linux-vfio
+            if [[ "${mode}" == "iso" ]] || [[ "${mode}" == "vfio" ]]; then
                 continue
             fi
 
