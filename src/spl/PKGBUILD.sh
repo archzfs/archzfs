@@ -33,7 +33,6 @@ build() {
 
 package_${spl_pkgname}() {
     pkgdesc="Solaris Porting Layer kernel modules."
-    install=spl.install
     provides=("spl")
     groups=("${archzfs_package_group}")
     conflicts=(${spl_conflicts})
