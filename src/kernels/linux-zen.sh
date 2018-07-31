@@ -40,7 +40,7 @@ update_linux_pkgbuilds() {
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full}-zen"
+    kernel_mod_path="${kernel_version_major}-zen${kernel_version#*-}"
     archzfs_package_group="archzfs-linux-zen"
     spl_pkgver=${zol_version}.${kernel_version_full_pkgver}
     zfs_pkgver=${zol_version}.${kernel_version_full_pkgver}
@@ -72,7 +72,7 @@ update_linux_git_pkgbuilds() {
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full}-zen"
+    kernel_mod_path="${kernel_version_major}-zen${kernel_version#*-}"
     archzfs_package_group="archzfs-linux-zen-git"
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgrel=${pkgrel_git}

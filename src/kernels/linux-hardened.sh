@@ -40,7 +40,7 @@ update_linux_hardened_pkgbuilds() {
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full/\.[a-z]/}-hardened"
+    kernel_mod_path="${kernel_version_full}-hardened"
     archzfs_package_group="archzfs-linux-hardened"
     spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
     zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
@@ -71,7 +71,7 @@ update_linux_hardened_git_pkgbuilds() {
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full/\.[a-z]/}-hardened"
+    kernel_mod_path="${kernel_version_full}-hardened"
     archzfs_package_group="archzfs-linux-hardened-git"
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgrel=${pkgrel_git}
