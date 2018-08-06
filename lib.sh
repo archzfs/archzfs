@@ -561,7 +561,7 @@ get_linux_kernel_version() {
     # Check x86_64 linux kernel version
     #
     msg "Checking the online package database for the latest x86_64 linux kernel version..."
-    if ! get_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\.-]+(?=</h2>)"; then
+    if ! get_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\w\.-]+(?=</h2>)"; then
         exit 1
     fi
     latest_kernel_version=${webpage_output}
@@ -573,7 +573,7 @@ get_linux_lts_kernel_version() {
     # Check x86_64 linux-lts kernel version
     #
     msg "Checking the online package database for the latest x86_64 linux-lts kernel version..."
-    if ! get_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\.-]+(?=</h2>)"; then
+    if ! get_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\w\.-]+(?=</h2>)"; then
         exit 1
     fi
     latest_kernel_version=${webpage_output}
