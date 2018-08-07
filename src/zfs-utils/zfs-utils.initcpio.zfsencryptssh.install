@@ -1,0 +1,37 @@
+#!/bin/bash
+
+make_etc_passwd() {
+    echo 'root:x:0:0:root:/root:/bin/bash' > "${BUILDROOT}"/etc/passwd
+    echo '/bin/bash' > "${BUILDROOT}"/etc/shells
+}
+
+make_profile() {
+    profile_file='# get bootfs (dataset must have bootfs flag set to work)
+dataset=$(zpool list -H -o bootfs)
+# source zfs hook functions
+. /hooks/zfs
+# decrypt bootfs
+zfs_decrypt_fs $dataset
+# kill pending decryption attempt to allow the boot process to continue
+killall zfs
+# exit properly
+exit'
+    printf '%s' "$profile_file" > "${BUILDROOT}"/root/.profile
+}
+
+build ()
+{
+    make_etc_passwd
+    make_profile
+}
+
+help ()
+{
+    cat<<HELPEOF
+This hook is meant to be used in conjunction with mkinitcpio-dropbear, 
+mkinitcpio-netconf and/ormkinitcpio-ppp. This will provide a way to unlock 
+your encrypted ZFS root filesystem remotely.
+HELPEOF
+}
+
+# vim: set ts=4 sw=4 ft=sh et:
