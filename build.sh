@@ -160,10 +160,10 @@ generate_package_files() {
         run_cmd_no_output "source ${script_dir}/src/zfs-utils/zfs-utils.install.sh"
         msg2 "Copying zfs-utils.bash-completion"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1 ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
-        msg2 "Copying zfs-utils.initcpio.hook"
-        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.hook"
-        msg2 "Copying zfs-utils.initcpio.install"
-        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.install"
+        msg2 "Copying zfs-utils hooks"
+        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/*.hook ${zfs_utils_pkgbuild_path}/"
+        msg2 "Copying zfs-utils hook install files"
+        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/*.install ${zfs_utils_pkgbuild_path}/"
     elif [[ "${kernel_name}" == "dkms" ]]; then
         # skip spl for git packages
         if [[ ! ${archzfs_package_group} =~ -git$ ]]; then
