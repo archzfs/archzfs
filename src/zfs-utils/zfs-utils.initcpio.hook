@@ -40,8 +40,9 @@ zfs_decrypt_fs() {
     # get the encryption root
     encryptionroot=$(zfs get -H -o value encryptionroot "${dataset}")
 
-    # loop until we get the correct password
-    while ! eval zfs load-key "${encryptionroot}"; do
+    # loop until we get the correct password or key is unlocked by another vector (SSH for instance)
+    while [ "$(zfs get -H -o value keystatus "${encryptionroot}")" != "available" ] &&
+      ! eval zfs load-key "${encryptionroot}"; do
         sleep 2
     done
 }

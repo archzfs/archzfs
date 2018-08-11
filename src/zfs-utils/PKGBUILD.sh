@@ -64,6 +64,7 @@ package() {
     # Install the support files
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.hook "\${pkgdir}"/usr/lib/initcpio/hooks/zfs
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.install "\${pkgdir}"/usr/lib/initcpio/install/zfs
+    install -D -m644 "\${srcdir}"/zfs-utils.initcpio.zfsencryptssh.install "\${pkgdir}"/usr/lib/initcpio/install/zfsencryptssh
     install -D -m644 "\${srcdir}"/zfs-utils.bash-completion-r1 "\${pkgdir}"/usr/share/bash-completion/completions/zfs
 }
 EOF
