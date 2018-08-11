@@ -1,28 +1,30 @@
 #!/bin/bash
 
 make_etc_passwd() {
-    echo 'root:x:0:0:root:/root:/bin/bash' > "${BUILDROOT}"/etc/passwd
-    echo '/bin/bash' > "${BUILDROOT}"/etc/shells
+    echo 'root:x:0:0:root:/root:/bin/zfsdecrypt_shell' > "${BUILDROOT}"/etc/passwd
+    echo '/bin/zfsdecrypt_shell' > "${BUILDROOT}"/etc/shells
 }
 
-make_profile() {
-    profile_file='# get bootfs (dataset must have bootfs flag set to work)
-dataset=$(zpool list -H -o bootfs)
-# source zfs hook functions
-. /hooks/zfs
-# decrypt bootfs
-zfs_decrypt_fs $dataset
-# kill pending decryption attempt to allow the boot process to continue
-killall zfs
-# exit properly
-exit'
-    printf '%s' "$profile_file" > "${BUILDROOT}"/root/.profile
+make_zfsdecrypt_shell() {
+    decrypt_shell='#!/bin/sh
+if [ -f "/.encryptionroot" ]; then
+    # source zfs hook functions
+    . /hooks/zfs
+    # decrypt bootfs
+    zfs_decrypt_fs "$(cat /.encryptionroot)"
+    # kill pending decryption attempt to allow the boot process to continue
+    killall zfs
+else
+    echo "ZFS is not ready yet. Please wait!"
+fi'
+    printf '%s' "$decrypt_shell" > "${BUILDROOT}"/bin/zfsdecrypt_shell
+    chmod a+x "${BUILDROOT}"/bin/zfsdecrypt_shell
 }
 
 build ()
 {
     make_etc_passwd
-    make_profile
+    make_zfsdecrypt_shell
 }
 
 help ()
