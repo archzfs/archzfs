@@ -19,11 +19,13 @@ url="http://zfsonlinux.org/"
 source=("${zfs_src_target}"
         "zfs-utils.bash-completion-r1"
         "zfs-utils.initcpio.install"
-        "zfs-utils.initcpio.hook")
+        "zfs-utils.initcpio.hook"
+        "zfs-utils.initcpio.zfsencryptssh.install")
 sha256sums=("${zfs_src_hash}"
             "${zfs_bash_completion_hash}"
             "${zfs_initcpio_install_hash}"
-            "${zfs_initcpio_hook_hash}")
+            "${zfs_initcpio_hook_hash}"
+            "29080a84e5d7e36e63c4412b98646043724621245b36e5288f5fed6914da5b68")
 license=("CDDL")
 groups=("${archzfs_package_group}")
 provides=("zfs-utils")
