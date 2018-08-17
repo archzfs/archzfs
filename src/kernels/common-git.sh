@@ -23,7 +23,7 @@ update_common_git_pkgbuilds() {
     archzfs_package_group="archzfs-linux-git"
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgrel=${pkgrel_git}
-    zfs_utils_conflicts="'zfs-utils-common' 'spl-utils-common-git'"
+    zfs_utils_conflicts="'zfs-utils-common' 'spl-utils-common' 'spl-utils-common-git'"
     zfs_utils_pkgname="zfs-utils-common-git"
     spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
