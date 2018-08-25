@@ -516,7 +516,7 @@ get_linux_vfio_kernel_version() {
     # Get linux-vfio kernel version (this will change when the linux-vfio is updated)
     #
     msg "Checking linux-vfio download page for the latest linux kernel version..."
-    if ! get_webpage "https://aur.archlinux.org/packages/linux-vfio" "(?<=linux-vfio )[\d\.-]+"; then
+    if ! get_webpage "https://aur.archlinux.org/packages/linux-vfio" "(?<=linux-vfio )[\d\w\.-]+"; then
         exit 1
     fi
     latest_kernel_version=${webpage_output}
