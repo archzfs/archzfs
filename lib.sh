@@ -425,6 +425,7 @@ source_safe() {
     linux_headers_depends=""
     spl_replaces=""
     zfs_replaces=""
+    zfs_set_commit=""
 
     export script_dir mode kernel_name
     shopt -u extglob
@@ -509,76 +510,6 @@ check_result() {
         haz_error=1
     fi
 }
-
-
-get_linux_vfio_kernel_version() {
-    #
-    # Get linux-vfio kernel version (this will change when the linux-vfio is updated)
-    #
-    msg "Checking linux-vfio download page for the latest linux kernel version..."
-    if ! get_webpage "https://aur.archlinux.org/packages/linux-vfio" "(?<=linux-vfio )[\d\w\.-]+"; then
-        exit 1
-    fi
-    latest_kernel_version=${webpage_output}
-}
-
-get_archiso_kernel_version() {
-    #
-    # Get archiso kernel version (this will change when the archiso is updated)
-    #
-    msg "Checking archiso download page for the latest linux kernel version..."
-    if ! get_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+"; then
-        exit 1
-    fi
-    latest_kernel_version=${webpage_output}
-}
-
-get_linux_hardened_kernel_version() {
-    #
-    # Get x86_64 linux-hardened kernel version
-    #
-    msg "Checking the online package database for the latest x86_64 linux-hardened kernel version..."
-    if ! get_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-hardened/" "(?<=<h2>linux-hardened )[\d\w\.-]+(?=</h2>)"; then
-        exit 1
-    fi
-    latest_kernel_version=${webpage_output}
-}
-
-get_linux_zen_kernel_version() {
-    #
-    # Check x86_64 linux-hardened kernel version
-    #
-    msg "Checking the online package database for the latest x86_64 linux-zen kernel version..."
-    if ! get_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.-]+(?=</h2>)"; then
-        exit 1
-    fi
-    latest_kernel_version=${webpage_output}
-}
-
-
-get_linux_kernel_version() {
-    #
-    # Check x86_64 linux kernel version
-    #
-    msg "Checking the online package database for the latest x86_64 linux kernel version..."
-    if ! get_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\w\.-]+(?=</h2>)"; then
-        exit 1
-    fi
-    latest_kernel_version=${webpage_output}
-}
-
-
-get_linux_lts_kernel_version() {
-    #
-    # Check x86_64 linux-lts kernel version
-    #
-    msg "Checking the online package database for the latest x86_64 linux-lts kernel version..."
-    if ! get_webpage "https://www.archlinux.org/packages/core/x86_64/linux-lts/" "(?<=<h2>linux-lts )[\d\w\.-]+(?=</h2>)"; then
-        exit 1
-    fi
-    latest_kernel_version=${webpage_output}
-}
-
 
 check_zol_version() {
     #
@@ -941,22 +872,12 @@ git_calc_pkgver() {
 
         if [[ ${repo} =~ ^spl ]]; then
             spl_git_ver=${run_cmd_output}
-            # append kernel version if set
-            if [ ! -z "${kernvers}" ]; then
-              spl_pkgver=${spl_git_ver}.${kernvers};
-            else
-              spl_pkgver=${spl_git_ver};
-            fi
+            spl_pkgver=${spl_git_ver}
             debug "spl_pkgver: ${spl_pkgver}"
         elif [[ ${repo} =~ ^zfs ]]; then
-          zfs_git_ver=${run_cmd_output}
-          # append kernel version if set
-          if [ ! -z "${kernvers}" ]; then
-            zfs_pkgver=${zfs_git_ver}.${kernvers};
-          else
+            zfs_git_ver=${run_cmd_output}
             zfs_pkgver=${zfs_git_ver};
-          fi
-          debug "zfs_pkgver: ${zfs_pkgver}"
+            debug "zfs_pkgver: ${zfs_pkgver}"
         fi
 
         # get latest commit sha
@@ -964,9 +885,9 @@ git_calc_pkgver() {
         cmd+="git rev-parse HEAD"
         run_cmd_no_output_no_dry_run "${cmd}"
         if [[ ${repo} =~ ^zfs ]]; then
-          latest_zfs_git_commit=${run_cmd_output}
+            latest_zfs_git_commit=${run_cmd_output}
         else
-          latest_spl_git_commit=${run_cmd_output}
+            latest_spl_git_commit=${run_cmd_output}
         fi
 
         # Cleanup

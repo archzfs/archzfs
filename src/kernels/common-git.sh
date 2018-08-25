@@ -27,7 +27,6 @@ update_common_git_pkgbuilds() {
     zfs_utils_pkgname="zfs-utils-common-git"
     spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
-    zfs_src_target="git+${zfs_git_url}"
     zfs_src_hash="SKIP"
     zfs_makedepends="\"git\""
     zfs_workdir="\${srcdir}/zfs"
@@ -38,5 +37,6 @@ update_common_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
-    zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
+    zfs_set_commit="_commit='${latest_zfs_git_commit}'"
+    zfs_src_target="git+${zfs_git_url}#commit=\${_commit}"
 }

@@ -190,12 +190,20 @@ repo_package_list() {
             # Version match check: arch: x86_64 name: spl-utils-linux-git vers: 0.7.0_rc1_r0_g4fd75d3_4.7.2_1-4 vers_match: 0.6.5.8.*4.7.2_1-4
             debug "spl_pkgver: ${spl_pkgver}"
             debug "zfs_pkgver: ${zfs_pkgver}"
+            debug "kernel_version_full_pkgver: ${kernel_version_full_pkgver}"
+
+            kernvers=""
+            # append kernel version if set
+            if [ ! -z "${kernel_version_full_pkgver}" ]; then
+              kernvers="_${kernel_version_full_pkgver}";
+            fi
 
             if [[ ${pkg} =~ .*spl-.* ]]; then
-                match="${spl_pkgver}-${spl_pkgrel}"
+                match="${spl_pkgver}${kernvers}-${spl_pkgrel}"
             elif [[ ${pkg} =~ .*zfs-.* ]]; then
-                match="${zfs_pkgver}-${zfs_pkgrel}"
+                match="${zfs_pkgver}${kernvers}-${zfs_pkgrel}"
             fi
+
             debug "Version match check: arch: ${arch} name: ${name} vers: ${vers} vers_match: ${match}"
 
             if ! [[ ${vers} =~ ^${match} ]] ; then

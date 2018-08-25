@@ -4,7 +4,12 @@ cat << EOF > ${spl_pkgbuild_path}/PKGBUILD
 ${header}
 pkgbase="${spl_pkgname}"
 pkgname=("${spl_pkgname}" "${spl_pkgname}-headers")
-pkgver=${spl_pkgver}
+
+_splver="${spl_pkgver}"
+_kernelver="${kernel_version}"
+_extramodules="${kernel_mod_path}"
+
+pkgver="\${_splver}_\$(echo \${_kernelver} | sed s/-/./g)"
 pkgrel=${spl_pkgrel}
 makedepends=(${linux_headers_depends} ${spl_makedepends})
 arch=("x86_64")
@@ -25,8 +30,8 @@ build() {
     cd "${spl_workdir}"
     ./autogen.sh
     ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin \\
-                --with-linux=/usr/lib/modules/${kernel_mod_path}/build \\
-                --with-linux-obj=/usr/lib/modules/${kernel_mod_path}/build \\
+                --with-linux=/usr/lib/modules/\${_extramodules}/build \\
+                --with-linux-obj=/usr/lib/modules/\${_extramodules}/build \\
                 --with-config=kernel
     make
 }
@@ -55,7 +60,7 @@ package_${spl_pkgname}-headers() {
     rm -r "\${pkgdir}/lib"
 
     # Remove reference to \${srcdir}
-    sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/spl-*/${kernel_mod_path}/Module.symvers
+    sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/spl-*/\${_extramodules}/Module.symvers
 }
 
 EOF

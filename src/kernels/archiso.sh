@@ -26,8 +26,11 @@ header="\
 #"
 
 update_archiso_linux_pkgbuilds() {
-    get_archiso_kernel_version
-    kernel_version=${latest_kernel_version}
+    msg "Checking archiso download page for the latest linux kernel version..."
+    if ! get_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+"; then
+        exit 1
+    fi
+    kernel_version=${webpage_output}
     
     pkg_list=("spl-archiso-linux" "zfs-archiso-linux")
     kernel_version_full=$(kernel_version_full ${kernel_version})

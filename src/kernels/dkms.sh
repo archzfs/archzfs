@@ -34,15 +34,15 @@ update_dkms_pkgbuilds() {
     zfs_conflicts="'zfs-dkms-git'"
     spl_pkgname="spl-dkms"
     zfs_pkgname="zfs-dkms"
-    spl_utils_pkgname="spl-utils-common=${zol_version}"
-    zfs_utils_pkgname="zfs-utils-common=${zol_version}"
+    spl_utils_pkgname="spl-utils-common=\${pkgver}"
+    zfs_utils_pkgname="zfs-utils-common=\${pkgver}"
     # Paths are relative to build.sh
     spl_dkms_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_dkms_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/spl-${zol_version}.tar.gz"
-    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
-    spl_workdir="\${srcdir}/spl-${zol_version}"
-    zfs_workdir="\${srcdir}/zfs-${zol_version}"
+    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${pkgver}/spl-\${pkgver}.tar.gz"
+    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${pkgver}/zfs-\${pkgver}.tar.gz"
+    spl_workdir="\${srcdir}/spl-\${pkgver}"
+    zfs_workdir="\${srcdir}/zfs-\${pkgver}"
 }
 
 update_dkms_git_pkgbuilds() {
@@ -64,7 +64,8 @@ update_dkms_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
-    zfs_utils_pkgname="zfs-utils-common-git=${zfs_git_ver}"
+    zfs_utils_pkgname="zfs-utils-common-git=\${pkgver}"
     zfs_mod_ver="git"
-    zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
+    zfs_set_commit="_commit='${latest_zfs_git_commit}'"
+    zfs_src_target="git+${zfs_git_url}#commit=\${_commit}"
 }

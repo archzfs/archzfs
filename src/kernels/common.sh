@@ -28,10 +28,10 @@ update_common_pkgbuilds() {
     # Paths are relative to build.sh
     spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
-    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/spl-${zol_version}.tar.gz"
-    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
-    spl_workdir="\${srcdir}/spl-${zol_version}"
-    zfs_workdir="\${srcdir}/zfs-${zol_version}"
+    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${pkgver}/spl-\${pkgver}.tar.gz"
+    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${pkgver}/zfs-\${pkgver}.tar.gz"
+    spl_workdir="\${srcdir}/spl-\${pkgver}"
+    zfs_workdir="\${srcdir}/zfs-\${pkgver}"
     spl_utils_replaces='replaces=("spl-utils-linux", "spl-utils-linux-lts")'
     zfs_utils_replaces='replaces=("zfs-utils-linux", "zfs-utils-linux-lts")'
 }

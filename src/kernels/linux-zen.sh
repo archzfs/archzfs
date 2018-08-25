@@ -7,7 +7,7 @@ mode_desc="Select and use the packages for the linux-zen kernel"
 pkgrel="1"
 
 # pkgrel for GIT packages
-pkgrel_git="${pkgrel}"
+pkgrel_git="1"
 zfs_git_commit=""
 spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
@@ -32,56 +32,54 @@ header="\
 # archzfs github page.
 #"
 
-update_linux_pkgbuilds() {
-    get_linux_zen_kernel_version
-    kernel_version=${latest_kernel_version}
-
-    pkg_list=("spl-linux-zen" "zfs-linux-zen")
+get_kernel_options() {
+    msg "Checking the online package database for the latest x86_64 linux-zen kernel version..."
+    if ! get_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.-]+(?=</h2>)"; then
+        exit 1
+    fi
+    kernel_version=${webpage_output}
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version/.zen/-zen}-zen"
+    kernel_mod_path="\${_kernelver/.zen/-zen}-zen"
+    linux_depends="\"linux-zen=\${_kernelver}\""
+    linux_headers_depends="\"linux-zen-headers=\${_kernelver}\""
+}
+
+update_linux_zen_pkgbuilds() {
+    get_kernel_options
+    pkg_list=("spl-linux-zen" "zfs-linux-zen")
     archzfs_package_group="archzfs-linux-zen"
-    spl_pkgver=${zol_version}.${kernel_version_full_pkgver}
-    zfs_pkgver=${zol_version}.${kernel_version_full_pkgver}
+    spl_pkgver=${zol_version}
+    zfs_pkgver=${zol_version}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_conflicts="'spl-linux-zen-git'"
     zfs_conflicts="'zfs-linux-zen-git'"
-    spl_utils_pkgname="spl-utils-common=${zol_version}"
     spl_pkgname="spl-linux-zen"
-    zfs_utils_pkgname="zfs-utils-common=${zol_version}"
+    spl_utils_pkgname="spl-utils-common=\${_splver}"
     zfs_pkgname="zfs-linux-zen"
+    zfs_utils_pkgname="zfs-utils-common=\${_zfsver}"
     # Paths are relative to build.sh
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/spl-${zol_version}.tar.gz"
-    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
-    spl_workdir="\${srcdir}/spl-${zol_version}"
-    zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux-zen=${kernel_version}\""
-    linux_headers_depends="\"linux-zen-headers=${kernel_version}\""
+    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_splver}/spl-\${_splver}.tar.gz"
+    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
+    spl_workdir="\${srcdir}/spl-\${_splver}"
+    zfs_workdir="\${srcdir}/zfs-\${_zfsver}"
     zfs_makedepends="\"${spl_pkgname}-headers\""
 }
 
-update_linux_git_pkgbuilds() {
-    get_linux_zen_kernel_version
-    kernel_version=${latest_kernel_version}
-
+update_linux_zen_git_pkgbuilds() {
+    get_kernel_options
     pkg_list=("zfs-linux-zen-git")
-    kernel_version_full=$(kernel_version_full ${kernel_version})
-    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
-    kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version/.zen/-zen}-zen"
     archzfs_package_group="archzfs-linux-zen-git"
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgrel=${pkgrel_git}
-    zfs_conflicts="'zfs-linux-zen' 'spl-linux-zen-git'"
+    zfs_conflicts="'zfs-linux-zen' 'spl-linux-zen-git' 'spl-linux-zen'"
     spl_pkgname=""
     zfs_pkgname="zfs-linux-zen-git"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    linux_depends="\"linux-zen=${kernel_version}\""
-    linux_headers_depends="\"linux-zen-headers=${kernel_version}\""
     zfs_replaces='replaces=("spl-linux-zen-git")'
     zfs_src_hash="SKIP"
     zfs_makedepends="\"git\""
@@ -90,6 +88,7 @@ update_linux_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
-    zfs_utils_pkgname="zfs-utils-common-git=${zfs_git_ver}"
-    zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
+    zfs_utils_pkgname="zfs-utils-common-git=\${_zfsver}"
+    zfs_set_commit="_commit='${latest_zfs_git_commit}'"
+    zfs_src_target="git+${zfs_git_url}#commit=\${_commit}"
 }

@@ -9,6 +9,7 @@ fi
 cat << EOF > ${zfs_utils_pkgbuild_path}/PKGBUILD
 ${header}
 pkgname="${zfs_utils_pkgname}"
+${zfs_set_commit}
 pkgver=${zfs_pkgver}
 pkgrel=${zfs_pkgrel}
 pkgdesc="Kernel module support files for the Zettabyte File System."
@@ -39,7 +40,7 @@ build() {
     ./autogen.sh
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
-                --with-udevdir=/lib/udev --libexecdir=/usr/lib/zfs-${zol_version} \\
+                --with-udevdir=/lib/udev --libexecdir=/usr/lib/zfs-\${pkgver} \\
                 --with-config=user --enable-systemd
     make
 }

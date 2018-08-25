@@ -10,7 +10,13 @@ cat << EOF > ${zfs_pkgbuild_path}/PKGBUILD
 ${header}
 pkgbase="${zfs_pkgname}"
 pkgname=("${zfs_pkgname}" "${zfs_pkgname}-headers")
-pkgver=${zfs_pkgver}
+
+${zfs_set_commit}
+_zfsver="${zfs_pkgver}"
+_kernelver="${kernel_version}"
+_extramodules="${kernel_mod_path}"
+
+pkgver="\${_zfsver}_\$(echo \${_kernelver} | sed s/-/./g)"
 pkgrel=${zfs_pkgrel}
 makedepends=(${linux_headers_depends} ${zfs_makedepends})
 arch=("x86_64")
@@ -31,9 +37,9 @@ build() {
     ./autogen.sh
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \\
                 --datadir=/usr/share --includedir=/usr/include --with-udevdir=/lib/udev \\
-                --libexecdir=/usr/lib/zfs-${zol_version} --with-config=kernel \\
-                --with-linux=/usr/lib/modules/${kernel_mod_path}/build \\
-                --with-linux-obj=/usr/lib/modules/${kernel_mod_path}/build
+                --libexecdir=/usr/lib/zfs-\${zfsver} --with-config=kernel \\
+                --with-linux=/usr/lib/modules/\${_extramodules}/build \\
+                --with-linux-obj=/usr/lib/modules/\${_extramodules}/build
     make
 }
 
@@ -63,7 +69,7 @@ package_${zfs_pkgname}-headers() {
     rm -r "\${pkgdir}/lib"
 
     # Remove reference to \${srcdir}
-    sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/zfs-*/${kernel_mod_path}/Module.symvers
+    sed -i "s+\${srcdir}++" \${pkgdir}/usr/src/zfs-*/\${_extramodules}/Module.symvers
 }
 
 EOF
