@@ -60,7 +60,8 @@ zfs_mount_handler () {
             # Lets import everything and try again
             zpool import ${ZPOOL_IMPORT_FLAGS} -N -a ${ZPOOL_FORCE}
             if ! zfs_get_bootfs ; then
-                die "ZFS: Cannot find bootfs."
+                err "ZFS: Cannot find bootfs."
+                exit 1
             fi
         fi
     fi
@@ -77,7 +78,8 @@ zfs_mount_handler () {
         fi
 
         if ! zpool import ${ZPOOL_IMPORT_FLAGS} -N "${pool}" ${ZPOOL_FORCE} ; then
-            die "ZFS: Unable to import pool ${pool}."
+            err "ZFS: Unable to import pool ${pool}."
+            exit 1
         fi
     fi
 
