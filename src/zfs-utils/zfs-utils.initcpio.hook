@@ -119,7 +119,7 @@ set_flags() {
 
     # Add import directory to import command flags
     [ ! "${zfs_import_dir}" = "" ] && ZPOOL_IMPORT_FLAGS="${ZPOOL_IMPORT_FLAGS} -d ${zfs_import_dir}"
-    [ "${zfs_import_dir}" = "" ] && [ -f /etc/zfs/zpool.cache ] && ZPOOL_IMPORT_FLAGS="${ZPOOL_IMPORT_FLAGS} -c /etc/zfs/zpool.cache"
+    [ "${zfs_import_dir}" = "" ] && [ -f /etc/zfs/zpool.cache.org ] && ZPOOL_IMPORT_FLAGS="${ZPOOL_IMPORT_FLAGS} -c /etc/zfs/zpool.cache.org"
 }
 
 run_hook() {
