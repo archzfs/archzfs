@@ -24,7 +24,7 @@ sha256sums=("${zfs_src_hash}"
             "03ed45af40850c3a51a6fd14f36c1adc06501c688a67afb13db4fded6ec9db1d"
             "afbde4a2507dff989404665dbbdfe18eecf5aba716a6513902affa0e4cb033fe")
 license=("CDDL")
-depends=(${spl_dependency}"${zfs_utils_pkgname}" "lsb-release")
+depends=(${spl_dependency}"${zfs_utils_pkgname}" "lsb-release" "dkms")
 provides=("zfs")
 groups=("${archzfs_package_group}")
 conflicts=(${zfs_conflicts} ${zfs_conflicts_all} ${zfs_headers_conflicts_all})
