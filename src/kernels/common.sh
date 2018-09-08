@@ -3,7 +3,7 @@ mode_name="common"
 mode_desc="Select and use the packages that are common between all kernels"
 
 # version
-pkgrel="2"
+pkgrel="1"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>

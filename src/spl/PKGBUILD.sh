@@ -14,17 +14,10 @@ pkgrel=${spl_pkgrel}
 makedepends=(${linux_headers_depends} ${spl_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
-source=("${spl_src_target}"
-        "upstream-eb1f893-Linux-4.18-compat-inode-timespec_timespec64.patch")
-sha256sums=("${spl_src_hash}"
-            "72d1b4103c0b52e0fc2b7135485e346c898289ab42f7bc1ae2748d072a360f66")
+source=("${spl_src_target}")
+sha256sums=("${spl_src_hash}")
 license=("GPL")
 depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
-
-prepare() {
-    cd "${spl_workdir}"
-    patch -Np1 -i \${srcdir}/upstream-eb1f893-Linux-4.18-compat-inode-timespec_timespec64.patch
-}
 
 build() {
     cd "${spl_workdir}"
