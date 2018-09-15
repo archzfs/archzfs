@@ -26,8 +26,8 @@ update_dkms_pkgbuilds() {
     archzfs_package_group="archzfs-dkms"
     spl_pkgver=${zol_version}
     zfs_pkgver=${zol_version}
-    spl_mod_ver=${zol_version}
-    zfs_mod_ver=${zol_version}
+    spl_mod_ver="\${pkgver}"
+    zfs_mod_ver="\${pkgver}"
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_conflicts="'spl-dkms-git'"
