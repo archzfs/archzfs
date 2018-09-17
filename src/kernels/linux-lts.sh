@@ -4,7 +4,7 @@ package_base="linux-lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
 # pkgrel for LTS packages
-pkgrel="1"
+pkgrel="2"
 
 # pkgrel for GIT packages
 pkgrel_git="1"

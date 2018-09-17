@@ -1,8 +1,13 @@
 #!/bin/bash
 
-# remove spl from git packages workaround
+# spl is included in git packages (workaround till zfs 0.8)
 spl_dependency=""
-if [[ -n "${spl_pkgname}" ]]; then
+git_provides=""
+git_conflicts=""
+if [[ ${archzfs_package_group} =~ -git$ ]]; then
+    git_provides+=' "spl" "spl-headers"'
+    git_conflicts+=' "spl" "spl-headers"'
+else
     spl_dependency="'${spl_pkgname}' "
 fi
 
@@ -20,9 +25,9 @@ source=("${zfs_src_target}")
 sha256sums=("${zfs_src_hash}")
 license=("CDDL")
 depends=(${spl_dependency}"${zfs_utils_pkgname}" "lsb-release" "dkms")
-provides=("zfs")
+provides=("zfs" "zfs-headers"${git_provides})
 groups=("${archzfs_package_group}")
-conflicts=(${zfs_conflicts} ${zfs_conflicts_all} ${zfs_headers_conflicts_all})
+conflicts=("zfs" "zfs-headers"${git_conflicts})
 ${zfs_replaces}
 
 build() {

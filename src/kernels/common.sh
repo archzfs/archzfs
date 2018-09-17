@@ -3,7 +3,7 @@ mode_name="common"
 mode_desc="Select and use the packages that are common between all kernels"
 
 # version
-pkgrel="1"
+pkgrel="2"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
@@ -21,8 +21,6 @@ update_common_pkgbuilds() {
     zfs_pkgver=${zol_version}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
-    spl_utils_conflicts="'spl-utils-common-git' 'spl-utils-linux-git' 'spl-utils-linux' 'spl-utils-linux-lts' 'spl-utils-linux-lts-git'"
-    zfs_utils_conflicts="'zfs-utils-common-git' 'zfs-utils-linux-git' 'zfs-utils-linux' 'zfs-utils-linux-lts' 'zfs-utils-linux-lts-git'"
     spl_utils_pkgname="spl-utils-common"
     zfs_utils_pkgname="zfs-utils-common"
     # Paths are relative to build.sh

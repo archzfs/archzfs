@@ -33,7 +33,7 @@ package_${spl_pkgname}() {
     pkgdesc="Solaris Porting Layer kernel modules."
     provides=("spl")
     groups=("${archzfs_package_group}")
-    conflicts=(${spl_conflicts})
+    conflicts=("spl-dkms" "spl-dkms-git" ${spl_conflicts})
     ${spl_replaces}
 
     cd "${spl_workdir}"
@@ -46,7 +46,8 @@ package_${spl_pkgname}() {
 
 package_${spl_pkgname}-headers() {
     pkgdesc="Solaris Porting Layer kernel headers."
-    conflicts=(${spl_headers_conflicts})
+    provides=("spl-headers")
+    conflicts=("spl-dkms" "spl-dkms-git" "spl-headers")
 
     cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install

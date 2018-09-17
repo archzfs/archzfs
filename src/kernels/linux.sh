@@ -4,7 +4,7 @@ package_base="linux"
 mode_desc="Select and use the packages for the default linux kernel"
 
 # pkgrel for default ZFS packages
-pkgrel="1"
+pkgrel="2"
 
 # pkgrel for GIT packages
 pkgrel_git="1"

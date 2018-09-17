@@ -4,7 +4,7 @@ package_base="linux-vfio"
 mode_desc="Select and use the packages for the linux-vfio kernel"
 
 # pkgrel for vfio packages
-pkgrel="1"
+pkgrel="2"
 
 # pkgrel for GIT packages
 pkgrel_git="1"

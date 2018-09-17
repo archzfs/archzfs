@@ -13,9 +13,9 @@ source=("${spl_src_target}")
 sha256sums=("${spl_src_hash}")
 license=("GPL")
 depends=("${spl_utils_pkgname}" "dkms")
-provides=("spl")
+provides=("spl" "spl-headers")
 groups=("${archzfs_package_group}")
-conflicts=(${spl_conflicts} ${spl_conflicts_all} ${spl_headrs_conflicts_all})
+conflicts=("spl" "spl-headers")
 ${spl_replaces}
 
 build() {

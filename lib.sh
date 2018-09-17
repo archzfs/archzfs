@@ -679,26 +679,6 @@ get_kernel_update_funcs() {
     done
 }
 
-get_conflicts() {
-    zfs_headers_conflicts_all=()
-    spl_headers_conflicts_all=()
-    zfs_conflicts_all=()
-    spl_conflicts_all=()
-
-    for kernel in $(ls ${script_dir}/src/kernels); do
-        # do not conflict with common or dkms packages
-        if [[ "$kernel" == "common.sh"  || "$kernel" == "common-git.sh" || "$kernel" == "dkms.sh" ]]; then
-          continue;
-        fi
-        
-        source_safe "src/kernels/${kernel}"
-        zfs_headers_conflicts_all+="'zfs-${package_base}-headers' 'zfs-${package_base}-git-headers' "
-        spl_headers_conflicts_all+="'spl-${package_base}-headers' 'spl-${package_base}-git-headers' "
-        zfs_conflicts_all+="'zfs-${package_base}' 'zfs-${package_base}-git' "
-        spl_conflicts_all+="'spl-${package_base}' 'spl-${package_base}-git' "
-    done
-}
-
 check_skip_build() {
     # $1: Name of package to check
     pkg=${1}

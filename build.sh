@@ -185,10 +185,6 @@ generate_package_files() {
         msg2 "Creating zfs-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
     else
-        # remove own headers from conflicts
-        zfs_headers_conflicts=${zfs_headers_conflicts_all/"'${zfs_pkgname}-headers'"}
-        spl_headers_conflicts=${spl_headers_conflicts_all/"'${spl_pkgname}-headers'"}
-
         # skip spl for git packages
         if [[ ! ${archzfs_package_group} =~ -git$ ]]; then
             msg2 "Removing old spl patches (if any)"
@@ -346,7 +342,6 @@ for (( i = 0; i < ${#modes[@]}; i++ )); do
     mode=${modes[i]}
     kernel_name=${kernel_names[i]}
 
-    get_conflicts
     get_kernel_update_funcs
     debug_print_default_vars
 

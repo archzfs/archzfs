@@ -1,8 +1,17 @@
 #!/bin/bash
 
-# remove spl from git packages workaround
+# spl is included in git packages (workaround till zfs 0.8)
 spl_dependency=""
-if [[ -n "${spl_pkgname}" ]]; then
+git_provides=""
+git_provides_headers=""
+git_conflicts=""
+git_conflicts_headers=""
+if [[ ${archzfs_package_group} =~ -git$ ]]; then
+    git_provides+=' "spl"'
+    git_provides_headers+=' "spl-headers"'
+    git_conflicts+=' "spl-dkms" "spl-dkms-git"'
+    git_conflicts_headers+=' "spl-dkms" "spl-dkms-git" "spl-headers"'
+else
     spl_dependency="'${spl_pkgname}' "
 fi
 
@@ -40,9 +49,9 @@ build() {
 package_${zfs_pkgname}() {
     pkgdesc="Kernel modules for the Zettabyte File System."
     install=zfs.install
-    provides=("zfs")
+    provides=("zfs"${git_provides})
     groups=("${archzfs_package_group}")
-    conflicts=(${zfs_conflicts})
+    conflicts=("zfs-dkms" "zfs-dkms-git" ${zfs_conflicts}${git_conflicts})
     ${zfs_replaces}
 
     cd "${zfs_workdir}"
@@ -56,7 +65,8 @@ package_${zfs_pkgname}() {
 
 package_${zfs_pkgname}-headers() {
     pkgdesc="Kernel headers for the Zettabyte File System."
-    conflicts=(${zfs_headers_conflicts})
+    provides=("zfs-headers"${git_provides_headers})
+    conflicts=("zfs-headers" "zfs-dkms" "zfs-dkms-git"${git_conflicts_headers})
 
     cd "${zfs_workdir}"
     make DESTDIR="\${pkgdir}" install

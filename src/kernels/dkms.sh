@@ -3,7 +3,7 @@ mode_name="dkms"
 mode_desc="Select and use the dkms packages"
 
 # version
-pkgrel="1"
+pkgrel="2"
 
 # Version for GIT packages
 pkgrel_git="1"
@@ -30,8 +30,6 @@ update_dkms_pkgbuilds() {
     zfs_mod_ver="\${pkgver}"
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
-    spl_conflicts="'spl-dkms-git'"
-    zfs_conflicts="'zfs-dkms-git'"
     spl_pkgname="spl-dkms"
     zfs_pkgname="zfs-dkms"
     spl_utils_pkgname="spl-utils-common=\${pkgver}"
@@ -50,7 +48,6 @@ update_dkms_git_pkgbuilds() {
     archzfs_package_group="archzfs-dkms-git"
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgrel=${pkgrel_git}
-    zfs_conflicts="'zfs-dkms' 'spl-dkms-git'"
     spl_pkgname=""
     zfs_pkgname="zfs-dkms-git"
     zfs_dkms_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"

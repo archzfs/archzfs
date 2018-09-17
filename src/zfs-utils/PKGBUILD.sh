@@ -1,9 +1,11 @@
 #!/bin/bash
 
-zfs_depends=""
-# pyzfs in zfs-git depends on python2 (https://github.com/zfsonlinux/zfs/pull/7230)
+# spl is included in git packages (workaround till zfs 0.8)
+git_provides=""
+git_conflicts=""
 if [[ ${archzfs_package_group} =~ -git$ ]]; then
-    zfs_depends+="\"python2\""
+    git_provides+=' "spl-utils"'
+    git_conflicts+=' "spl-utils"'
 fi
 
 cat << EOF > ${zfs_utils_pkgbuild_path}/PKGBUILD
@@ -13,7 +15,6 @@ ${zfs_set_commit}
 pkgver=${zfs_pkgver}
 pkgrel=${zfs_pkgrel}
 pkgdesc="Kernel module support files for the Zettabyte File System."
-depends=(${zfs_depends})
 makedepends=(${zfs_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
@@ -29,9 +30,9 @@ sha256sums=("${zfs_src_hash}"
             "29080a84e5d7e36e63c4412b98646043724621245b36e5288f5fed6914da5b68")
 license=("CDDL")
 groups=("${archzfs_package_group}")
-provides=("zfs-utils")
+provides=("zfs-utils"${git_provides})
 install=zfs-utils.install
-conflicts=(${zfs_utils_conflicts})
+conflicts=("zfs-utils"${git_conflicts})
 ${zfs_utils_replaces}
 backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs')
 
