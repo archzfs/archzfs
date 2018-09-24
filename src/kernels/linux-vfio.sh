@@ -33,11 +33,11 @@ header="\
 #"
 
 get_kernel_options() {
-    msg "Checking linux-vfio download page for the latest linux kernel version..."
-    if ! get_webpage "https://aur.archlinux.org/packages/linux-vfio" "(?<=linux-vfio )[\d\w\.-]+"; then
+    msg "Checking linux-vfio repo for the latest linux kernel version..."
+    if ! get_repo_package "https://repo.markzz.com/arch/markzz/x86_64/markzz.files" "(?<=linux-vfio-)[\d\w\.-]+(?=/)"; then
         exit 1
     fi
-    kernel_version=${webpage_output}
+    kernel_version=${regex_match}
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}

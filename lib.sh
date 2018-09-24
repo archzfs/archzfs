@@ -444,15 +444,11 @@ check_internet() {
     return 0
 }
 
-
-get_webpage() {
-    # $1: The url to scrape
+cmd_regex() {
+    # $1: the cmd command to run
     # $2: The Perl regex to match with
-    debug "Checking webpage: $1"
-    debug "Using regex: `printf "%q" "$2"`"
-
-    run_cmd_no_output "curl -sL ${1}"
-
+    run_cmd_no_output "${1}"
+    
     if [[ ${dry_run} -eq 1 ]]; then
         return 0
     fi
@@ -467,8 +463,29 @@ get_webpage() {
         return 55
     fi
 
-    webpage_output=$(echo "${run_cmd_output}" | \grep -Po -m 1 "${2}")
-    debug "Got \"${webpage_output}\" from webpage."
+    regex_match=$(echo "${run_cmd_output}" | \grep -Po -m 1 "${2}")
+    debug "Got \"${regex_match}\" from command."
+}
+
+
+get_webpage() {
+    # $1: The url to scrape
+    # $2: The Perl regex to match with
+    debug "Checking webpage: $1"
+    debug "Using regex: `printf "%q" "$2"`"
+
+    cmd_regex "curl -sL ${1}" "${2}"
+    webpage_output="${regex_match}"
+}
+
+
+get_repo_package() {
+    # $1: The url to scrape
+    # $2: The Perl regex to match with
+    debug "Checking repo files: $1"
+    debug "Using regex: `printf "%q" "$2"`"
+
+    cmd_regex "curl -sL ${1} | tar tzv --exclude='*/*'" "${2}"
 }
 
 check_webpage() {
