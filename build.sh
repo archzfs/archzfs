@@ -298,9 +298,9 @@ for (( a = 0; a < $#; a++ )); do
 done
 
 
-if [[ ${#commands[@]} -eq 0 || ${#modes[@]} -eq 0 ]]; then
+if [[ ${#commands[@]} -eq 0 && ${#modes[@]} -eq 0 ]]; then
     echo
-    error "A build mode and command must be selected!"
+    error "A build mode or command must be selected!"
     usage
 fi
 
@@ -328,6 +328,10 @@ if have_command "update_sums"; then
     run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install"
     azsha3=$(echo ${run_cmd_output} | awk '{ print $1 }')
     run_cmd_no_output "sed -e 's/^zfs_initcpio_install_hash.*/zfs_initcpio_install_hash=\"${azsha3}\"/g' -i ${script_dir}/conf.sh"
+
+    run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.zfsencryptssh.install"
+    azsha3=$(echo ${run_cmd_output} | awk '{ print $1 }')
+    run_cmd_no_output "sed -e 's/^zfs_initcpio_zfsencryptssh_install.*/zfs_initcpio_zfsencryptssh_install=\"${azsha3}\"/g' -i ${script_dir}/conf.sh"
 
     source_safe "${script_dir}/conf.sh"
 fi

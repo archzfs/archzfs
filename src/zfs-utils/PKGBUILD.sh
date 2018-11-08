@@ -27,7 +27,7 @@ sha256sums=("${zfs_src_hash}"
             "${zfs_bash_completion_hash}"
             "${zfs_initcpio_install_hash}"
             "${zfs_initcpio_hook_hash}"
-            "29080a84e5d7e36e63c4412b98646043724621245b36e5288f5fed6914da5b68")
+            "${zfs_initcpio_zfsencryptssh_install}")
 license=("CDDL")
 groups=("${archzfs_package_group}")
 provides=("zfs-utils"${git_provides})
