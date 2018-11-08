@@ -57,9 +57,9 @@ update_linux_vfio_pkgbuilds() {
     spl_conflicts="'spl-linux-vfio-git'"
     zfs_conflicts="'zfs-linux-vfio-git'"
     spl_pkgname="spl-linux-vfio"
-    spl_utils_pkgname="spl-utils-common=\${_splver}"
+    spl_utils_pkgname="spl-utils=\${_splver}"
     zfs_pkgname="zfs-linux-vfio"
-    zfs_utils_pkgname="zfs-utils-common=\${_zfsver}"
+    zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     # Paths are relative to build.sh
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
@@ -88,7 +88,7 @@ update_linux_vfio_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
-    zfs_utils_pkgname="zfs-utils-common-git=\${_zfsver}"
+    zfs_utils_pkgname="zfs-utils-git=\${_zfsver}"
     zfs_set_commit="_commit='${latest_zfs_git_commit}'"
     zfs_src_target="git+${zfs_git_url}#commit=\${_commit}"
 }

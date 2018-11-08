@@ -417,6 +417,7 @@ source_safe() {
     zfs_utils_pkgname=""
     spl_pkgbuild_path=""
     zfs_pkgbuild_path=""
+    zfs_dkms_pkgbuild_path=""
     spl_src_target=""
     zfs_src_target=""
     spl_workdir=""

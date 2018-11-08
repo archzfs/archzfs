@@ -126,7 +126,7 @@ generate_package_files() {
     debug "zfs_initcpio_hook_hash: ${zfs_initcpio_hook_hash}"
 
     # Make sure our target directory exists
-    if [[ "${kernel_name}" == "common" ]] || [[ "${kernel_name}" == "common-git" ]]; then
+    if [[ "${kernel_name}" == "_utils" ]]; then
         run_cmd_no_output "[[ -d "${spl_utils_pkgbuild_path}" ]] || mkdir -p ${spl_utils_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_utils_pkgbuild_path}" ]] || mkdir -p ${zfs_utils_pkgbuild_path}"
     elif [[ "${kernel_name}" == "dkms" ]]; then
@@ -139,8 +139,8 @@ generate_package_files() {
 
     # Finally, generate the update packages ...
     
-    # skip spl for common-git
-    if [[ "${kernel_name}" == "common" ]]; then
+    # skip spl for git utils
+    if [[ "${kernel_name}" == "_utils" ]] && [[ ! ${archzfs_package_group} =~ -git$ ]]; then
         msg2 "Removing old spl-utils patches (if any)"
         run_cmd_no_output "rm -f ${spl_utils_pkgbuild_path}/*.patch"
         msg2 "Copying spl-utils patches (if any)"
@@ -149,7 +149,7 @@ generate_package_files() {
         run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
     fi
 
-    if [[ "${kernel_name}" == "common" ]] || [[ "${kernel_name}" == "common-git" ]]; then
+    if [[ "${kernel_name}" == "_utils" ]]; then
         msg2 "Removing old zfs-utils patches (if any)"
         run_cmd_no_output "rm -f ${zfs_utils_pkgbuild_path}/*.patch"
         msg2 "Copying zfs-utils patches (if any)"
