@@ -4,7 +4,7 @@ package_base="linux"
 mode_desc="Select and use the packages for the default linux kernel"
 
 # pkgrel for default ZFS packages
-pkgrel="2"
+pkgrel="3"
 
 # pkgrel for GIT packages
 pkgrel_git="1"
@@ -57,7 +57,6 @@ update_linux_pkgbuilds() {
     spl_conflicts="'spl-linux-git'"
     zfs_conflicts="'zfs-linux-git'"
     spl_pkgname="spl-linux"
-    spl_utils_pkgname="spl-utils=\${_splver}"
     zfs_pkgname="zfs-linux"
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     # Paths are relative to build.sh

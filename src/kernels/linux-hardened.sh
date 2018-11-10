@@ -4,7 +4,7 @@ package_base="linux-hardened"
 mode_desc="Select and use the packages for the linux-hardened kernel"
 
 # pkgrel for hardened packages
-pkgrel="2"
+pkgrel="3"
 
 # pkgrel for GIT packages
 pkgrel_git="1"
@@ -57,7 +57,6 @@ update_linux_hardened_pkgbuilds() {
     spl_conflicts="'spl-linux-hardened-git'"
     zfs_conflicts="'zfs-linux-hardened-git'"
     spl_pkgname="spl-linux-hardened"
-    spl_utils_pkgname="spl-utils=\${_splver}"
     zfs_pkgname="zfs-linux-hardened"
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     # Paths are relative to build.sh

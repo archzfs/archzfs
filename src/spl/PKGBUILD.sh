@@ -17,7 +17,7 @@ url="http://zfsonlinux.org/"
 source=("${spl_src_target}")
 sha256sums=("${spl_src_hash}")
 license=("GPL")
-depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
+depends=("kmod" ${linux_depends})
 
 build() {
     cd "${spl_workdir}"

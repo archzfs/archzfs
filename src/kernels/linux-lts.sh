@@ -4,7 +4,7 @@ package_base="linux-lts"
 mode_desc="Select and use the packages for the linux-lts kernel"
 
 # pkgrel for LTS packages
-pkgrel="2"
+pkgrel="3"
 
 # pkgrel for GIT packages
 pkgrel_git="1"
@@ -57,7 +57,6 @@ update_linux_lts_pkgbuilds() {
     spl_conflicts="'spl-linux-lts-git'"
     zfs_conflicts="'zfs-linux-lts-git'"
     spl_pkgname="spl-linux-lts"
-    spl_utils_pkgname="spl-utils=\${_splver}"
     zfs_pkgname="zfs-linux-lts"
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     # Paths are relative to build.sh

@@ -3,7 +3,7 @@ mode_name="dkms"
 mode_desc="Select and use the dkms packages"
 
 # version
-pkgrel="2"
+pkgrel="3"
 
 # Version for GIT packages
 pkgrel_git="1"
@@ -32,7 +32,6 @@ update_dkms_pkgbuilds() {
     zfs_pkgrel=${pkgrel}
     spl_pkgname="spl-dkms"
     zfs_pkgname="zfs-dkms"
-    spl_utils_pkgname="spl-utils=\${pkgver}"
     zfs_utils_pkgname="zfs-utils=\${pkgver}"
     # Paths are relative to build.sh
     spl_dkms_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"

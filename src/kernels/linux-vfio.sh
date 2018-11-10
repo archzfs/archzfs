@@ -4,7 +4,7 @@ package_base="linux-vfio"
 mode_desc="Select and use the packages for the linux-vfio kernel"
 
 # pkgrel for vfio packages
-pkgrel="2"
+pkgrel="3"
 
 # pkgrel for GIT packages
 pkgrel_git="1"
@@ -57,7 +57,6 @@ update_linux_vfio_pkgbuilds() {
     spl_conflicts="'spl-linux-vfio-git'"
     zfs_conflicts="'zfs-linux-vfio-git'"
     spl_pkgname="spl-linux-vfio"
-    spl_utils_pkgname="spl-utils=\${_splver}"
     zfs_pkgname="zfs-linux-vfio"
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     # Paths are relative to build.sh

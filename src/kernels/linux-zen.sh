@@ -4,7 +4,7 @@ package_base="linux-zen"
 mode_desc="Select and use the packages for the linux-zen kernel"
 
 # pkgrel for ZEN packages
-pkgrel="2"
+pkgrel="3"
 
 # pkgrel for GIT packages
 pkgrel_git="1"
@@ -57,7 +57,6 @@ update_linux_zen_pkgbuilds() {
     spl_conflicts="'spl-linux-zen-git'"
     zfs_conflicts="'zfs-linux-zen-git'"
     spl_pkgname="spl-linux-zen"
-    spl_utils_pkgname="spl-utils=\${_splver}"
     zfs_pkgname="zfs-linux-zen"
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     # Paths are relative to build.sh
