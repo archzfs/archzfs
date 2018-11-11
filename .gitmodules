@@ -31,15 +31,6 @@
 [submodule "packages/linux-hardened/zfs-linux-hardened-git"]
 	path = packages/linux-hardened/zfs-linux-hardened-git
 	url = ssh+git://aur@aur.archlinux.org/zfs-linux-hardened-git.git
-[submodule "packages/common/spl-utils-common"]
-	path = packages/common/spl-utils-common
-	url = ssh+git://aur@aur.archlinux.org/spl-utils-common.git
-[submodule "packages/common/zfs-utils-common"]
-	path = packages/common/zfs-utils-common
-	url = ssh+git://aur@aur.archlinux.org/zfs-utils-common.git
-[submodule "packages/common-git/zfs-utils-common-git"]
-	path = packages/common-git/zfs-utils-common-git
-	url = ssh+git://aur@aur.archlinux.org/zfs-utils-common-git.git
 [submodule "packages/linux-zen/spl-linux-zen"]
 	path = packages/linux-zen/spl-linux-zen
 	url = ssh+git://aur@aur.archlinux.org/spl-linux-zen.git
@@ -64,6 +55,15 @@
 [submodule "packages/dkms/zfs-dkms"]
 	path = packages/dkms/zfs-dkms
 	url = git@github.com:archzfs/zfs-dkms.git
+[submodule "packages/_utils/spl-utils"]
+	path = packages/_utils/spl-utils
+	url = ssh+git://aur@aur.archlinux.org/spl-utils.git
+[submodule "packages/_utils/zfs-utils"]
+	path = packages/_utils/zfs-utils
+	url = git@github.com:archzfs/zfs-utils.git
+[submodule "packages/_utils/zfs-utils-git"]
+	path = packages/_utils/zfs-utils-git
+	url = ssh+git://aur@aur.archlinux.org/zfs-utils-git.git
 [submodule "packages/dkms/zfs-dkms-git"]
 	path = packages/dkms/zfs-dkms-git
-	url = git@github.com:archzfs/zfs-dkms-git.git
+	url = ssh+git://aur@aur.archlinux.org/zfs-dkms-git.git
