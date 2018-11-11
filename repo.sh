@@ -36,6 +36,7 @@ usage() {
     echo "    -d:           Show debug info."
     echo "    -s:           Sign packages only."
     echo "    -p:           Do not sync from remote repo."
+    echo "    -r:           Remove the given packages"
     echo
     echo "Modes:"
     echo
@@ -87,12 +88,16 @@ for (( a = 0; a < $#; a++ )); do
         sign_packages=1
     elif [[ ${args[$a]} == "-p" ]]; then
         no_pull_remote=1
+    elif [[ ${args[$a]} == "-r" ]]; then
+        remove_packages=1
     elif [[ ${args[$a]} == "-n" ]]; then
         dry_run=1
     elif [[ ${args[$a]} == "-d" ]]; then
         debug_flag=1
     elif [[ ${args[$a]} == "-h" ]]; then
         usage
+    elif [[ ${remove_packages} -eq 1 ]]; then
+        modes+=("${args[$a]}")
     else
         check_mode "${args[$a]}"
         debug "have modes '${modes[*]}'"
@@ -257,13 +262,6 @@ repo_package_backup() {
         pkgs+=("$o -regextype egrep -regex '.*${name}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
     done
 
-    # backup old spl-git packages
-    local o=""
-    if [[ ${#pkgs[@]} -ne 0 ]]; then
-        local o="-o"
-    fi
-    pkgs+=("$o -regextype egrep -regex '.*spl-[a-z\-]+-git-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
-
     # only run find, if new packages will be copied
     if [[ ! ${#pkgs[@]} -eq 0 ]]; then
         run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f ${pkgs[@]}"
@@ -351,9 +349,6 @@ repo_add() {
         fi
         run_cmd_no_output "sudo rsync --chown=${makepkg_nonpriv_user}: -ax ${repo_root}/repo/ $(realpath ${repo_root}/../)/${makepkg_nonpriv_user}/repo/"
     else
-        # remove old spl-git packages
-        run_cmd "repo-remove -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz spl-utils-common-git spl-linux-git spl-linux-git-headers spl-linux-lts-git spl-linux-lts-git-headers spl-linux-hardened-git spl-linux-hardened-git-headers spl-linux-zen-git spl-linux-zen-git-headers spl-linux-vfio-git spl-linux-vfio-git-headers spl-dkms-git"
-
         run_cmd "repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_add_list[@]}"
     fi
 
@@ -393,6 +388,56 @@ sign_packages() {
     done
 }
 
+remove_packages() {
+    # get a list of packages to backup
+    local pkgs=()
+    for (( i = 0; i < ${#modes[@]}; i++ )); do
+        package=${modes[i]}
+        local o=""
+        if [[ ${#pkgs[@]} -ne 0 ]]; then
+            local o="-o"
+        fi
+        pkgs+=("$o -regextype egrep -regex '.*/${package}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
+    done
+
+    # only run find, if ackages were found
+    if [[ ! ${#pkgs[@]} -eq 0 ]]; then
+        run_cmd_show_and_capture_output_no_dry_run "find ${repo_target} -type f ${pkgs[@]}"
+
+        for x in ${run_cmd_output}; do
+            debug "Evaluating ${x}"
+            pkgname=$(package_name_from_path ${x})
+            pkgvers=$(package_version_from_path ${x})
+            debug "pkgname: ${pkgname}"
+            debug "pkgvers: ${pkgvers}"
+            # asterisk globs the package signature
+            epkg="${repo_target}/x86_64/${pkgname}-${pkgvers}*"
+            debug "backing up package: ${epkg}"
+            package_exist_list+=("${epkg}")
+        done
+    fi
+
+    if [[ ${#package_exist_list[@]} -eq 0 ]]; then
+        msg2 "No packages found for backup."
+        return
+    fi
+
+    debug_print_array "package_exist_list" "${package_exist_list[@]}"
+    msg "Backing up packages..."
+    run_cmd "mv ${package_exist_list[@]} ${package_backup_dir}/"
+
+    # remove packages from repo
+    local arch="x86_64"
+    local pkg_remove_list=()
+    for (( i = 0; i < ${#modes[@]}; i++ )); do
+        package=${modes[i]}
+        pkg_remove_list+=("${package}")
+    done
+
+    msg "Removing packages from repo"
+    run_cmd "repo-remove -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_remove_list[@]}"
+}
+
 
 msg "$(date) :: ${script_name} started..."
 
@@ -413,14 +458,40 @@ fi
 debug "repo_name: ${repo_name}"
 debug "repo_target: ${repo_target}"
 
-if [[ ${pull_remote_repo} -eq 1 ]] && [[ ${no_pull_remote} -ne 1 ]]; then
-    pull_repo
-fi
-if [[ ${pull_remote_testing_repo} -eq 1 ]] && [[ ${no_pull_remote} -ne 1 ]]; then
-    pull_testing_repo
-fi
+if [[ ${remove_packages} -eq 1 ]]; then
+    remove_packages
+else
+    if [[ ${pull_remote_repo} -eq 1 ]] && [[ ${no_pull_remote} -ne 1 ]]; then
+        pull_repo
+    fi
+    if [[ ${pull_remote_testing_repo} -eq 1 ]] && [[ ${no_pull_remote} -ne 1 ]]; then
+        pull_testing_repo
+    fi
 
-if [[ ${sign_packages} -eq 1 ]]; then
+    if [[ ${sign_packages} -eq 1 ]]; then
+        for (( i = 0; i < ${#modes[@]}; i++ )); do
+            mode=${modes[i]}
+            kernel_name=${kernel_names[i]}
+
+            get_kernel_update_funcs
+            debug_print_default_vars
+
+            export script_dir mode kernel_name
+            source_safe "src/kernels/${kernel_name}.sh"
+
+            export zfs_pkgver=""
+            export spl_pkgver=""
+
+            for func in ${update_funcs[@]}; do
+                debug "Evaluating '${func}'"
+                "${func}"
+                repo_package_list
+                sign_packages
+            done
+        done
+        exit 0
+    fi
+
     for (( i = 0; i < ${#modes[@]}; i++ )); do
         mode=${modes[i]}
         kernel_name=${kernel_names[i]}
@@ -438,42 +509,20 @@ if [[ ${sign_packages} -eq 1 ]]; then
             debug "Evaluating '${func}'"
             "${func}"
             repo_package_list
+            if [[ ${repo_name} != "chroot_local" ]]; then
+                repo_package_backup
+            fi
             sign_packages
+            repo_add
         done
     done
-    exit 0
-fi
 
-for (( i = 0; i < ${#modes[@]}; i++ )); do
-    mode=${modes[i]}
-    kernel_name=${kernel_names[i]}
-
-    get_kernel_update_funcs
-    debug_print_default_vars
-
-    export script_dir mode kernel_name
-    source_safe "src/kernels/${kernel_name}.sh"
-
-    export zfs_pkgver=""
-    export spl_pkgver=""
-
-    for func in ${update_funcs[@]}; do
-        debug "Evaluating '${func}'"
-        "${func}"
-        repo_package_list
-        if [[ ${repo_name} != "chroot_local" ]]; then
-            repo_package_backup
-        fi
-        sign_packages
-        repo_add
-    done
-done
-
-if [[ ${#all_added_pkgs[@]} -gt 0 ]]; then
-    msg2 "${#all_added_pkgs[@]} packages were added to the repo:"
-    printf '%s\n' "${all_added_pkgs[@]}"
-else
-    msg2 "No packages were added to the repo"
+    if [[ ${#all_added_pkgs[@]} -gt 0 ]]; then
+        msg2 "${#all_added_pkgs[@]} packages were added to the repo:"
+        printf '%s\n' "${all_added_pkgs[@]}"
+    else
+        msg2 "No packages were added to the repo"
+    fi
 fi
 
 if [[ ${haz_error} -ne 0 ]]; then
