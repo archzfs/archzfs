@@ -7,7 +7,7 @@ mode_desc="Select and use the packages for the linux-hardened kernel"
 pkgrel="3"
 
 # pkgrel for GIT packages
-pkgrel_git="1"
+pkgrel_git="2"
 zfs_git_commit=""
 spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
