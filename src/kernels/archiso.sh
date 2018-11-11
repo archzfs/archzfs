@@ -30,28 +30,28 @@ update_archiso_linux_pkgbuilds() {
     if ! get_webpage "https://www.archlinux.org/download/" "(?<=Included Kernel:</strong> )[\d\.]+"; then
         exit 1
     fi
-    kernel_version=${webpage_output}
+    kernel_version="${webpage_output}.arch1-1"
     
     pkg_list=("spl-archiso-linux" "zfs-archiso-linux")
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full}-ARCH"
+    kernel_mod_path="\${_kernelver/.arch/-arch}-ARCH"
     archzfs_package_group="archzfs-archiso-linux"
-    spl_pkgver=${zol_version}_${kernel_version_full_pkgver}
-    zfs_pkgver=${zol_version}_${kernel_version_full_pkgver}
+    spl_pkgver=${zol_version}
+    zfs_pkgver=${zol_version}
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_pkgname="spl-archiso-linux"
-    zfs_utils_pkgname="zfs-utils=${zol_version}"
+    zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     zfs_pkgname="zfs-archiso-linux"
     spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/spl-${zol_version}.tar.gz"
-    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
-    spl_workdir="\${srcdir}/spl-${zol_version}"
-    zfs_workdir="\${srcdir}/zfs-${zol_version}"
-    linux_depends="\"linux=${kernel_version}\""
-    linux_headers_depends="\"linux-headers=${kernel_version}\""
+    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_splver}/spl-\${_splver}.tar.gz"
+    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
+    spl_workdir="\${srcdir}/spl-\${_splver}"
+    zfs_workdir="\${srcdir}/zfs-\${_zfsver}"
+    linux_depends="\"linux=\${_kernelver}\""
+    linux_headers_depends="\"linux-headers=\${_kernelver}\""
     zfs_makedepends="\"${spl_pkgname}-headers\""
 }
