@@ -33,6 +33,7 @@ usage() {
     echo "    -h:    Show help information."
     echo "    -n:    Dryrun; Output commands, but don't do anything."
     echo "    -d:    Show debug info."
+    echo "    -s:    Skip git packages and only build stable packages"
     echo "    -R:    Perform git reset in packages directory for Mode."
     echo "    -u:    Perform an update in the clean chroot."
     echo "    -U:    Update the file sums in conf.sh."
@@ -289,6 +290,8 @@ for (( a = 0; a < $#; a++ )); do
         dry_run=1
     elif [[ ${args[$a]} == "-d" ]]; then
         debug_flag=1
+    elif [[ ${args[$a]} == "-s" ]]; then
+        only_stable=1
     elif [[ ${args[$a]} == "-h" ]]; then
         usage
     else
@@ -375,6 +378,13 @@ for (( i = 0; i < ${#modes[@]}; i++ )); do
 
     for func in "${update_funcs[@]}"; do
         debug "Evaluating '${func}'"
+
+        # skip git packages if -s was used
+        if [[ ${only_stable} -eq 1 ]] && [[ ${func} =~ git_pkgbuilds$ ]]; then
+            debug "Skipping '${func}' (non stable)"
+            continue
+        fi
+
         "${func}"
         if have_command "update"; then
             msg "Updating PKGBUILDs for kernel '${kernel_name}'"
