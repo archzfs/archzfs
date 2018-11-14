@@ -37,8 +37,8 @@ update_utils_pkgbuilds() {
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${pkgver}/zfs-\${pkgver}.tar.gz"
     spl_workdir="\${srcdir}/spl-\${pkgver}"
     zfs_workdir="\${srcdir}/zfs-\${pkgver}"
-    spl_utils_replaces='replaces=("spl-utils-linux", "spl-utils-linux-lts" "spl-utils-common")'
-    zfs_utils_replaces='replaces=("zfs-utils-linux", "zfs-utils-linux-lts" "zfs-utils-common")'
+    spl_utils_replaces='replaces=("spl-utils-linux" "spl-utils-linux-lts" "spl-utils-common")'
+    zfs_utils_replaces='replaces=("zfs-utils-linux" "zfs-utils-linux-lts" "zfs-utils-common")'
 }
 
 update_utils_git_pkgbuilds() {
