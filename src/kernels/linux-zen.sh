@@ -4,7 +4,7 @@ package_base="linux-zen"
 mode_desc="Select and use the packages for the linux-zen kernel"
 
 # pkgrel for ZEN packages
-pkgrel="3"
+pkgrel="1"
 
 # pkgrel for GIT packages
 pkgrel_git="2"
