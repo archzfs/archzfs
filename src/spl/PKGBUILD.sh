@@ -47,7 +47,7 @@ package_${spl_pkgname}() {
 package_${spl_pkgname}-headers() {
     pkgdesc="Solaris Porting Layer kernel headers."
     provides=("spl-headers")
-    conflicts=("spl-dkms" "spl-dkms-git" "spl-headers")
+    conflicts=("spl-dkms" "spl-dkms-git" "spl-dkms-rc" "spl-headers")
 
     cd "${spl_workdir}"
     make DESTDIR="\${pkgdir}" install

@@ -141,7 +141,7 @@ generate_package_files() {
     # Finally, generate the update packages ...
     
     # skip spl for git utils
-    if [[ "${kernel_name}" == "_utils" ]] && [[ ! ${archzfs_package_group} =~ -git$ ]]; then
+    if [[ "${kernel_name}" == "_utils" ]] && [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
         msg2 "Removing old spl-utils patches (if any)"
         run_cmd_no_output "rm -f ${spl_utils_pkgbuild_path}/*.patch"
         msg2 "Copying spl-utils patches (if any)"
@@ -167,7 +167,7 @@ generate_package_files() {
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/*.install ${zfs_utils_pkgbuild_path}/"
     elif [[ "${kernel_name}" == "dkms" ]]; then
         # skip spl for git packages
-        if [[ ! ${archzfs_package_group} =~ -git$ ]]; then
+        if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
             msg2 "Removing old spl patches (if any)"
             run_cmd_no_output "rm -f ${spl_dkms_pkgbuild_path}/*.patch"
             msg2 "Copying spl patches (if any)"
@@ -187,7 +187,7 @@ generate_package_files() {
         run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
     else
         # skip spl for git packages
-        if [[ ! ${archzfs_package_group} =~ -git$ ]]; then
+        if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
             msg2 "Removing old spl patches (if any)"
             run_cmd_no_output "rm -f ${spl_pkgbuild_path}/*.patch"
             msg2 "Copying spl patches (if any)"
@@ -380,7 +380,7 @@ for (( i = 0; i < ${#modes[@]}; i++ )); do
         debug "Evaluating '${func}'"
 
         # skip git packages if -s was used
-        if [[ ${only_stable} -eq 1 ]] && [[ ${func} =~ git_pkgbuilds$ ]]; then
+        if [[ ${only_stable} -eq 1 && ( ${func} =~ git_pkgbuilds$ || ${func} =~ rc_pkgbuilds$ ) ]]; then
             debug "Skipping '${func}' (non stable)"
             continue
         fi

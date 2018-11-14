@@ -4,7 +4,7 @@
 spl_dependency=""
 git_provides=""
 git_conflicts=""
-if [[ ${archzfs_package_group} =~ -git$ ]]; then
+if [[ ${archzfs_package_group} =~ -git$ ]] || [[ ${archzfs_package_group} =~ -rc$ ]]; then
     git_provides+=' "spl" "spl-headers"'
     git_conflicts+=' "spl" "spl-headers"'
 else

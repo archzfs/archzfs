@@ -13,6 +13,9 @@ spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
 spl_git_url="https://github.com/zfsonlinux/spl.git"
 
+# Version for RC packages
+pkgrel_rc="1"
+
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
 # Contributor: Jesus Alvarez <jeezusjr at gmail dot com>
@@ -55,7 +58,7 @@ update_linux_lts_pkgbuilds() {
     spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
     spl_conflicts="'spl-linux-lts-git'"
-    zfs_conflicts="'zfs-linux-lts-git'"
+    zfs_conflicts="'zfs-linux-lts-git' 'zfs-linux-lts-rc'"
     spl_pkgname="spl-linux-lts"
     zfs_pkgname="zfs-linux-lts"
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
@@ -67,6 +70,23 @@ update_linux_lts_pkgbuilds() {
     spl_workdir="\${srcdir}/spl-\${_splver}"
     zfs_workdir="\${srcdir}/zfs-\${_zfsver}"
     zfs_makedepends="\"${spl_pkgname}-headers\""
+}
+
+update_linux_lts_rc_pkgbuilds() {
+    get_kernel_options
+    pkg_list=("zfs-linux-lts-rc")
+    archzfs_package_group="archzfs-linux-lts-rc"
+    zfs_pkgver=${zol_rc_version/-/_}
+    zfs_pkgrel=${pkgrel_rc}
+    zfs_conflicts="'zfs-linux-lts' 'zfs-linux-lts-git' 'spl-linux-lts'"
+    spl_pkgname=""
+    zfs_pkgname="zfs-linux-lts-rc"
+    zfs_utils_pkgname="zfs-utils-rc=\${_zfsver}"
+    zfs_src_hash=${zfs_rc_src_hash}
+    # Paths are relative to build.sh
+    zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
+    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver/_/-}/zfs-\${_zfsver/_/-}.tar.gz"
+    zfs_workdir="\${srcdir}/zfs-\${_zfsver/_rc*/}"
 }
 
 update_linux_lts_git_pkgbuilds() {

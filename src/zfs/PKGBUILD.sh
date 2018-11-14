@@ -6,7 +6,7 @@ git_provides=""
 git_provides_headers=""
 git_conflicts=""
 git_conflicts_headers=""
-if [[ ${archzfs_package_group} =~ -git$ ]]; then
+if [[ ${archzfs_package_group} =~ -git$ ]] || [[ ${archzfs_package_group} =~ -rc$ ]]; then
     git_provides+=' "spl"'
     git_provides_headers+=' "spl-headers"'
     git_conflicts+=' "spl-dkms" "spl-dkms-git"'
@@ -51,7 +51,7 @@ package_${zfs_pkgname}() {
     install=zfs.install
     provides=("zfs"${git_provides})
     groups=("${archzfs_package_group}")
-    conflicts=("zfs-dkms" "zfs-dkms-git" ${zfs_conflicts}${git_conflicts})
+    conflicts=("zfs-dkms" "zfs-dkms-git" "zfs-dkms-rc" ${zfs_conflicts}${git_conflicts})
     ${zfs_replaces}
 
     cd "${zfs_workdir}"
@@ -66,7 +66,7 @@ package_${zfs_pkgname}() {
 package_${zfs_pkgname}-headers() {
     pkgdesc="Kernel headers for the Zettabyte File System."
     provides=("zfs-headers"${git_provides_headers})
-    conflicts=("zfs-headers" "zfs-dkms" "zfs-dkms-git"${git_conflicts_headers})
+    conflicts=("zfs-headers" "zfs-dkms" "zfs-dkms-git" "zfs-dkms-rc"${git_conflicts_headers})
 
     cd "${zfs_workdir}"
     make DESTDIR="\${pkgdir}" install

@@ -12,6 +12,9 @@ spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
 spl_git_url="https://github.com/zfsonlinux/spl.git"
 
+# Version for RC packages
+pkgrel_rc="1"
+
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
 # Contributor: Jesus Alvarez <jeezusjr at gmail dot com>
@@ -39,6 +42,19 @@ update_utils_pkgbuilds() {
     zfs_workdir="\${srcdir}/zfs-\${pkgver}"
     spl_utils_replaces='replaces=("spl-utils-linux" "spl-utils-linux-lts" "spl-utils-common")'
     zfs_utils_replaces='replaces=("zfs-utils-linux" "zfs-utils-linux-lts" "zfs-utils-common")'
+}
+
+update_utils_rc_pkgbuilds() {
+    pkg_list=("zfs-utils-rc")
+    archzfs_package_group="archzfs-linux-rc"
+    zfs_pkgver=${zol_rc_version/-/_}
+    zfs_pkgrel=${pkgrel_rc}
+    zfs_utils_pkgname="zfs-utils-rc"
+    zfs_src_hash=${zfs_rc_src_hash}
+    # Paths are relative to build.sh
+    zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
+    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${pkgver/_/-}/zfs-\${pkgver/_/-}.tar.gz"
+    zfs_workdir="\${srcdir}/zfs-\${pkgver/_rc*/}"
 }
 
 update_utils_git_pkgbuilds() {

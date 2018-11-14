@@ -3,7 +3,7 @@
 # spl is included in git packages (workaround till zfs 0.8)
 git_provides=""
 git_conflicts=""
-if [[ ${archzfs_package_group} =~ -git$ ]]; then
+if [[ ${archzfs_package_group} =~ -git$ ]] || [[ ${archzfs_package_group} =~ -rc$ ]]; then
     git_provides+=' "spl-utils"'
     git_conflicts+=' "spl-utils"'
 fi
