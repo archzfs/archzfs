@@ -6,7 +6,7 @@ mode_desc="Select and use the dkms packages"
 pkgrel="1"
 
 # Version for GIT packages
-pkgrel_git="2"
+pkgrel_git="1"
 zfs_git_commit=""
 spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
