@@ -367,6 +367,7 @@ for (( i = 0; i < ${#modes[@]}; i++ )); do
             msg "${update_funcs[@]}"
         for func in "${update_funcs[@]}"; do
             debug "Evaluating '${func}'"
+            reset_variables
             "${func}"
             msg "${pkg_list[@]}"
             for pkg in "${pkg_list[@]}"; do
@@ -384,7 +385,7 @@ for (( i = 0; i < ${#modes[@]}; i++ )); do
             debug "Skipping '${func}' (non stable)"
             continue
         fi
-
+        reset_variables
         "${func}"
         if have_command "update"; then
             msg "Updating PKGBUILDs for kernel '${kernel_name}'"

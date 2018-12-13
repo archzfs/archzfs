@@ -395,9 +395,7 @@ kernel_version_full_no_hyphen() {
     echo $(kernel_version_full ${1} | sed s/-/./g)
 }
 
-# from makepkg
-source_safe() {
-    # reset variables
+reset_variables() {
     kernel_version_full_pkgver=""
     kernel_version_full=""
     kernel_version=""
@@ -427,7 +425,15 @@ source_safe() {
     spl_replaces=""
     zfs_replaces=""
     zfs_set_commit=""
+    spl_replaces=''
+    zfs_replaces=''
+    spl_utils_replaces=''
+    zfs_utils_replaces=''
+}
 
+# from makepkg
+source_safe() {
+    reset_variables
     export script_dir mode kernel_name
     shopt -u extglob
     if ! source "$@"; then

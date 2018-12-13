@@ -14,7 +14,7 @@ zfs_git_url="https://github.com/zfsonlinux/zfs.git"
 spl_git_url="https://github.com/zfsonlinux/spl.git"
 
 # Version for RC packages
-pkgrel_rc="1"
+pkgrel_rc="2"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
