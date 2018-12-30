@@ -36,7 +36,7 @@ update_archiso_linux_pkgbuilds() {
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="\${_kernelver/.arch/-arch}-ARCH"
+    kernel_mod_path="${kernel_version_full/.arch/-arch}-ARCH"
     archzfs_package_group="archzfs-archiso-linux"
     spl_pkgver=${zol_version}
     zfs_pkgver=${zol_version}

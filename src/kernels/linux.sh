@@ -4,7 +4,7 @@ package_base="linux"
 mode_desc="Select and use the packages for the default linux kernel"
 
 # pkgrel for default ZFS packages
-pkgrel="2"
+pkgrel="1"
 
 # pkgrel for GIT packages
 pkgrel_git="1"
@@ -14,7 +14,7 @@ zfs_git_url="https://github.com/zfsonlinux/zfs.git"
 spl_git_url="https://github.com/zfsonlinux/spl.git"
 
 # Version for RC packages
-pkgrel_rc="2"
+pkgrel_rc="1"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
@@ -44,7 +44,7 @@ get_kernel_options() {
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="\${_kernelver/.arch/-arch}-ARCH"
+    kernel_mod_path="${kernel_version_full/.arch/-arch}-ARCH"
     linux_depends="\"linux=\${_kernelver}\""
     linux_headers_depends="\"linux-headers=\${_kernelver}\""
 }
