@@ -42,7 +42,7 @@ get_kernel_options() {
     fi
     kernel_version=${webpage_output}
     kernel_version_full=$(kernel_version_full ${kernel_version})
-    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
+    kernel_version_pkgver=$(kernel_version_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
     kernel_mod_path="${kernel_version_full/.arch/-arch}-ARCH"
     linux_depends="\"linux=\${_kernelver}\""

@@ -39,7 +39,7 @@ get_kernel_options() {
     fi
     kernel_version=${regex_match}
     kernel_version_full=$(kernel_version_full ${kernel_version})
-    kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
+    kernel_version_pkgver=$(kernel_version_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
     kernel_mod_path="${kernel_version_full/.arch/-arch}-vfio"
     linux_depends="\"linux-vfio=\${_kernelver}\""

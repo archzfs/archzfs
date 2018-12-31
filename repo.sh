@@ -156,9 +156,9 @@ repo_package_list() {
 
     # Get packages from the backup directory
     path="packages/${kernel_name}/${pkg_list_find}/"
-    if [[ ! -z ${kernel_version_full_pkgver} ]]; then
-        debug "kernel_version_full_pkgver: ${kernel_version_full_pkgver}"
-        fcmd="find ${path} -iname '*${kernel_version_full_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_full_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+    if [[ ! -z ${kernel_version_pkgver} ]]; then
+        debug "kernel_version_pkgver: ${kernel_version_pkgver}"
+        fcmd="find ${path} -iname '*${kernel_version_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
         run_cmd_no_output_no_dry_run "${fcmd}"
         for pkg in ${run_cmd_output}; do
             pkgs+=(${pkg})
@@ -171,7 +171,7 @@ repo_package_list() {
             pkgs+=(${pkg})
         done
     else
-        debug "kernel_version_full_pkgver and spl_pkgver (and zfs_pkgver) not set!"
+        debug "kernel_version_pkgver and spl_pkgver (and zfs_pkgver) not set!"
         debug "Falling back to newest package by mod time for zfs and spl"
         for z in $(printf '%s ' ${pkg_list[@]} ); do
             # fcmd="find ${path} -iname '*${kernel_name}*-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
@@ -195,12 +195,12 @@ repo_package_list() {
             # Version match check: arch: x86_64 name: spl-utils-linux-git vers: 0.7.0_rc1_r0_g4fd75d3_4.7.2_1-4 vers_match: 0.6.5.8.*4.7.2_1-4
             debug "spl_pkgver: ${spl_pkgver}"
             debug "zfs_pkgver: ${zfs_pkgver}"
-            debug "kernel_version_full_pkgver: ${kernel_version_full_pkgver}"
+            debug "kernel_version_pkgver: ${kernel_version_pkgver}"
 
             kernvers=""
             # append kernel version if set
-            if [ ! -z "${kernel_version_full_pkgver}" ]; then
-              kernvers="_${kernel_version_full_pkgver}";
+            if [ ! -z "${kernel_version_pkgver}" ]; then
+              kernvers="_${kernel_version_pkgver}";
             fi
 
             if [[ ${pkg} =~ .*spl-.* ]]; then

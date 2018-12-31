@@ -388,15 +388,15 @@ kernel_version_full() {
 }
 
 
-# Returns the full kernel version. If $1 is "3.14-1" then kernel_version_full returns "3.14.0_1".
-kernel_version_full_no_hyphen() {
+# Returns the pkg kernel version. If $1 is "3.14-1" then kernel_version_full returns "3.14_1".
+kernel_version_no_hyphen() {
     # $1: The full kernel version
     # returns: output is printed to stdout
-    echo $(kernel_version_full ${1} | sed s/-/./g)
+    echo ${1} | sed s/-/./g
 }
 
 reset_variables() {
-    kernel_version_full_pkgver=""
+    kernel_version_pkgver=""
     kernel_version_full=""
     kernel_version=""
     zfs_pkgver=""
@@ -844,7 +844,7 @@ git_calc_pkgver() {
     for repo in "spl" "zfs"; do
         msg2 "Cloning working copy for ${repo}"
         local sha=${spl_git_commit}
-        local kernvers=${kernel_version_full_pkgver}
+        local kernvers=${kernel_version_pkgver}
         if [[ ${repo} =~ ^zfs ]]; then
             sha=${zfs_git_commit}
         fi
