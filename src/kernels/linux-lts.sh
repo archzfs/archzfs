@@ -101,7 +101,7 @@ update_linux_lts_git_pkgbuilds() {
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
     zfs_replaces='replaces=("spl-linux-lts-git")'
     zfs_src_hash="SKIP"
-    zfs_makedepends="\"git\""
+    zfs_makedepends="\"git\" \"python\""
     zfs_workdir="\${srcdir}/zfs"
     if have_command "update"; then
         git_check_repo

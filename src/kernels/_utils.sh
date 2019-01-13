@@ -65,7 +65,7 @@ update_utils_git_pkgbuilds() {
     zfs_utils_pkgname="zfs-utils-git"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     zfs_src_hash="SKIP"
-    zfs_makedepends="\"git\""
+    zfs_makedepends="\"git\" \"python\""
     zfs_workdir="\${srcdir}/zfs"
 
     zfs_utils_replaces='replaces=("spl-utils-common-git" "zfs-utils-common-git")'
