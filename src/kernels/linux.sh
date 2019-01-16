@@ -85,6 +85,7 @@ update_linux_rc_pkgbuilds() {
     zfs_pkgname="zfs-linux-rc"
     zfs_utils_pkgname="zfs-utils-rc=\${_zfsver}"
     zfs_src_hash=${zfs_rc_src_hash}
+    zfs_makedepends="\"python\""
     # Paths are relative to build.sh
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver/_/-}/zfs-\${_zfsver/_/-}.tar.gz"
