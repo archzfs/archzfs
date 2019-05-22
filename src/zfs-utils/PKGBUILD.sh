@@ -52,7 +52,7 @@ package() {
 
     # Remove uneeded files
     rm -r "\${pkgdir}"/etc/init.d
-    rm -r "\${pkgdir}"/usr/lib/dracut
+    rm -r "\${pkgdir}"/usr/share/initramfs-tools
 
     # move module tree /lib -> /usr/lib
     cp -r "\${pkgdir}"/{lib,usr}

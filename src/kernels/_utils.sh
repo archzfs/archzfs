@@ -3,7 +3,7 @@ mode_name="utils"
 mode_desc="Select and use the utils packages"
 
 # version
-pkgrel="1"
+pkgrel="2"
 
 # Version for GIT packages
 pkgrel_git="1"
@@ -13,7 +13,7 @@ zfs_git_url="https://github.com/zfsonlinux/zfs.git"
 spl_git_url="https://github.com/zfsonlinux/spl.git"
 
 # Version for RC packages
-pkgrel_rc="2"
+pkgrel_rc="3"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
