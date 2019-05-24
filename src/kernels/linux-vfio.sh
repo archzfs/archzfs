@@ -9,9 +9,7 @@ pkgrel="1"
 # pkgrel for GIT packages
 pkgrel_git="1"
 zfs_git_commit=""
-spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
-spl_git_url="https://github.com/zfsonlinux/spl.git"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
@@ -48,25 +46,18 @@ get_kernel_options() {
 
 update_linux_vfio_pkgbuilds() {
     get_kernel_options
-    pkg_list=("spl-linux-vfio" "zfs-linux-vfio")
+    pkg_list=("zfs-linux-vfio")
     archzfs_package_group="archzfs-linux-vfio"
-    spl_pkgver=${zol_version}
     zfs_pkgver=${zol_version}
-    spl_pkgrel=${pkgrel}
     zfs_pkgrel=${pkgrel}
-    spl_conflicts="'spl-linux-vfio-git'"
-    zfs_conflicts="'zfs-linux-vfio-git'"
-    spl_pkgname="spl-linux-vfio"
+    zfs_conflicts="'zfs-linux-vfio-git' 'spl-linux-vfio'"
     zfs_pkgname="zfs-linux-vfio"
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     # Paths are relative to build.sh
-    spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_splver}/spl-\${_splver}.tar.gz"
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
-    spl_workdir="\${srcdir}/spl-\${_splver}"
     zfs_workdir="\${srcdir}/zfs-\${_zfsver}"
-    zfs_makedepends="\"${spl_pkgname}-headers\""
+    zfs_replaces='replaces=("spl-linux-vfio")'
 }
 
 update_linux_vfio_git_pkgbuilds() {
@@ -76,12 +67,11 @@ update_linux_vfio_git_pkgbuilds() {
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgrel=${pkgrel_git}
     zfs_conflicts="'zfs-linux-vfio' 'spl-linux-vfio-git' 'spl-linux-vfio'"
-    spl_pkgname=""
     zfs_pkgname="zfs-linux-vfio-git"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
     zfs_replaces='replaces=("spl-linux-vfio-git")'
     zfs_src_hash="SKIP"
-    zfs_makedepends="\"git\" \"python\""
+    zfs_makedepends="\"git\""
     zfs_workdir="\${srcdir}/zfs"
     if have_command "update"; then
         git_check_repo

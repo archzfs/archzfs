@@ -158,23 +158,22 @@ repo_package_list() {
     path="packages/${kernel_name}/${pkg_list_find}/"
     if [[ ! -z ${kernel_version_pkgver} ]]; then
         debug "kernel_version_pkgver: ${kernel_version_pkgver}"
-        fcmd="find ${path} -iname '*${kernel_version_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${kernel_version_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+        fcmd="find ${path} -iname '*${kernel_version_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
         run_cmd_no_output_no_dry_run "${fcmd}"
         for pkg in ${run_cmd_output}; do
             pkgs+=(${pkg})
         done
-    elif [[ ! -z ${spl_pkgver} ]] && [[ ! -z ${zfs_pkgver} ]]; then
-        debug "spl_pkgver: ${spl_pkgver}"
-        fcmd="find ${path} -iname '*${spl_pkgver}-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+    elif [[ ! -z ${zfs_pkgver} ]]; then
+        debug "zfs_pkgver: ${zfs_pkgver}"
+        fcmd="find ${path} -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
         run_cmd_no_output_no_dry_run "${fcmd}"
         for pkg in ${run_cmd_output}; do
             pkgs+=(${pkg})
         done
     else
-        debug "kernel_version_pkgver and spl_pkgver (and zfs_pkgver) not set!"
-        debug "Falling back to newest package by mod time for zfs and spl"
+        debug "kernel_version_pkgver and zfs_pkgver not set!"
+        debug "Falling back to newest package by mod time for zfs"
         for z in $(printf '%s ' ${pkg_list[@]} ); do
-            # fcmd="find ${path} -iname '*${kernel_name}*-${spl_pkgrel}*.pkg.tar.xz' -o -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
             fcmd="find packages/${kernel_name} -iname '*${z}*.pkg.tar.xz' -printf '%T@ %p\\n' | sort -n | tail -1 | cut -f2- -d' '"
             run_cmd_no_output_no_dry_run "${fcmd}"
             for pkg in ${run_cmd_output}; do
@@ -193,7 +192,6 @@ repo_package_list() {
 
         if ! [[ ${name} =~ .*-git ]]; then
             # Version match check: arch: x86_64 name: spl-utils-linux-git vers: 0.7.0_rc1_r0_g4fd75d3_4.7.2_1-4 vers_match: 0.6.5.8.*4.7.2_1-4
-            debug "spl_pkgver: ${spl_pkgver}"
             debug "zfs_pkgver: ${zfs_pkgver}"
             debug "kernel_version_pkgver: ${kernel_version_pkgver}"
 
@@ -203,9 +201,7 @@ repo_package_list() {
               kernvers="_${kernel_version_pkgver}";
             fi
 
-            if [[ ${pkg} =~ .*spl-.* ]]; then
-                match="${spl_pkgver}${kernvers}-${spl_pkgrel}"
-            elif [[ ${pkg} =~ .*zfs-.* ]]; then
+            if [[ ${pkg} =~ .*zfs-.* ]]; then
                 match="${zfs_pkgver}${kernvers}-${zfs_pkgrel}"
             fi
 
@@ -480,7 +476,6 @@ else
             source_safe "src/kernels/${kernel_name}.sh"
 
             export zfs_pkgver=""
-            export spl_pkgver=""
 
             for func in ${update_funcs[@]}; do
                 debug "Evaluating '${func}'"
@@ -503,7 +498,6 @@ else
         source_safe "src/kernels/${kernel_name}.sh"
 
         export zfs_pkgver=""
-        export spl_pkgver=""
 
         for func in ${update_funcs[@]}; do
             debug "Evaluating '${func}'"

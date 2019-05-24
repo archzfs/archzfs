@@ -32,26 +32,17 @@ update_archiso_linux_pkgbuilds() {
     fi
     kernel_version="${webpage_output}.arch1-1"
     
-    pkg_list=("spl-archiso-linux" "zfs-archiso-linux")
+    pkg_list=("zfs-archiso-linux")
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_pkgver=$(kernel_version_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
     kernel_mod_path="${kernel_version_full/.arch/-arch}-ARCH"
     archzfs_package_group="archzfs-archiso-linux"
-    spl_pkgver=${zol_version}
-    zfs_pkgver=${zol_version}
-    spl_pkgrel=${pkgrel}
-    zfs_pkgrel=${pkgrel}
-    spl_pkgname="spl-archiso-linux"
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     zfs_pkgname="zfs-archiso-linux"
-    spl_pkgbuild_path="packages/${kernel_name}/${spl_pkgname}"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    spl_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_splver}/spl-\${_splver}.tar.gz"
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
-    spl_workdir="\${srcdir}/spl-\${_splver}"
     zfs_workdir="\${srcdir}/zfs-\${_zfsver}"
     linux_depends="\"linux=\${_kernelver}\""
     linux_headers_depends="\"linux-headers=\${_kernelver}\""
-    zfs_makedepends="\"${spl_pkgname}-headers\""
 }

@@ -1,13 +1,5 @@
 #!/bin/bash
 
-# spl is included in git packages (workaround till zfs 0.8)
-git_provides=""
-git_conflicts=""
-if [[ ${archzfs_package_group} =~ -git$ ]] || [[ ${archzfs_package_group} =~ -rc$ ]]; then
-    git_provides+=' "spl-utils"'
-    git_conflicts+=' "spl-utils"'
-fi
-
 cat << EOF > ${zfs_utils_pkgbuild_path}/PKGBUILD
 ${header}
 pkgname="${zfs_utils_pkgname}"
@@ -15,26 +7,24 @@ ${zfs_set_commit}
 pkgver=${zfs_pkgver}
 pkgrel=${zfs_pkgrel}
 pkgdesc="Kernel module support files for the Zettabyte File System."
-makedepends=(${zfs_makedepends})
+makedepends=("python" ${zfs_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("${zfs_src_target}"
-        "zfs-utils.bash-completion-r1"
         "zfs-utils.initcpio.install"
         "zfs-utils.initcpio.hook"
         "zfs-utils.initcpio.zfsencryptssh.install")
 sha256sums=("${zfs_src_hash}"
-            "${zfs_bash_completion_hash}"
             "${zfs_initcpio_install_hash}"
             "${zfs_initcpio_hook_hash}"
             "${zfs_initcpio_zfsencryptssh_install}")
 license=("CDDL")
 groups=("${archzfs_package_group}")
-provides=("zfs-utils"${git_provides})
+provides=("zfs-utils" "spl-utils")
 install=zfs-utils.install
-conflicts=("zfs-utils"${git_conflicts})
+conflicts=("zfs-utils" "spl-utils")
 ${zfs_utils_replaces}
-backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs')
+backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs' 'etc/modules-load.d/zfs.conf')
 
 build() {
     cd "${zfs_workdir}"
@@ -53,6 +43,7 @@ package() {
     # Remove uneeded files
     rm -r "\${pkgdir}"/etc/init.d
     rm -r "\${pkgdir}"/usr/share/initramfs-tools
+    rm -r "\${pkgdir}"/usr/lib/modules-load.d
 
     # move module tree /lib -> /usr/lib
     cp -r "\${pkgdir}"/{lib,usr}
@@ -69,7 +60,7 @@ package() {
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.hook "\${pkgdir}"/usr/lib/initcpio/hooks/zfs
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.install "\${pkgdir}"/usr/lib/initcpio/install/zfs
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.zfsencryptssh.install "\${pkgdir}"/usr/lib/initcpio/install/zfsencryptssh
-    install -D -m644 "\${srcdir}"/zfs-utils.bash-completion-r1 "\${pkgdir}"/usr/share/bash-completion/completions/zfs
+    install -D -m644 contrib/bash_completion.d/zfs "\${pkgdir}"/usr/share/bash-completion/completions/zfs
 }
 EOF
 

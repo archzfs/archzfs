@@ -20,7 +20,6 @@ fi
 source_safe "${script_dir}/conf.sh"
 
 # save conf variables
-spl_src_hash_conf=${spl_src_hash}
 zfs_src_hash_conf=${zfs_src_hash}
 
 usage() {
@@ -101,84 +100,46 @@ generate_package_files() {
     debug "kernel_mod_path: ${kernel_mod_path}"
     debug "archzfs_package_group: ${archzfs_package_group}"
     debug "header: ${header}"
-    debug "spl_pkgver: ${spl_pkgver}"
-    debug "spl_pkgrel: ${spl_pkgrel}"
     debug "zfs_pkgver: ${zfs_pkgver}"
     debug "zfs_pkgrel: ${zfs_pkgrel}"
-    debug "spl_makedepends: ${spl_makedepends}"
     debug "zfs_makedepends: ${zfs_makedepends}"
     debug "zol_version: ${zol_version}"
-    debug "spl_utils_pkgname: ${spl_utils_pkgname}"
-    debug "spl_pkgname: ${spl_pkgname}"
     debug "zfs_utils_pkgname: ${zfs_utils_pkgname}"
     debug "zfs_pkgname: ${zfs_pkgname}"
-    debug "spl_utils_pkgbuild_path: ${spl_utils_pkgbuild_path}"
-    debug "spl_pkgbuild_path: ${spl_pkgbuild_path}"
     debug "zfs_utils_pkgbuild_path: ${zfs_utils_pkgbuild_path}"
     debug "zfs_pkgbuild_path: ${zfs_pkgbuild_path}"
     debug "zfs_workdir: ${zfs_workdir}"
     debug "zfs_src_target: ${zfs_src_target}"
     debug "zfs_src_hash: ${zfs_src_hash}"
-    debug "spl_workdir: ${spl_workdir}"
-    debug "spl_src_target: ${spl_src_target}"
-    debug "spl_src_hash: ${spl_src_hash}"
-    debug "zfs_bash_completion_hash: ${zfs_bash_completion_hash}"
     debug "zfs_initcpio_install_hash: ${zfs_initcpio_install_hash}"
     debug "zfs_initcpio_hook_hash: ${zfs_initcpio_hook_hash}"
 
     # Make sure our target directory exists
     if [[ "${kernel_name}" == "_utils" ]]; then
-        run_cmd_no_output "[[ -d "${spl_utils_pkgbuild_path}" ]] || mkdir -p ${spl_utils_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_utils_pkgbuild_path}" ]] || mkdir -p ${zfs_utils_pkgbuild_path}"
     elif [[ "${kernel_name}" == "dkms" ]]; then
-        run_cmd_no_output "[[ -d "${spl_dkms_pkgbuild_path}" ]] || mkdir -p ${spl_dkms_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_dkms_pkgbuild_path}" ]] || mkdir -p ${zfs_dkms_pkgbuild_path}"
     else
-        run_cmd_no_output "[[ -d "${spl_pkgbuild_path}" ]] || mkdir -p ${spl_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_pkgbuild_path}" ]] || mkdir -p ${zfs_pkgbuild_path}"
     fi
 
     # Finally, generate the update packages ...
-    
-    # skip spl for git utils
-    if [[ "${kernel_name}" == "_utils" ]] && [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
-        msg2 "Removing old spl-utils patches (if any)"
-        run_cmd_no_output "rm -f ${spl_utils_pkgbuild_path}/*.patch"
-        msg2 "Copying spl-utils patches (if any)"
-        run_cmd_no_output "find ${script_dir}/src/spl-utils -name \*.patch -exec cp {} ${spl_utils_pkgbuild_path} \;"
-        msg2 "Creating spl-utils PKGBUILD"
-        run_cmd_no_output "source ${script_dir}/src/spl-utils/PKGBUILD.sh"
-    fi
-
     if [[ "${kernel_name}" == "_utils" ]]; then
         msg2 "Removing old zfs-utils patches (if any)"
         run_cmd_no_output "rm -f ${zfs_utils_pkgbuild_path}/*.patch"
+        msg2 "Removing old bash completion file"
+        run_cmd_no_output "rm -f ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
         msg2 "Copying zfs-utils patches (if any)"
         run_cmd_no_output "find ${script_dir}/src/zfs-utils -name \*.patch -exec cp {} ${zfs_utils_pkgbuild_path} \;"
         msg2 "Creating zfs-utils PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-utils/PKGBUILD.sh"
         msg2 "Creating zfs-utils.install"
         run_cmd_no_output "source ${script_dir}/src/zfs-utils/zfs-utils.install.sh"
-        msg2 "Copying zfs-utils.bash-completion"
-        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1 ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
         msg2 "Copying zfs-utils hooks"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/*.hook ${zfs_utils_pkgbuild_path}/"
         msg2 "Copying zfs-utils hook install files"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/*.install ${zfs_utils_pkgbuild_path}/"
     elif [[ "${kernel_name}" == "dkms" ]]; then
-        # skip spl for git packages
-        if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
-            msg2 "Removing old spl patches (if any)"
-            run_cmd_no_output "rm -f ${spl_dkms_pkgbuild_path}/*.patch"
-            msg2 "Copying spl patches (if any)"
-            run_cmd_no_output "find ${script_dir}/src/spl-dkms -name \*.patch -exec cp {} ${spl_dkms_pkgbuild_path} \;"
-            msg2 "Copying 60-spl-dkms-install.hook"
-            run_cmd_no_output "cp ${script_dir}/src/spl-dkms/60-spl-dkms-install.hook ${spl_dkms_pkgbuild_path}/"
-            msg2 "Copying spl-dkms-alpm-hook"
-            run_cmd_no_output "cp ${script_dir}/src/spl-dkms/spl-dkms-alpm-hook ${spl_dkms_pkgbuild_path}/"
-            msg2 "Creating spl-dkms PKGBUILD"
-            run_cmd_no_output "source ${script_dir}/src/spl-dkms/PKGBUILD.sh"
-        fi
         msg2 "Removing old zfs patches (if any)"
         run_cmd_no_output "rm -f ${zfs_dkms_pkgbuild_path}/*.patch"
         msg2 "Copying zfs patches (if any)"
@@ -186,18 +147,6 @@ generate_package_files() {
         msg2 "Creating zfs-dkms PKGBUILD"
         run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
     else
-        # skip spl for git packages
-        if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
-            msg2 "Removing old spl patches (if any)"
-            run_cmd_no_output "rm -f ${spl_pkgbuild_path}/*.patch"
-            msg2 "Copying spl patches (if any)"
-            run_cmd_no_output "find ${script_dir}/src/spl -name \*.patch -exec cp {} ${spl_pkgbuild_path} \;"
-            msg2 "Creating spl PKGBUILD"
-            run_cmd_no_output "source ${script_dir}/src/spl/PKGBUILD.sh"
-            msg2 "Creating spl.install"
-            run_cmd_no_output "source ${script_dir}/src/spl/spl.install.sh"
-        fi
-
         msg2 "Removing old zfs patches (if any)"
         run_cmd_no_output "rm -f ${zfs_pkgbuild_path}/*.patch"
         msg2 "Copying zfs patches (if any)"
@@ -209,14 +158,6 @@ generate_package_files() {
     fi
 
     msg "Update diffs ..."
-    if [[ ! -z ${spl_utils_pkgbuild_path} ]]; then
-        run_cmd "cd ${script_dir}/${spl_utils_pkgbuild_path} && git --no-pager diff"
-    fi
-
-    if [[ ! -z ${spl_pkgbuild_path} ]]; then
-        run_cmd "cd ${script_dir}/${spl_pkgbuild_path} && git --no-pager diff"
-    fi
-
     if [[ ! -z ${zfs_utils_pkgbuild_path} ]]; then
         run_cmd "cd ${script_dir}/${zfs_utils_pkgbuild_path} && git --no-pager diff"
     fi
@@ -320,10 +261,6 @@ msg "$(date) :: ${script_name} started..."
 
 if have_command "update_sums"; then
     # Only the files in the zfs-utils package will be updated
-    run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.bash-completion-r1"
-    azsha1=$(echo ${run_cmd_output} | awk '{ print $1 }')
-    run_cmd_no_output "sed -e 's/^zfs_bash_completion_hash.*/zfs_bash_completion_hash=\"${azsha1}\"/g' -i ${script_dir}/conf.sh"
-
     run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.hook"
     azsha2=$(echo ${run_cmd_output} | awk '{ print $1 }')
     run_cmd_no_output "sed -e 's/^zfs_initcpio_hook_hash.*/zfs_initcpio_hook_hash=\"${azsha2}\"/g' -i ${script_dir}/conf.sh"
