@@ -7,7 +7,8 @@ ${zfs_set_commit}
 pkgver=${zfs_pkgver}
 pkgrel=${zfs_pkgrel}
 pkgdesc="Kernel module support files for the Zettabyte File System."
-makedepends=("python" ${zfs_makedepends})
+makedepends=("python" "python-setuptools" "python-cffi" ${zfs_makedepends})
+optdepends=("python: pyzfs and extra utilities", "python-cffi: pyzfs")
 arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("${zfs_src_target}"
@@ -32,7 +33,7 @@ build() {
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
                 --with-udevdir=/lib/udev --libexecdir=/usr/lib/zfs-\${pkgver} \\
-                --with-config=user --enable-systemd
+                --with-config=user --enable-systemd --enable-pyzfs
     make
 }
 

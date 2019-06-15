@@ -12,7 +12,7 @@ _extramodules="${kernel_mod_path}"
 
 pkgver="\${_zfsver}_\$(echo \${_kernelver} | sed s/-/./g)"
 pkgrel=${zfs_pkgrel}
-makedepends=("python" ${linux_headers_depends} ${zfs_makedepends})
+makedepends=(${linux_headers_depends} ${zfs_makedepends})
 arch=("x86_64")
 url="http://zfsonlinux.org/"
 source=("${zfs_src_target}")
