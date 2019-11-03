@@ -25,7 +25,7 @@ provides=("zfs-utils" "spl-utils")
 install=zfs-utils.install
 conflicts=("zfs-utils" "spl-utils")
 ${zfs_utils_replaces}
-backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs' 'etc/modules-load.d/zfs.conf')
+backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs' 'etc/modules-load.d/zfs.conf' 'etc/sudoers.d/zfs')
 
 build() {
     cd "${zfs_workdir}"
@@ -56,6 +56,7 @@ package() {
 
     # fix permissions
     chmod 750 \${pkgdir}/etc/sudoers.d
+    chmod 440 \${pkgdir}/etc/sudoers.d/zfs
 
     # Install the support files
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.hook "\${pkgdir}"/usr/lib/initcpio/hooks/zfs
