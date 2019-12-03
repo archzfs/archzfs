@@ -39,8 +39,8 @@ get_kernel_options() {
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_pkgver=$(kernel_version_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    # convert 1.2.3.4-5 to 1.2.3-zen4-5-zen
-    kernel_mod_path=$(echo $kernel_version_full | sed -r 's/(.*)\.([0-9]+)-([0-9]+)/\1-zen\2-\3-zen/')
+    # convert 1.2.3.zen4-5 to 1.2.3-zen4-5-zen
+    kernel_mod_path="\${_kernelver/.zen/-zen}-zen"
     linux_depends="\"linux-zen=\${_kernelver}\""
     linux_headers_depends="\"linux-zen-headers=\${_kernelver}\""
 }
