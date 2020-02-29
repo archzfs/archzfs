@@ -15,8 +15,10 @@ pkgrel=${zfs_pkgrel}
 makedepends=(${linux_headers_depends} ${zfs_makedepends})
 arch=("x86_64")
 url="https://zfsonlinux.org/"
-source=("${zfs_src_target}")
-sha256sums=("${zfs_src_hash}")
+source=("${zfs_src_target}"
+        "linux-5.5-compat-blkg_tryget.patch")
+sha256sums=("${zfs_src_hash}"
+            "daae58460243c45c2c7505b1d88dcb299ea7d92bcf3f41d2d30bc213000bb1da")
 license=("CDDL")
 depends=("kmod" "${zfs_utils_pkgname}" ${linux_depends})
 
@@ -62,5 +64,9 @@ package_${zfs_pkgname}-headers() {
 }
 
 EOF
+
+if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
+    sed -E -i "/^build()/i prepare() {\n    cd \"${zfs_workdir}\"\n    patch -Np1 -i \${srcdir}/linux-5.5-compat-blkg_tryget.patch\n}" ${zfs_pkgbuild_path}/PKGBUILD
+fi
 
 pkgbuild_cleanup "${zfs_pkgbuild_path}/PKGBUILD"
