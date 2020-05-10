@@ -34,8 +34,8 @@ build() {
     cd "${zfs_workdir}"
     ./autogen.sh
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \\
-                --datadir=/usr/share --includedir=/usr/include --with-udevdir=/lib/udev \\
-                --libexecdir=/usr/lib/zfs-\${_zfsver} --with-config=kernel \\
+                --datadir=/usr/share --includedir=/usr/include --with-udevdir=/usr/lib/udev \\
+                --libexecdir=/usr/lib --with-config=kernel \\
                 --with-linux=/usr/lib/modules/\${_extramodules}/build \\
                 --with-linux-obj=/usr/lib/modules/\${_extramodules}/build
     make
@@ -50,9 +50,7 @@ package_${zfs_pkgname}() {
     ${zfs_replaces}
 
     cd "${zfs_workdir}"
-    make DESTDIR="\${pkgdir}" install
-    cp -r "\${pkgdir}"/{lib,usr}
-    rm -r "\${pkgdir}"/lib
+    make DESTDIR="\${pkgdir}" INSTALL_MOD_PATH=/usr install
 
     # Remove src dir
     rm -r "\${pkgdir}"/usr/src

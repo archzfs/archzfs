@@ -32,7 +32,7 @@ build() {
     ./autogen.sh
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
-                --with-udevdir=/lib/udev --libexecdir=/usr/lib/zfs-\${pkgver} \\
+                --with-udevdir=/usr/lib/udev --libexecdir=/usr/lib \\
                 --with-config=user --enable-systemd --enable-pyzfs
     make
 }
@@ -45,10 +45,6 @@ package() {
     rm -r "\${pkgdir}"/etc/init.d
     rm -r "\${pkgdir}"/usr/share/initramfs-tools
     rm -r "\${pkgdir}"/usr/lib/modules-load.d
-
-    # move module tree /lib -> /usr/lib
-    cp -r "\${pkgdir}"/{lib,usr}
-    rm -r "\${pkgdir}"/lib
 
     # Autoload the zfs module at boot
     mkdir -p "\${pkgdir}/etc/modules-load.d"
