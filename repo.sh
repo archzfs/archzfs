@@ -158,14 +158,14 @@ repo_package_list() {
     path="packages/${kernel_name}/${pkg_list_find}/"
     if [[ ! -z ${kernel_version_pkgver} ]]; then
         debug "kernel_version_pkgver: ${kernel_version_pkgver}"
-        fcmd="find ${path} -iname '*${kernel_version_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+        fcmd="find ${path} -iname '*${kernel_version_pkgver}-${zfs_pkgrel}*.pkg.tar.zst' "
         run_cmd_no_output_no_dry_run "${fcmd}"
         for pkg in ${run_cmd_output}; do
             pkgs+=(${pkg})
         done
     elif [[ ! -z ${zfs_pkgver} ]]; then
         debug "zfs_pkgver: ${zfs_pkgver}"
-        fcmd="find ${path} -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.xz' "
+        fcmd="find ${path} -iname '*${zfs_pkgver}-${zfs_pkgrel}*.pkg.tar.zst' "
         run_cmd_no_output_no_dry_run "${fcmd}"
         for pkg in ${run_cmd_output}; do
             pkgs+=(${pkg})
@@ -174,7 +174,7 @@ repo_package_list() {
         debug "kernel_version_pkgver and zfs_pkgver not set!"
         debug "Falling back to newest package by mod time for zfs"
         for z in $(printf '%s ' ${pkg_list[@]} ); do
-            fcmd="find packages/${kernel_name} -iname '*${z}*.pkg.tar.xz' -printf '%T@ %p\\n' | sort -n | tail -1 | cut -f2- -d' '"
+            fcmd="find packages/${kernel_name} -iname '*${z}*.pkg.tar.zst' -printf '%T@ %p\\n' | sort -n | tail -1 | cut -f2- -d' '"
             run_cmd_no_output_no_dry_run "${fcmd}"
             for pkg in ${run_cmd_output}; do
                 pkgs+=(${pkg})
@@ -214,7 +214,7 @@ repo_package_list() {
         fi
 
         # check if package version is already in repo
-        if [ -f "${repo_target}/${arch}/${name}-${vers}-${arch}.pkg.tar.xz" ]; then
+        if [ -f "${repo_target}/${arch}/${name}-${vers}-${arch}.pkg.tar.zst" ]; then
             msg2 "Package ${name}=${vers} already in repo. Skipping"
             continue
         fi
@@ -255,7 +255,7 @@ repo_package_backup() {
             local o="-o"
         fi
 
-        pkgs+=("$o -regextype egrep -regex '.*${name}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
+        pkgs+=("$o -regextype egrep -regex '.*${name}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.(xz|zst)'")
     done
 
     # only run find, if new packages will be copied
@@ -393,7 +393,7 @@ remove_packages() {
         if [[ ${#pkgs[@]} -ne 0 ]]; then
             local o="-o"
         fi
-        pkgs+=("$o -regextype egrep -regex '.*/${package}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.xz'")
+        pkgs+=("$o -regextype egrep -regex '.*/${package}-[a-z0-9\.\_]+-[0-9]+-x86_64.pkg.tar.(zst|xz)'")
     done
 
     # only run find, if ackages were found

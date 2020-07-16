@@ -695,7 +695,7 @@ check_skip_build() {
     pkg=${1}
 
     # get version of any package that has been built previously
-    run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.pkg.tar.xz | grep \"$pkg\" | grep -v \"headers\" | tail -1"
+    run_cmd_show_and_capture_output "ls \"${script_dir}/packages/${kernel_name}/${pkg}/\"${pkg}*.pkg.tar.zst | grep \"$pkg\" | grep -v \"headers\" | tail -1"
     pkg_path=${run_cmd_output}
 
     if [[ ${pkg_path} == "" ]]; then

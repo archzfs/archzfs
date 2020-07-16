@@ -73,7 +73,7 @@ usage() {
 cleanup() {
     # $1: the package name
     msg "Cleaning up work files..."
-    fincs='-iname "*.log" -o -iname "*.pkg.tar.xz*" -o -iname "*.src.tar.gz"'
+    fincs='-iname "*.log" -o -iname "*.pkg.tar.zst*" -o -iname "*.src.tar.gz"'
     run_cmd "find ${script_dir}/packages/${kernel_name}/$1 \( ${fincs} \) -print -exec rm -rf {} \\;"
     run_cmd "rm -rf  */src"
     run_cmd "rm -rf */*.tar.gz"
