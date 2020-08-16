@@ -68,7 +68,7 @@ EOF
 if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
     sed -E -i "/^build()/i prepare() {\n\
     cd \"${zfs_workdir}\"\n\
-    patch -Np1 -i \${srcdir}/linux-5.8-compat-vmalloc.patch\n}" ${zfs_pkgbuild_path}/PKGBUILD
+    patch -Np1 -i \${srcdir}/linux-5.8-compat-__vmalloc.patch\n}" ${zfs_pkgbuild_path}/PKGBUILD
 fi
 
 pkgbuild_cleanup "${zfs_pkgbuild_path}/PKGBUILD"
