@@ -45,10 +45,10 @@
 	url = git@github.com:archzfs/zfs-dkms-git.git
 [submodule "packages/_utils/zfs-utils-rc"]
 	path = packages/_utils/zfs-utils-rc
-	url = git@github.com:archzfs/zfs-utils-rc.git
+	url = ssh+git://aur@aur.archlinux.org/zfs-utils-rc.git
 [submodule "packages/dkms/zfs-dkms-rc"]
 	path = packages/dkms/zfs-dkms-rc
-	url = git@github.com:archzfs/zfs-dkms-rc.git
+	url = ssh+git://aur@aur.archlinux.org/zfs-dkms-rc.git
 [submodule "packages/linux/zfs-linux-rc"]
 	path = packages/linux/zfs-linux-rc
 	url = ssh://aur@aur.archlinux.org/zfs-linux-rc.git
