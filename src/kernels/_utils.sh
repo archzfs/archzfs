@@ -11,7 +11,7 @@ zfs_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
 
 # Version for RC packages
-pkgrel_rc="3"
+pkgrel_rc="1"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
