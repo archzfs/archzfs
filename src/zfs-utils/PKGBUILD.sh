@@ -14,11 +14,13 @@ url="http://zfsonlinux.org/"
 source=("${zfs_src_target}"
         "zfs-utils.initcpio.install"
         "zfs-utils.initcpio.hook"
-        "zfs-utils.initcpio.zfsencryptssh.install")
+        "zfs-utils.initcpio.zfsencryptssh.install"
+        "autoconf-270-compatibility.patch")
 sha256sums=("${zfs_src_hash}"
             "${zfs_initcpio_install_hash}"
             "${zfs_initcpio_hook_hash}"
-            "${zfs_initcpio_zfsencryptssh_install}")
+            "${zfs_initcpio_zfsencryptssh_install}"
+            "dc82ee4e62f76b68d972423909c38ced28dea876c6ef4f19037a24a8dbb2fff5")
 license=("CDDL")
 groups=("${archzfs_package_group}")
 provides=("zfs-utils" "spl-utils")
@@ -27,9 +29,14 @@ conflicts=("zfs-utils" "spl-utils")
 ${zfs_utils_replaces}
 backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs' 'etc/modules-load.d/zfs.conf' 'etc/sudoers.d/zfs')
 
+prepare() {
+    cd "${zfs_workdir}"
+    patch -Np1 -i \${srcdir}/autoconf-270-compatibility.patch
+}
+
 build() {
     cd "${zfs_workdir}"
-    ./autogen.sh
+    ./autogen.sh || true
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
                 --with-udevdir=/usr/lib/udev --libexecdir=/usr/lib \\

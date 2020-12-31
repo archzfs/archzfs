@@ -15,14 +15,21 @@ pkgrel=${zfs_pkgrel}
 makedepends=(${linux_headers_depends} ${zfs_makedepends})
 arch=("x86_64")
 url="https://zfsonlinux.org/"
-source=("${zfs_src_target}")
-sha256sums=("${zfs_src_hash}")
+source=("${zfs_src_target}"
+              "autoconf-270-compatibility.patch")
+sha256sums=("${zfs_src_hash}"
+                        "dc82ee4e62f76b68d972423909c38ced28dea876c6ef4f19037a24a8dbb2fff5")
 license=("CDDL")
 depends=("kmod" "${zfs_utils_pkgname}" ${linux_depends})
 
+prepare() {
+    cd "${zfs_workdir}"
+    patch -Np1 -i \${srcdir}/autoconf-270-compatibility.patch
+}
+
 build() {
     cd "${zfs_workdir}"
-    ./autogen.sh
+    ./autogen.sh || true
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \\
                 --datadir=/usr/share --includedir=/usr/include --with-udevdir=/usr/lib/udev \\
                 --libexecdir=/usr/lib --with-config=kernel \\
