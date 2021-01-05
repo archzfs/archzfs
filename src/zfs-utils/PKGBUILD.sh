@@ -29,11 +29,6 @@ conflicts=("zfs-utils" "spl-utils")
 ${zfs_utils_replaces}
 backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs' 'etc/modules-load.d/zfs.conf' 'etc/sudoers.d/zfs')
 
-prepare() {
-    cd "${zfs_workdir}"
-    patch -Np1 -i \${srcdir}/autoconf-270-compatibility.patch
-}
-
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh || true
@@ -68,5 +63,11 @@ package() {
     install -D -m644 contrib/bash_completion.d/zfs "\${pkgdir}"/usr/share/bash-completion/completions/zfs
 }
 EOF
+
+if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
+    sed -E -i "/^build()/i prepare() {\n\
+    cd \"${zfs_workdir}\"\n\
+    patch -Np1 -i \${srcdir}/autoconf-270-compatibility.patch\n}" ${zfs_utils_pkgbuild_path}/PKGBUILD
+fi
 
 pkgbuild_cleanup "${zfs_utils_pkgbuild_path}/PKGBUILD"

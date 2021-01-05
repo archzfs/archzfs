@@ -21,11 +21,6 @@ groups=("${archzfs_package_group}")
 conflicts=("zfs" "zfs-headers" "spl" "spl-headers")
 ${zfs_replaces}
 
-prepare() {
-    cd "${zfs_workdir}"
-    patch -Np1 -i \${srcdir}/autoconf-270-compatibility.patch
-}
-
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh || true
@@ -44,5 +39,12 @@ package() {
 
 
 EOF
+
+if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
+    sed -E -i "/^build()/i prepare() {\n\
+    cd \"${zfs_workdir}\"\n\
+    patch -Np1 -i \${srcdir}/autoconf-270-compatibility.patch\n}" ${zfs_dkms_pkgbuild_path}/PKGBUILD
+fi
+
 
 pkgbuild_cleanup "${zfs_dkms_pkgbuild_path}/PKGBUILD"

@@ -22,11 +22,6 @@ sha256sums=("${zfs_src_hash}"
 license=("CDDL")
 depends=("kmod" "${zfs_utils_pkgname}" ${linux_depends})
 
-prepare() {
-    cd "${zfs_workdir}"
-    patch -Np1 -i \${srcdir}/autoconf-270-compatibility.patch
-}
-
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh || true
@@ -67,5 +62,11 @@ package_${zfs_pkgname}-headers() {
 }
 
 EOF
+
+if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
+    sed -E -i "/^build()/i prepare() {\n\
+    cd \"${zfs_workdir}\"\n\
+    patch -Np1 -i \${srcdir}/autoconf-270-compatibility.patch\n}" ${zfs_pkgbuild_path}/PKGBUILD
+fi
 
 pkgbuild_cleanup "${zfs_pkgbuild_path}/PKGBUILD"
