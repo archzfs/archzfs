@@ -15,16 +15,14 @@ pkgrel=${zfs_pkgrel}
 makedepends=(${linux_headers_depends} ${zfs_makedepends})
 arch=("x86_64")
 url="https://zfsonlinux.org/"
-source=("${zfs_src_target}"
-              "autoconf-270-compatibility.patch")
-sha256sums=("${zfs_src_hash}"
-                        "dc82ee4e62f76b68d972423909c38ced28dea876c6ef4f19037a24a8dbb2fff5")
+source=("${zfs_src_target}")
+sha256sums=("${zfs_src_hash}")
 license=("CDDL")
 depends=("kmod" "${zfs_utils_pkgname}" ${linux_depends})
 
 build() {
     cd "${zfs_workdir}"
-    ./autogen.sh || true
+    ./autogen.sh
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \\
                 --datadir=/usr/share --includedir=/usr/include --with-udevdir=/usr/lib/udev \\
                 --libexecdir=/usr/lib --with-config=kernel \\
@@ -62,11 +60,5 @@ package_${zfs_pkgname}-headers() {
 }
 
 EOF
-
-if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
-    sed -E -i "/^build()/i prepare() {\n\
-    cd \"${zfs_workdir}\"\n\
-    patch -Np1 -i \${srcdir}/autoconf-270-compatibility.patch\n}" ${zfs_pkgbuild_path}/PKGBUILD
-fi
 
 pkgbuild_cleanup "${zfs_pkgbuild_path}/PKGBUILD"
