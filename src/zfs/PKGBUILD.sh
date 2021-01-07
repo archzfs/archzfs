@@ -22,7 +22,7 @@ depends=("kmod" "${zfs_utils_pkgname}" ${linux_depends})
 
 build() {
     cd "${zfs_workdir}"
-    ./autogen.sh
+    ./autogen.sh || true
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib \\
                 --datadir=/usr/share --includedir=/usr/include --with-udevdir=/usr/lib/udev \\
                 --libexecdir=/usr/lib --with-config=kernel \\
