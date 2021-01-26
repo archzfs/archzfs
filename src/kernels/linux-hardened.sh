@@ -39,7 +39,8 @@ get_kernel_options() {
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_pkgver=$(kernel_version_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
-    kernel_mod_path="${kernel_version_full}-hardened"
+    # convert 1.2.3.hardened4-5 to 1.2.3-hardened4-5-hardened
+    kernel_mod_path=\${_kernelver/.hardened/-hardened}-hardened
     linux_depends="\"linux-hardened=\${_kernelver}\""
     linux_headers_depends="\"linux-hardened-headers=\${_kernelver}\""
 }
