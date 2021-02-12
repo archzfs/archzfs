@@ -29,7 +29,7 @@ backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs' 'etc/modules-load.d/zfs.conf' '
 
 build() {
     cd "${zfs_workdir}"
-    ./autogen.sh || true
+    ./autogen.sh
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
                 --with-udevdir=/usr/lib/udev --libexecdir=/usr/lib \\

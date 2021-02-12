@@ -21,7 +21,7 @@ ${zfs_replaces}
 
 build() {
     cd "${zfs_workdir}"
-    ./autogen.sh || true
+    ./autogen.sh
 }
 
 package() {
