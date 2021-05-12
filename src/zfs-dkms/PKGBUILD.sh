@@ -10,8 +10,10 @@ pkgrel=${zfs_pkgrel}
 makedepends=(${zfs_makedepends})
 arch=("x86_64")
 url="https://zfsonlinux.org/"
-source=("${zfs_src_target}")
-sha256sums=("${zfs_src_hash}")
+source=("${zfs_src_target}"
+              "linux-5.12-compat.patch")
+sha256sums=("${zfs_src_hash}"
+                        "9c601804dc473766d85da2198aa3769707e051d3659dc82dd1302edd5e91a8cf")
 license=("CDDL")
 depends=("${zfs_utils_pkgname}" "lsb-release" "dkms")
 provides=("zfs" "zfs-headers" "spl" "spl-headers")
@@ -37,5 +39,9 @@ package() {
 
 
 EOF
+
+if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
+    sed -E -i "/^build()/i prepare() {\n    cd \"${zfs_workdir}\"\n    patch -Np1 -i \${srcdir}/linux-5.12-compat.patch\n}" ${zfs_dkms_pkgbuild_path}/PKGBUILD
+fi
 
 pkgbuild_cleanup "${zfs_dkms_pkgbuild_path}/PKGBUILD"
