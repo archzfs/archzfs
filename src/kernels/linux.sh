@@ -65,21 +65,21 @@ update_linux_pkgbuilds() {
 }
 
 
-# update_linux_rc_pkgbuilds() {
-#     get_kernel_options
-#     pkg_list=("zfs-linux-rc")
-#     archzfs_package_group="archzfs-linux-rc"
-#     zfs_pkgver=${zol_rc_version/-/_}
-#     zfs_pkgrel=${pkgrel_rc}
-#     zfs_conflicts="'zfs-linux' 'zfs-linux-git' 'spl-linux'"
-#     zfs_pkgname="zfs-linux-rc"
-#     zfs_utils_pkgname="zfs-utils-rc=\${_zfsver}"
-#     zfs_src_hash=${zfs_rc_src_hash}
-#     Paths are relative to build.sh
-#     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-#     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver/_/-}/zfs-\${_zfsver/_/-}.tar.gz"
-#     zfs_workdir="\${srcdir}/zfs-\${_zfsver/_rc*/}"
-# }
+update_linux_rc_pkgbuilds() {
+    get_kernel_options
+    pkg_list=("zfs-linux-rc")
+    archzfs_package_group="archzfs-linux-rc"
+    zfs_pkgver=${zol_rc_version/-/_}
+    zfs_pkgrel=${pkgrel_rc}
+    zfs_conflicts="'zfs-linux' 'zfs-linux-git' 'spl-linux'"
+    zfs_pkgname="zfs-linux-rc"
+    zfs_utils_pkgname="zfs-utils-rc=\${_zfsver}"
+    zfs_src_hash=${zfs_rc_src_hash}
+    # Paths are relative to build.sh
+    zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
+    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver/_/-}/zfs-\${_zfsver/_/-}.tar.gz"
+    zfs_workdir="\${srcdir}/zfs-\${_zfsver/_rc*/}"
+}
 
 update_linux_git_pkgbuilds() {
     get_kernel_options
