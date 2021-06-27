@@ -129,7 +129,8 @@ pull_repo() {
     if [[ ${dry_run} -eq 1 ]]; then
         dry="-n"
     fi
-    run_cmd "rsync -vrtlh --delete-before ${remote_login}:${repo_remote_basepath}/${repo_name} ${remote_login}:${repo_remote_basepath}/archive_${repo_basename} ${repo_basepath}/ ${dry}"
+    run_cmd "mkdir -p ${repo_basepath}/archive_${repo_basename}"
+    run_cmd "rsync -vrtlh --delete-before ${remote_login}:${repo_remote_basepath}/${repo_name} ${repo_basepath}/ ${dry}"
     run_cmd_check 1 "Could not pull packages from remote repo!"
 }
 
@@ -138,7 +139,8 @@ pull_testing_repo() {
     if [[ ${dry_run} -eq 1 ]]; then
         dry="-n"
     fi
-    run_cmd "rsync -vrtlh --delete-before ${remote_login}:${repo_remote_basepath}/${repo_basename}-testing ${remote_login}:${repo_remote_basepath}/archive_${repo_basename}-testing ${repo_basepath}/ ${dry}"
+    run_cmd "mkdir -p ${repo_basepath}/archive_${repo_basename}-testing"
+    run_cmd "rsync -vrtlh --delete-before ${remote_login}:${repo_remote_basepath}/${repo_basename}-testing ${repo_basepath}/ ${dry}"
     run_cmd_check 1 "Could not pull packages from remote testing repo!"
 }
 
