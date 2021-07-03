@@ -141,6 +141,7 @@ push_repo() {
         return
     fi
     run_cmd "rsync -vrtlh --delete-before ${repo_basepath}/${repo_basename} ${remote_login}:${repo_remote_basepath}/ ${dry}"
+    run_cmd_check 1 "Could not push packages to remote repo!"
     run_cmd "rsync -vrtlh ${repo_basepath}/archive_${repo_basename} ${remote_login}:${repo_remote_basepath}/ ${dry}"
     run_cmd_check 1 "Could not push packages to remote repo!"
 }
@@ -152,6 +153,7 @@ push_testing_repo() {
         return
     fi
     run_cmd "rsync -vrtlh --delete-before ${repo_basepath}/${repo_basename}-testing ${remote_login}:${repo_remote_basepath}/ ${dry}"
+    run_cmd_check 1 "Could not push packages to remote testing repo!"
     run_cmd "rsync -vrtlh ${repo_basepath}/${repo_basename}-testing ${repo_basepath}/archive_${repo_basename}-testing ${remote_login}:${repo_remote_basepath}/ ${dry}"
     run_cmd_check 1 "Could not push packages to remote testing repo!"
 }
