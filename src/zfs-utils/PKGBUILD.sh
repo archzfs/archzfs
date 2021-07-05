@@ -33,7 +33,8 @@ build() {
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
                 --with-udevdir=/usr/lib/udev --libexecdir=/usr/lib \\
-                --with-config=user --enable-systemd --enable-pyzfs
+                --with-config=user --enable-systemd --enable-pyzfs \\
+                --with-zfsexecdir=/usr/lib/zfs
     make
 }
 
