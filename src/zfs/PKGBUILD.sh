@@ -40,7 +40,7 @@ package_${zfs_pkgname}() {
     ${zfs_replaces}
 
     cd "${zfs_workdir}"
-    make DESTDIR="\${pkgdir}" INSTALL_MOD_PATH=/usr install
+    make DESTDIR="\${pkgdir}" INSTALL_MOD_PATH="\${pkgdir}/usr" install
 
     # Remove src dir
     rm -r "\${pkgdir}"/usr/src
