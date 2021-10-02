@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [[ ${archzfs_package_group} =~ -git$ ]]; then
+    modpath="\${pkgdir}"
+fi
+
 cat << EOF > ${zfs_pkgbuild_path}/PKGBUILD
 ${header}
 pkgbase="${zfs_pkgname}"
@@ -40,7 +44,7 @@ package_${zfs_pkgname}() {
     ${zfs_replaces}
 
     cd "${zfs_workdir}"
-    make DESTDIR="\${pkgdir}" INSTALL_MOD_PATH=/usr install
+    make DESTDIR="\${pkgdir}" INSTALL_MOD_PATH=${modpath}/usr install
 
     # Remove src dir
     rm -r "\${pkgdir}"/usr/src
