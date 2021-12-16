@@ -14,13 +14,11 @@ url="http://zfsonlinux.org/"
 source=("${zfs_src_target}"
         "zfs-utils.initcpio.install"
         "zfs-utils.initcpio.hook"
-        "zfs-utils.initcpio.zfsencryptssh.install"
-        "fix-python310.patch")
+        "zfs-utils.initcpio.zfsencryptssh.install")
 sha256sums=("${zfs_src_hash}"
             "${zfs_initcpio_install_hash}"
             "${zfs_initcpio_hook_hash}"
-            "${zfs_initcpio_zfsencryptssh_install}"
-            "6fd61d4ebc0ea85d88fd177322accc890f0e05d9697a9d4fc1f6494e32934d8c")
+            "${zfs_initcpio_zfsencryptssh_install}")
 license=("CDDL")
 groups=("${archzfs_package_group}")
 provides=("zfs-utils" "spl-utils")
@@ -64,9 +62,5 @@ package() {
     install -D -m644 contrib/bash_completion.d/zfs "\${pkgdir}"/usr/share/bash-completion/completions/zfs
 }
 EOF
-
-if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
-    sed -E -i "/^build()/i prepare() {\n    cd \"${zfs_workdir}\"\n    patch -Np1 -i \${srcdir}/fix-python310.patch\n}" ${zfs_utils_pkgbuild_path}/PKGBUILD
-fi
 
 pkgbuild_cleanup "${zfs_utils_pkgbuild_path}/PKGBUILD"
