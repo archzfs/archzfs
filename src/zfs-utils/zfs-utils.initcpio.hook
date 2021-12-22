@@ -58,18 +58,22 @@ zfs_decrypt_fs() {
             keyfile="${keylocation#file://}"
 
             # If file not yet exist, wait for udev to create device nodes
-            [ -r "${keyfile}"] || udevadm settle
+            if [ ! -r "${keyfile}" ]; then
+                udevadm settle
 
-            # Wait for udev up to 10 seconds
-            [ -r "${keyfile}" ] || {
-                echo "Waiting for key ${keyfile} for ${encryptionroot}..."
-                for _ in $(seq 1 20); do
-                    sleep 0.5s
-                    [ -r "${keyfile}" ] && break
-                done
-            }
+                # Wait for udev up to 10 seconds
+                if [ ! -r "${keyfile}" ]; then 
+                    echo "Waiting for key ${keyfile} for ${encryptionroot}..."
+                    for _ in $(seq 1 20); do
+                        sleep 0.5s
+                        [ -r "${keyfile}" ] && break
+                    done
+                fi
 
-            [ -r "${keyfile}" ] || echo "Key ${keyfile} for ${encryptionroot} hasn't appeared. Trying anyway."
+                if [ ! -r "${keyfile}" ]; then
+                    echo "Key ${keyfile} for ${encryptionroot} hasn't appeared. Trying anyway."
+                fi
+            fi
         fi
     fi
 
