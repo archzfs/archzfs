@@ -43,7 +43,7 @@ get_kernel_options() {
     kernel_version_pkgver=$(kernel_version_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
     # convert 1.2.3.arch4-5 to 1.2.3-arch4-5
-    kernel_mod_path=\${_kernelver/.arch/-arch}
+    kernel_mod_path=\${_kernelver_full/.arch/-arch}
     linux_depends="\"linux=\${_kernelver}\""
     linux_headers_depends="\"linux-headers=\${_kernelver}\""
 }

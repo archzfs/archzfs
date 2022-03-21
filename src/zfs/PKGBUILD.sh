@@ -1,9 +1,5 @@
 #!/bin/bash
 
-if [[ ${archzfs_package_group} =~ -git$ ]]; then
-    modpath="\${pkgdir}"
-fi
-
 cat << EOF > ${zfs_pkgbuild_path}/PKGBUILD
 ${header}
 pkgbase="${zfs_pkgname}"
@@ -12,6 +8,7 @@ pkgname=("${zfs_pkgname}" "${zfs_pkgname}-headers")
 ${zfs_set_commit}
 _zfsver="${zfs_pkgver}"
 _kernelver="${kernel_version}"
+_kernelver_full="${kernel_version_full}"
 _extramodules="${kernel_mod_path}"
 
 pkgver="\${_zfsver}_\$(echo \${_kernelver} | sed s/-/./g)"
@@ -44,7 +41,7 @@ package_${zfs_pkgname}() {
     ${zfs_replaces}
 
     cd "${zfs_workdir}"
-    make DESTDIR="\${pkgdir}" INSTALL_MOD_PATH=${modpath}/usr install
+    make DESTDIR="\${pkgdir}" INSTALL_MOD_PATH=\${pkgdir}/usr install
 
     # Remove src dir
     rm -r "\${pkgdir}"/usr/src
