@@ -30,9 +30,6 @@ build() {
                 --with-linux=/usr/lib/modules/\${_extramodules}/build \\
                 --with-linux-obj=/usr/lib/modules/\${_extramodules}/build
     make
-
-    # strip debugging from module, needs to happen here since it is compressed afterwards
-    find . -name "*.ko" -print0 | xargs -0 strip --strip-debug
 }
 
 package_${zfs_pkgname}() {
@@ -44,7 +41,7 @@ package_${zfs_pkgname}() {
     ${zfs_replaces}
 
     cd "${zfs_workdir}"
-    make DESTDIR="\${pkgdir}" INSTALL_MOD_PATH=\${pkgdir}/usr install
+    make DESTDIR="\${pkgdir}" INSTALL_MOD_PATH=\${pkgdir}/usr INSTALL_MOD_STRIP=1 install
 
     # Remove src dir
     rm -r "\${pkgdir}"/usr/src
