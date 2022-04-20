@@ -30,6 +30,9 @@ build() {
                 --with-linux=/usr/lib/modules/\${_extramodules}/build \\
                 --with-linux-obj=/usr/lib/modules/\${_extramodules}/build
     make
+
+    # strip debugging from module, needs to happen here since it is compressed afterwards
+    find . -name "*.ko" -print0 | xargs -0 strip --strip-debug
 }
 
 package_${zfs_pkgname}() {
