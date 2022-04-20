@@ -44,12 +44,35 @@ zfs_decrypt_fs() {
     # Export encryption root to be used by other hooks (SSH)
     echo "${encryptionroot}" > /.encryptionroot
 
-    # If key location is a file, determine if it can by overridden by prompt
     prompt_override=""
-    if keylocation="$(zfs get -H -o value keylocation "${dataset}")"; then
+    if keylocation="$(zfs get -H -o value keylocation "${encryptionroot}")"; then
+        # If key location is a file, determine if it can by overridden by prompt
         if [ "${keylocation}" != "prompt" ]; then
-            if keyformat="$(zfs get -H -o value keyformat "${dataset}")"; then
+            if keyformat="$(zfs get -H -o value keyformat "${encryptionroot}")"; then
                 [ "${keyformat}" = "passphrase" ] && prompt_override="yes"
+            fi
+        fi
+
+        # If key location is a local file, check if file exists
+        if [ "${keylocation%%://*}" = "file" ]; then
+            keyfile="${keylocation#file://}"
+
+            # If file not yet exist, wait for udev to create device nodes
+            if [ ! -r "${keyfile}" ]; then
+                udevadm settle
+
+                # Wait for udev up to 10 seconds
+                if [ ! -r "${keyfile}" ]; then 
+                    echo "Waiting for key ${keyfile} for ${encryptionroot}..."
+                    for _ in $(seq 1 20); do
+                        sleep 0.5s
+                        [ -r "${keyfile}" ] && break
+                    done
+                fi
+
+                if [ ! -r "${keyfile}" ]; then
+                    echo "Key ${keyfile} for ${encryptionroot} hasn't appeared. Trying anyway."
+                fi
             fi
         fi
     fi
