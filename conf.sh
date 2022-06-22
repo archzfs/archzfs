@@ -2,11 +2,11 @@
 #
 # FIXME: reset all kernel configs set to pkgrel=1 when this changes
 #
-zol_version="2.1.4"
+zol_version="2.1.5"
 zol_rc_version="2.1.0-rc8"
 
 # The ZOL source hashes are from zfsonlinux.org
-zfs_src_hash="3b52c0d493f806f638dca87dde809f53861cd318c1ebb0e60daeaa061cf1acf6"
+zfs_src_hash="1913041e5c44ff07ca384346ad8145aeedf77e77cd1cea9ec5d533246691e10c"
 zfs_rc_src_hash="8627702ac841d38d5211001c76937e4097719c268b110e8836c0da195618fad2"
 
 zfs_initcpio_install_hash="600f49d610906476f492d53ee1830154e4ebedf999284485e07d9cb2b3084766"
