@@ -34,7 +34,7 @@ build() {
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
                 --with-udevdir=/usr/lib/udev --libexecdir=/usr/lib \\
                 --with-config=user --enable-systemd --enable-pyzfs \\
-                --with-zfsexecdir=/usr/lib/zfs
+                --with-zfsexecdir=/usr/lib/zfs --localstatedir=/var
     make
 }
 
