@@ -522,13 +522,13 @@ check_result() {
     fi
 }
 
-check_zol_version() {
+check_openzfs_version() {
     #
-    # Check ZFSonLinux.org
+    # Check OpenZFS.org
     #
-    msg "Checking zfsonlinux.org for new versions..."
-    check_webpage "https://github.com/zfsonlinux/zfs/releases/latest" "(?<=/zfsonlinux/zfs/releases/download/zfs-)[\d\.]*" "${zol_version}"
-    check_result "ZOL stable version" "ZOL stable version" "$?"
+    msg "Checking openzfs.org for new versions..."
+    check_webpage "https://github.com/openzfs/zfs/releases/latest" "(?<=/openzfs/zfs/releases/download/zfs-)[\d\.]*" "${openzfs_version}"
+    check_result "OpenZFS stable version" "OpenZFS stable version" "$?"
 }
 
 

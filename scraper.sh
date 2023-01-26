@@ -3,7 +3,7 @@
 
 #
 # A script for scraping data from the web. When ran in cron with a correct email address configured, an alert email will be
-# sent notifying the user that either the "linux" kernel package version has changed, a new ZFSonLinux version has been
+# sent notifying the user that either the "linux" kernel package version has changed, a new OpenZFS version has been
 # released, or a new archiso has been released.
 #
 
@@ -77,7 +77,7 @@ debug_print_default_vars
 export script_dir mode kernel_name
 
 
-check_zol_version
+check_openzfs_version
 
 
 #

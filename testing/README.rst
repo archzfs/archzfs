@@ -305,7 +305,7 @@ Attempting to run `zpool status` results in::
 
 Let's make zfs start automatically on boot via the base image setup scripts.
 
-But first, we must understand the updated systemd configuration for ZFSonLinux.
+But first, we must understand the updated systemd configuration for OpenZFS.
 
 Running `pacman -Ql zfs-linux` show the systemd files::
 

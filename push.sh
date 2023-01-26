@@ -117,9 +117,9 @@ push_packages() {
             fi
 
             if [[ ! -z ${zfs_pkgver} ]] && [[ ${pkg} =~ .*-rc ]]; then
-                vers+="zfs ${zol_rc_version}"
+                vers+="zfs ${openzfs_rc_version}"
             elif [[ ! -z ${zfs_pkgver} ]]; then
-                vers+="zfs ${zol_version}"
+                vers+="zfs ${openzfs_version}"
             else
                 vers+="latest git commit"
             fi

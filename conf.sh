@@ -1,11 +1,11 @@
-# ZFSonLinux stable version
+# OpenZFS stable version
 #
 # FIXME: reset all kernel configs set to pkgrel=1 when this changes
 #
-zol_version="2.1.9"
-zol_rc_version="2.1.0-rc8"
+openzfs_version="2.1.9"
+openzfs_rc_version="2.1.0-rc8"
 
-# The ZOL source hashes are from zfsonlinux.org
+# The OpenZFS source hashes are from github.com/openzfs/zfs/releases
 zfs_src_hash="6b172cdf2eb54e17fcd68f900fab33c1430c5c59848fa46fab83614922fe50f6"
 zfs_rc_src_hash="8627702ac841d38d5211001c76937e4097719c268b110e8836c0da195618fad2"
 
