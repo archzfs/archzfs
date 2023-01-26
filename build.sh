@@ -103,7 +103,7 @@ generate_package_files() {
     debug "zfs_pkgver: ${zfs_pkgver}"
     debug "zfs_pkgrel: ${zfs_pkgrel}"
     debug "zfs_makedepends: ${zfs_makedepends}"
-    debug "zol_version: ${zol_version}"
+    debug "openzfs_version: ${openzfs_version}"
     debug "zfs_utils_pkgname: ${zfs_utils_pkgname}"
     debug "zfs_pkgname: ${zfs_pkgname}"
     debug "zfs_utils_pkgbuild_path: ${zfs_utils_pkgbuild_path}"

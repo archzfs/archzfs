@@ -10,7 +10,7 @@ pkgdesc="Kernel module support files for the Zettabyte File System."
 makedepends=("python" "python-setuptools" "python-cffi" ${zfs_makedepends})
 optdepends=("python: pyzfs and extra utilities", "python-cffi: pyzfs")
 arch=("x86_64")
-url="http://zfsonlinux.org/"
+url="http://openzfs.org/"
 source=("${zfs_src_target}"
         "zfs-utils.initcpio.install"
         "zfs-utils.initcpio.hook"

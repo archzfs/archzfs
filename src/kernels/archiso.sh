@@ -41,7 +41,7 @@ update_archiso_linux_pkgbuilds() {
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     zfs_pkgname="zfs-archiso-linux"
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
+    zfs_src_target="https://github.com/openzfs/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
     zfs_workdir="\${srcdir}/zfs-\${_zfsver}"
     linux_depends="\"linux=\${_kernelver}\""
     linux_headers_depends="\"linux-headers=\${_kernelver}\""

@@ -9,7 +9,7 @@ pkgrel="1"
 # pkgrel for GIT packages
 pkgrel_git="1"
 zfs_git_commit=""
-zfs_git_url="https://github.com/zfsonlinux/zfs.git"
+zfs_git_url="https://github.com/openzfs/zfs.git"
 
 header="\
 # Maintainer: Jan Houben <jan@nexttrex.de>
@@ -49,14 +49,14 @@ update_linux_hardened_pkgbuilds() {
     get_kernel_options
     pkg_list=("zfs-linux-hardened")
     archzfs_package_group="archzfs-linux-hardened"
-    zfs_pkgver=${zol_version}
+    zfs_pkgver=${openzfs_version}
     zfs_pkgrel=${pkgrel}
     zfs_conflicts="'zfs-linux-hardened-git' 'spl-linux-hardened'"
     zfs_pkgname="zfs-linux-hardened"
     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
     # Paths are relative to build.sh
     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-    zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
+    zfs_src_target="https://github.com/openzfs/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
     zfs_workdir="\${srcdir}/zfs-\${_zfsver}"
     zfs_replaces='replaces=("spl-linux-hardened")'
 }
