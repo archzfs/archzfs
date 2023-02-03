@@ -176,7 +176,7 @@ repo_package_list() {
         debug "kernel_version_pkgver and zfs_pkgver not set!"
         debug "Falling back to newest package by mod time for zfs"
         for z in $(printf '%s ' ${pkg_list[@]} ); do
-            fcmd="find packages/${kernel_name} -iname '*${z}*.pkg.tar.zst' -printf '%T@ %p\\n' | sort -n | tail -1 | cut -f2- -d' '"
+            fcmd="find packages/${kernel_name} -iname '*${z}*.pkg.tar.zst' -printf '%T@ %p\\n' | sort -n | tail -2 | cut -f2- -d' '"
             run_cmd_no_output_no_dry_run "${fcmd}"
             for pkg in ${run_cmd_output}; do
                 pkgs+=(${pkg})
@@ -229,6 +229,11 @@ repo_package_list() {
         fi
 
         pkgsrc="packages/${kernel_name}/${name}/${name}-${vers}.src.tar.gz"
+        if [[ -f  "${pkgsrc}" ]]; then
+            package_src_list+=("${pkgsrc}")
+        fi
+        
+        pkgdbg="packages/${kernel_name}/${name}/${name}-debug-${vers}-${arch}.pkg.tar.zst"
         if [[ -f  "${pkgsrc}" ]]; then
             package_src_list+=("${pkgsrc}")
         fi
