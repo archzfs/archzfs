@@ -60,10 +60,6 @@ To run the test automation, the following items are required:
 
   From AUR, needed for zfs-test
 
-* python2.6
-
-  From AUR, needed for zfs-test
-
 -----------------
 Running the Tests
 -----------------
