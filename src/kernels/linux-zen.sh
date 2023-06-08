@@ -45,21 +45,21 @@ get_kernel_options() {
     linux_headers_depends="\"linux-zen-headers=\${_kernelver}\""
 }
 
-# update_linux_zen_pkgbuilds() {
-#     get_kernel_options
-#     pkg_list=("zfs-linux-zen")
-#     archzfs_package_group="archzfs-linux-zen"
-#     zfs_pkgver=${openzfs_version}
-#     zfs_pkgrel=${pkgrel}
-#     zfs_conflicts="'zfs-linux-zen-git' 'spl-linux-zen'"
-#     zfs_pkgname="zfs-linux-zen"
-#     zfs_utils_pkgname="zfs-utils=\${_zfsver}"
-#     # Paths are relative to build.sh
-#     zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
-#     zfs_src_target="https://github.com/openzfs/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
-#     zfs_workdir="\${srcdir}/zfs-\${_zfsver}"
-#     zfs_replaces='replaces=("spl-linux-zen")'
-# }
+update_linux_zen_pkgbuilds() {
+    get_kernel_options
+    pkg_list=("zfs-linux-zen")
+    archzfs_package_group="archzfs-linux-zen"
+    zfs_pkgver=${openzfs_version}
+    zfs_pkgrel=${pkgrel}
+    zfs_conflicts="'zfs-linux-zen-git' 'spl-linux-zen'"
+    zfs_pkgname="zfs-linux-zen"
+    zfs_utils_pkgname="zfs-utils=\${_zfsver}"
+    # Paths are relative to build.sh
+    zfs_pkgbuild_path="packages/${kernel_name}/${zfs_pkgname}"
+    zfs_src_target="https://github.com/openzfs/zfs/releases/download/zfs-\${_zfsver}/zfs-\${_zfsver}.tar.gz"
+    zfs_workdir="\${srcdir}/zfs-\${_zfsver}"
+    zfs_replaces='replaces=("spl-linux-zen")'
+}
 
 update_linux_zen_git_pkgbuilds() {
     get_kernel_options
