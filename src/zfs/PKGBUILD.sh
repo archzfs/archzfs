@@ -16,8 +16,8 @@ pkgrel=${zfs_pkgrel}
 makedepends=(${linux_headers_depends} ${zfs_makedepends})
 arch=("x86_64")
 url="https://openzfs.org/"
-source=("${zfs_src_target}")
-sha256sums=("${zfs_src_hash}")
+source=("${zfs_src_target}" "linux-6.6-compat.patch")
+sha256sums=("${zfs_src_hash}" "c2da9ec5d15335fa35b3380d66ff1da1f1cb2e173ac7eb8fb0c9205de8d1fad0" )
 license=("CDDL")
 depends=("kmod" "${zfs_utils_pkgname}" ${linux_depends})
 
@@ -61,5 +61,9 @@ package_${zfs_pkgname}-headers() {
 }
 
 EOF
+
+if [[ ! ${archzfs_package_group} =~ -git$ ]] && [[ ! ${archzfs_package_group} =~ -rc$ ]]; then
+    sed -E -i "/^build()/i prepare() {\n    cd \"${zfs_workdir}\"\n    patch -Np1 -i \${srcdir}/linux-6.6-compat.patch\n}" ${zfs_pkgbuild_path}/PKGBUILD
+fi
 
 pkgbuild_cleanup "${zfs_pkgbuild_path}/PKGBUILD"
