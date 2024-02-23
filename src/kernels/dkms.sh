@@ -3,7 +3,7 @@ mode_name="dkms"
 mode_desc="Select and use the dkms packages"
 
 # version
-pkgrel="3"
+pkgrel="1"
 
 # Version for GIT packages
 pkgrel_git="1"
