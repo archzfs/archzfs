@@ -62,7 +62,7 @@ package_${zfs_pkgname}-headers() {
 
 EOF
 
-if [[ ! ${archzfs_package_group} =~ -rc$ ]] && [[ "${mode_name}" != "lts" ]]; then
+if [[ ! ${archzfs_package_group} =~ -rc$ ]] &&  [[ ! ${archzfs_package_group} =~ -git$ ]]  && [[ "${mode_name}" != "lts" ]]; then
     sed -E -i "/^build()/i prepare() {\n    cd \"${zfs_workdir}\"\n    patch -Np1 -i \${srcdir}/enforce-kernel-max-version.patch\n    patch -Np1 -i \${srcdir}/linux-6.8-compat.patch\n    patch -Np1 -i \${srcdir}/kernel-6.8-meta.patch\n}" ${zfs_pkgbuild_path}/PKGBUILD
 fi
 
