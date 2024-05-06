@@ -1,31 +1,57 @@
-From 2b481b5477d3a95d0eab723c6639f7114e146ae1 Mon Sep 17 00:00:00 2001
+From 0fd5f3539e2e8c218df216226b02bd8e9d5f8892 Mon Sep 17 00:00:00 2001
 From: Rob Norris <robn@despairlabs.com>
 Date: Tue, 12 Mar 2024 20:38:12 +1100
-Subject: [PATCH] config/kernel: enforce kernel max version, with escape hatch
+Subject: [PATCH 1/2] config/kernel: introduce "maximum experimental" kernel
+ version
 
-It's possible for OpenZFS to build correctly against a newer kernel than
-it is supported for, but then not work correctly. This invariably
-results in disappointment, confusion and/or anger.
+META lists the maximum kernel version we consider to be fully supported.
+However, we don't enforce this.
 
-Sometimes however we do actually want to compile against a newer kernel
-than is supported, usually when testing a pre-release kernel. Add the
-deliberately-verbose `--disable-supported-linux-version-check` option to
-disable this check. This is lots to type, and so hopefully can be taken
-as a very explicit signal that the user knows what they're doing.
+Sometimes we ship experimental patches for a newer kernel than we're
+ready to support or, less often, we compile just fine against a newer
+kernel. Invariably, something doesn't quite work properly, and it's
+difficult for users to understan that they're actually running against a
+kernel that we're not yet ready to support.
 
-Finally, if an unsupported kernel is used and the option is used, a big
-warning message is displayed at the end of the configure run to really
-try and make the point.
+This commit tries to improve this situation. First, it simply enforces
+Linux-Maximum, by having configure bail out if you try to compile
+against a newer version that.
+
+Then, it adds Linux-Maximum-Experimental to META, as the highest version
+we think _might_ work, but we definitely aren't ready to support.
+Supplying --enable-linux-experimental will allow OpenZFS to be built up
+to that kernel version. This also causes a big warning message to be
+displayed when configure finishes.
+
+By design, there is no way to compile against a kernel version beyond
+the maximum-experimental version.
+
+When doing an experimental build, HAVE_LINUX_EXPERIMENTAL is defined,
+which allows us to add code to modify runtime behaviour as well.
 
 Signed-off-by: Rob Norris <robn@despairlabs.com>
 Sponsored-by: https://despairlabs.com/sponsor/
 ---
+ META                         |   3 +-
  config/ax_compare_version.m4 | 177 +++++++++++++++++++++++++++++++++++
- config/kernel.m4             |  59 +++++++++++-
+ config/kernel.m4             |  72 +++++++++++++-
+ config/zfs-meta.m4           |   9 ++
  configure.ac                 |   2 +
- 3 files changed, 236 insertions(+), 2 deletions(-)
+ 5 files changed, 260 insertions(+), 3 deletions(-)
  create mode 100644 config/ax_compare_version.m4
 
+diff --git a/META b/META
+index 19a796050f5b..3780508fdc55 100644
+--- a/META
++++ b/META
+@@ -6,5 +6,6 @@ Release:       1
+ Release-Tags:  relext
+ License:       CDDL
+ Author:        OpenZFS
+-Linux-Maximum: 6.8
+ Linux-Minimum: 3.10
++Linux-Maximum: 6.8
++Linux-Maximum-Experimental: 6.9
 diff --git a/config/ax_compare_version.m4 b/config/ax_compare_version.m4
 new file mode 100644
 index 000000000000..ffb4997e8b14
@@ -210,24 +236,25 @@ index 000000000000..ffb4997e8b14
 +  fi
 +]) dnl AX_COMPARE_VERSION
 diff --git a/config/kernel.m4 b/config/kernel.m4
-index e3f8645774c5..a3f8efc48e88 100644
+index 548905ccd04d..4dd5ed93e486 100644
 --- a/config/kernel.m4
 +++ b/config/kernel.m4
-@@ -497,10 +497,39 @@ AC_DEFUN([ZFS_AC_KERNEL], [
-
+@@ -501,13 +501,57 @@ AC_DEFUN([ZFS_AC_KERNEL], [
+ 
  	AC_MSG_RESULT([$kernsrcver])
-
+ 
 -	AS_VERSION_COMPARE([$kernsrcver], [$ZFS_META_KVER_MIN], [
 -		 AC_MSG_ERROR([
-+	AC_ARG_ENABLE([supported-linux-version-check],
-+		AS_HELP_STRING([--disable-supported-linux-version-check],
-+		[Do not check if building against a supported Linux version]))
-+
-+	AX_COMPARE_VERSION([$kernsrcver], [ge], [$ZFS_META_KVER_MIN], [
-+		kern_min_version_ok=yes
-+	], [
-+		kern_min_version_ok=no
-+	])
++	AX_COMPARE_VERSION([$kernsrcver], [ge], [$ZFS_META_KVER_MIN], [], [
++		AC_MSG_ERROR([
+ 	*** Cannot build against kernel version $kernsrcver.
+ 	*** The minimum supported kernel version is $ZFS_META_KVER_MIN.
+ 		])
+ 	])
+ 
++	AC_ARG_ENABLE([linux-experimental],
++		AS_HELP_STRING([--enable-linux-experimental],
++		[Allow building against some unsupported kernel versions]))
 +
 +	AX_COMPARE_VERSION([$kernsrcver], [ge], [$ZFS_META_KVER_MAX], [
 +		AX_COMPARE_VERSION([$kernsrcver], [eq2], [$ZFS_META_KVER_MAX], [
@@ -238,38 +265,54 @@ index e3f8645774c5..a3f8efc48e88 100644
 +	], [
 +		kern_max_version_ok=yes
 +	])
++	AX_COMPARE_VERSION([$kernsrcver], [ge], [$ZFS_META_KVER_EXP_MAX], [
++		AX_COMPARE_VERSION([$kernsrcver], [eq2], [$ZFS_META_KVER_EXP_MAX], [
++			kern_max_exp_version_ok=yes
++		], [
++			kern_max_exp_version_ok=no
++		])
++	], [
++		kern_max_exp_version_ok=yes
++	])
 +
-+	AS_IF([test "x$enable_supported_linux_version_check" != "xno"], [
-+		AS_IF([test "x$kern_min_version_ok" != "xyes"], [
++	AS_IF([test "x$enable_linux_experimental" == "xyes" && \
++	    test "x$kern_max_version_ok" != "xyes"], [
++		AS_IF([test "x$kern_max_exp_version_ok" == "xyes"], [
++			AC_DEFINE(HAVE_LINUX_EXPERIMENTAL, 1,
++			    [building against unsupported kernel version])
++		], [
 +			AC_MSG_ERROR([
- 	*** Cannot build against kernel version $kernsrcver.
- 	*** The minimum supported kernel version is $ZFS_META_KVER_MIN.
++	*** Cannot build against kernel version $kernsrcver.
++	*** The maximum supported kernel version is $ZFS_META_KVER_MAX.
++	*** The maximum supported experimental kernel version is $ZFS_META_KVER_EXP_MAX.
 +			])
 +		])
-+
++	], [
 +		AS_IF([test "x$kern_max_version_ok" != "xyes"], [
 +			AC_MSG_ERROR([
 +	*** Cannot build against kernel version $kernsrcver.
 +	*** The maximum supported kernel version is $ZFS_META_KVER_MAX.
 +			])
- 		])
- 	])
-
-@@ -513,6 +542,32 @@ AC_DEFUN([ZFS_AC_KERNEL], [
++		])
++	])
++
+ 	LINUX=${kernelsrc}
+ 	LINUX_OBJ=${kernelbuild}
+ 	LINUX_VERSION=${kernsrcver}
+@@ -517,6 +561,30 @@ AC_DEFUN([ZFS_AC_KERNEL], [
  	AC_SUBST(LINUX_VERSION)
  ])
-
+ 
 +AC_DEFUN([ZFS_AC_KERNEL_VERSION_WARNING], [
-+	AS_IF([test "x$enable_supported_linux_version_check" = "xno"], [
-+		AS_IF([test "x$kern_min_version_ok" != "xyes" || \
-+		    test "x$kern_max_version_ok" != "xyes"], [
-+			AC_MSG_WARN([
++	AS_IF([test "x$enable_linux_experimental" = "xyes" && \
++	    test "x$kern_max_version_ok" != "xyes"], [
++		AC_MSG_WARN([
 +
 +	You are building OpenZFS against Linux version $kernsrcver.
 +
-+	This combination IS NOT SUPPORTED by the OpenZFS project. Even if it
-+	appears to build and run correctly, there may be bugs that can cause
-+	SERIOUS DATA LOSS.
++	This combination is considered EXPERIMENTAL by the OpenZFS project.
++	Even if it appears to build and run correctly, there may be bugs that
++	can cause SERIOUS DATA LOSS.
 +
 +	YOU HAVE BEEN WARNED!
 +
@@ -280,7 +323,6 @@ index e3f8645774c5..a3f8efc48e88 100644
 +
 +	Your feedback will help us prepare a new OpenZFS release that supports
 +	this version of Linux.
-+			])
 +		])
 +	])
 +])
@@ -288,13 +330,67 @@ index e3f8645774c5..a3f8efc48e88 100644
  dnl #
  dnl # Detect the QAT module to be built against, QAT provides hardware
  dnl # acceleration for data compression:
+diff --git a/config/zfs-meta.m4 b/config/zfs-meta.m4
+index 20064a0fb595..a149e8f93fb7 100644
+--- a/config/zfs-meta.m4
++++ b/config/zfs-meta.m4
+@@ -156,6 +156,15 @@ AC_DEFUN([ZFS_AC_META], [
+ 			AC_SUBST([ZFS_META_KVER_MAX])
+ 		fi
+ 
++		ZFS_META_KVER_EXP_MAX=_ZFS_AC_META_GETVAL([Linux-Maximum-Experimental]);
++		if test -n "$ZFS_META_KVER_EXP_MAX"; then
++			AC_DEFINE_UNQUOTED([ZFS_META_KVER_EXP_MAX],
++			    ["$ZFS_META_KVER_EXP_MAX"],
++			    [Define the maximum compatible kernel version.]
++			)
++			AC_SUBST([ZFS_META_KVER_EXP_MAX])
++		fi
++
+ 		m4_pattern_allow([^LT_(CURRENT|REVISION|AGE)$])
+ 		ZFS_META_LT_CURRENT=_ZFS_AC_META_GETVAL([LT_Current]);
+ 		ZFS_META_LT_REVISION=_ZFS_AC_META_GETVAL([LT_Revision]);
 diff --git a/configure.ac b/configure.ac
 index 2ce049c58219..9e043862ed1f 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -87,3 +87,5 @@ AC_CONFIG_FILES([
-
-
+ 
+ 
  AC_OUTPUT
 +
 +ZFS_AC_KERNEL_VERSION_WARNING
+
+From 08b6eff0b3735e6165aecc5e58ca884a1e847dbe Mon Sep 17 00:00:00 2001
+From: Rob Norris <robn@despairlabs.com>
+Date: Sun, 5 May 2024 14:04:57 +1000
+Subject: [PATCH 2/2] linux: log a scary warning when used with an experimental
+ kernel
+
+Since the person using the kernel may not be the person who built it,
+show a warning at module load too, in case they aren't aware that it
+might be weird.
+
+Signed-off-by: Rob Norris <robn@despairlabs.com>
+Sponsored-by: https://despairlabs.com/sponsor/
+---
+ module/os/linux/zfs/zfs_ioctl_os.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/module/os/linux/zfs/zfs_ioctl_os.c b/module/os/linux/zfs/zfs_ioctl_os.c
+index 663474ea49ab..502d173b70f9 100644
+--- a/module/os/linux/zfs/zfs_ioctl_os.c
++++ b/module/os/linux/zfs/zfs_ioctl_os.c
+@@ -303,6 +303,12 @@ openzfs_init_os(void)
+ 	    "ZFS pool version %s, ZFS filesystem version %s\n",
+ 	    ZFS_META_VERSION, ZFS_META_RELEASE, ZFS_DEBUG_STR,
+ 	    SPA_VERSION_STRING, ZPL_VERSION_STRING);
++#ifdef HAVE_LINUX_EXPERIMENTAL
++	printk(KERN_NOTICE "ZFS: Using ZFS with kernel %s is EXPERIMENTAL and "
++	    "SERIOUS DATA LOSS may occur!\n", utsname()->release);
++	printk(KERN_NOTICE "ZFS: Please report your results at: "
++	    "https://github.com/openzfs/zfs/issues/new\n");
++#endif
+ #ifndef CONFIG_FS_POSIX_ACL
+ 	printk(KERN_NOTICE "ZFS: Posix ACLs disabled by kernel\n");
+ #endif /* CONFIG_FS_POSIX_ACL */
