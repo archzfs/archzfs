@@ -10,8 +10,8 @@ pkgrel=${zfs_pkgrel}
 makedepends=(${zfs_makedepends})
 arch=("x86_64")
 url="https://openzfs.org/"
-source=("${zfs_src_target}" "enforce-kernel-max-version.patch")
-sha256sums=("${zfs_src_hash}" "8f0019f996d6d9cd3766b8d0faf5df45e9cb256fdf5e0d862a4cdb3b209f7e8e")
+source=("${zfs_src_target}")
+sha256sums=("${zfs_src_hash}")
 license=("CDDL")
 depends=("${zfs_utils_pkgname}" "lsb-release" "dkms")
 provides=("zfs" "zfs-headers" "spl" "spl-headers")
@@ -36,9 +36,5 @@ package() {
 
 
 EOF
-
-if [[ ! ${archzfs_package_group} =~ -rc$ ]] && [[ ! ${archzfs_package_group} =~ -git$ ]]; then
-    sed -E -i "/^build()/i prepare() {\n    cd \"${zfs_workdir}\"\n    patch -Np1 -i \${srcdir}/enforce-kernel-max-version.patch\n}" ${zfs_dkms_pkgbuild_path}/PKGBUILD
-fi
 
 pkgbuild_cleanup "${zfs_dkms_pkgbuild_path}/PKGBUILD"
