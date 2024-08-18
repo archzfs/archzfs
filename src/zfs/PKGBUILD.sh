@@ -21,6 +21,11 @@ sha256sums=("${zfs_src_hash}")
 license=("CDDL")
 depends=("kmod" "${zfs_utils_pkgname}" ${linux_depends})
 
+prepare() {
+    cd "${zfs_workdir}"
+    sed -ri 's|(KERNELRELEASE=@LINUX_VERSION@)|\1 DEPMOD=/doesnt/exist|' module/Makefile.in
+}
+
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh
