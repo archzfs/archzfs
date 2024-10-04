@@ -30,4 +30,4 @@ gpg_sign_key='0EE7A126'
 chroot_path="/repo/chroot/x86_64/$(whoami)"
 
 # Used to run mkaurball and mksrcinfo with lower privledges
-makepkg_nonpriv_user="jan"
+makepkg_nonpriv_user="buildbot"
