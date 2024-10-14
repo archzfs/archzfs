@@ -1,0 +1,25 @@
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '**.sh'
+      - '.github/workflows/**'
+      - 'build-container/**'
+      - 'packages/**'
+name: Build
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.1
+      - name: Build builder container
+        run: docker build -t archzfs-builder build-container
+      - name: Run builder container
+        run: docker run --privileged --rm -v "$(pwd):/src" archzfs-builder
