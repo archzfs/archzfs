@@ -39,6 +39,17 @@ set -e
 
 rm -rf /src/repo
 mkdir -p /src/repo
+
+# Download the existing packages from experimental so a failure of a kernel build doesn't result in the previously built package going missing.
+current_dir=$(pwd)
+cd /src/repo
+url="https://api.github.com/repos/archzfs/archzfs/releases/latest"
+json_response=$(curl -L -H "Accept: application/vnd.github+json" -H "X-GitHub-Ap-Version: 2022-11-28" "${url}")
+for x in $(echo "${json_response}" | grep "browser_download_url" | cut -d\" -f4); do
+    wget "${x}"
+done
+cd "${current_dir}"
+
 cp -v /scratch/.buildroot/root/repo/*.pkg.tar* /src/repo/
 
 cd /src/repo
