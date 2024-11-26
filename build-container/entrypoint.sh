@@ -24,6 +24,7 @@ build() {
     sudo bash build.sh -d "$1" make
 }
 
+set +e 
 build utils
 
 build std
@@ -31,6 +32,7 @@ build lts
 build hardened
 build zen
 build dkms
+set -e
 
 # Not implemented, yet, as documented in archzfs-ci
 # sudo bash test.sh ...
