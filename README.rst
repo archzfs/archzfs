@@ -1,7 +1,7 @@
 ====================================
 Zettabyte File System for Arch Linux
 ====================================
-.. image:: http://ci.archzfs.com/badges/build-test-deploy-to-testing.svg?left_text=Deploy%20Testing%20Status
+.. image:: http://ci.archzfs.com/plugins/badges/build-test-deploy-to-testing.svg?left_text=Deploy%20Testing%20Status
    :target: http://ci.archzfs.com/#/builders/4
 
 Welcome to the archzfs project. This repo contains everything used to deploy ZFS to Arch Linux.
