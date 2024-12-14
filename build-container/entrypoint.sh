@@ -61,9 +61,11 @@ failover() {
         # If BASE is us, that means  we should have built this package
         # so copy it from releases
         if [[ "${pkgbase}" == "${failed_pkg}" ]]; then
+            set -x
             tmp_file="$(mktemp)"
             curl -o "${tmp_file}" -L "${FAILOVER_BASE_URL}/${pkgfile}"
             sudo mv "${tmp_file}" "/scratch/.buildroot/root/repo/${pkgfile}"
+            set +x
         fi
     done
     set -x
