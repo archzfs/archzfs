@@ -24,13 +24,19 @@ build() {
     sudo bash build.sh -d "$1" make
 }
 
-build utils
+failover() {
 
-build std
-build lts
-build hardened
-build zen
+}
+
+# These packages must always build
+build utils
 build dkms
+
+# These are kernel dependant, so they might fail
+build std || failover std
+build lts || failover lts
+build hardened || failover hardened
+build zen || failover zen
 
 # Not implemented, yet, as documented in archzfs-ci
 # sudo bash test.sh ...
