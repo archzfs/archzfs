@@ -18,6 +18,9 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  RELEASE_NAME: experimental
+
 jobs:
   release:
     name: Release
@@ -33,12 +36,12 @@ jobs:
         env:
           GPG_KEY_DATA: "${{ secrets.GPG_KEY_DATA }}"
           GPG_KEY_ID: "${{ vars.GPG_KEY_ID }}"
-        run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID --privileged --rm -v "$(pwd):/src" archzfs-builder
+        run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID -e RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
       - name: Release mainline
         uses: ncipollo/release-action@v1.14.0
         with:
-          name: experimental
-          tag: experimental
+          name: ${{ env.RELEASE_NAME }}
+          tag: ${{ env.RELEASE_NAME }}
           commit: ${{ github.sha }}
           artifacts: ./repo/*
           allowUpdates: true
@@ -48,5 +51,5 @@ jobs:
           removeArtifacts: true
       - uses: rickstaa/action-create-tag@v1.7.2
         with:
-          tag: experimental
+          tag: ${{ env.RELEASE_NAME }}
           force_push_tag: true
