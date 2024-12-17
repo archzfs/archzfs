@@ -71,11 +71,11 @@ failover() {
     set -x
 }
 
-sudo mkdir -p /scratch/.buildroot/root/repo
-
 # These packages must always build
 build utils
 build dkms
+
+sudo mkdir -p /scratch/.buildroot/root/repo
 
 # These are kernel dependant, so they might fail
 build std || failover zfs-linux
