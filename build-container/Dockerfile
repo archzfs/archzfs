@@ -1,7 +1,7 @@
 FROM archlinux:base-devel
 
-# The following is from https://github.com/archzfs/archzfs-ci/blob/master/worker/Dockerfile
-RUN pacman -Syu --noconfirm --needed python-pipx python-twisted python-future git wget systemd-sysvcompat openresolv vi
+# The following is adapted from https://github.com/archzfs/archzfs-ci/blob/master/worker/Dockerfile
+RUN pacman -Syu --noconfirm --needed python-pipx python-twisted git wget systemd-sysvcompat openresolv vi
 
 # add buildbot user and give passwordless sudo access (needed for archzfs build scripts)
 RUN groupadd -r buildbot && \
