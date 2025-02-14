@@ -38,6 +38,8 @@ build() {
 }
 
 failover() {
+    cat /etc/pacman.conf
+
     if [ -z "${FAILOVER_REPO_DIR}" ]; then
         echo "No failover repo available, failing because of: $1"
         exit 1
@@ -75,13 +77,15 @@ failover() {
     set -x
 }
 
+# DUMMY FIRST FOR TESTING
+build std || failover zfs-linux
+
 # These packages must always build
 build utils
 build dkms
 
 # These are kernel dependant, so they might fail
 build lts || failover zfs-linux-lts
-build std || failover zfs-linux
 build hardened || failover zfs-linux-hardened
 build zen || failover zfs-linux-zen
 
