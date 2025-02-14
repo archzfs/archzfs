@@ -35,7 +35,6 @@ get_kernel_options() {
     if ! get_webpage "https://www.archlinux.org/packages/extra/x86_64/linux-zen/" "(?<=<h2>linux-zen )[\d\w\.-]+(?=</h2>)"; then
         exit 1
     fi
-
     kernel_version=${webpage_output}
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_pkgver=$(kernel_version_no_hyphen ${kernel_version})
