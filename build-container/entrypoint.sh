@@ -12,25 +12,74 @@ fi
 # Only set -x here so we can't accidently print the GPG key up there
 set -x
 
+FAILOVER_REPO_DIR=""
+FAILOVER_BASE_URL=""
+if [ ! -z "${RELEASE_TYPE}" ]; then
+    FAILOVER_REPO_DIR="$(mktemp -d)"
+    cd "${FAILOVER_REPO_DIR}"
+    FAILOVER_BASE_URL="https://github.com/archzfs/archzfs/releases/download/${RELEASE_TYPE}"
+    curl -sL "${FAILOVER_BASE_URL}/archzfs.db.tar.xz" | tar xvJ
+fi
+
 sudo chown -R buildbot:buildbot /src
 cd /src
 
 sed -i "/^THREADS=/s/9/$(nproc)/" ~/.config/clean-chroot-manager.conf
 sudo ccm64 d || true
 
-sudo bash build.sh -d -u all update
+sudo bash build.sh -s -d -u all update
 
 build() {
-    sudo bash build.sh -d "$1" make
+    sudo bash build.sh -s -d "$1" make
 }
 
-build utils
+failover() {
+    if [ -z "${FAILOVER_REPO_DIR}" ]; then
+        echo "No failover repo available, failing because of: $1"
+        exit 1
+    fi
 
-build std
-build lts
-build hardened
-build zen
+    failed_pkg="$1"
+
+    set +x # This gets way to verbose
+    for desc in "${FAILOVER_REPO_DIR}"/*/desc; do
+
+        # Iterate lines
+        pkgbase=""
+        pkgfile=""
+        while read -r line; do
+            case "$line" in
+                %FILENAME%)
+                    read -r pkgfile
+                    ;;
+                %BASE%)
+                    read -r pkgbase
+                    ;;
+            esac
+        done < "$desc"
+
+        # If BASE is us, that means  we should have built this package
+        # so copy it from releases
+        if [[ "${pkgbase}" == "${failed_pkg}" ]]; then
+            set -x
+            tmp_file="$(mktemp)"
+            curl -o "${tmp_file}" -L "${FAILOVER_BASE_URL}/${pkgfile}"
+            sudo mv "${tmp_file}" "/scratch/.buildroot/root/repo/${pkgfile}"
+            set +x
+        fi
+    done
+    set -x
+}
+
+# These packages must always build
+build utils
 build dkms
+
+# These are kernel dependant, so they might fail
+build lts || failover zfs-linux-lts
+build std || failover zfs-linux
+build hardened || failover zfs-linux-hardened
+build zen || failover zfs-linux-zen
 
 # Not implemented, yet, as documented in archzfs-ci
 # sudo bash test.sh ...
