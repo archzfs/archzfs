@@ -45,8 +45,13 @@ ADD https://archive.archlinux.org/packages/l/linux-zen/linux-zen-6.12.10.zen1-1-
 ADD https://archive.archlinux.org/packages/l/linux-zen/linux-zen-6.12.10.zen1-1-x86_64.pkg.tar.zst.sig /add/
 ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst /add/
 ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst.sig /add/
-RUN pacman -U /add/*.pkg.tar.zst --noconfirm && \
-    rm -rf /add
+
+RUN repo-add /add/add.db.tar.gz /add/*.pkg.tar.zst
+
+RUN echo "[add]" >> /etc/pacman.conf && \
+    echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf && \
+    echo "Server = file:///add" >> /etc/pacman.conf
+RUN pacman -Syu --noconfirm
 
 USER buildbot
 VOLUME /src
