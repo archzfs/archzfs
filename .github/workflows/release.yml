@@ -66,6 +66,7 @@ jobs:
           omitBody: true
           omitBodyDuringUpdate: true
           removeArtifacts: true
+          prerelease: true
       - uses: rickstaa/action-create-tag@v1.7.2
         with:
           tag: ${{ env.FAILOVER_RELEASE_NAME }}
