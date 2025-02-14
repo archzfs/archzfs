@@ -11,6 +11,9 @@ name: Build
 permissions:
   contents: read
 
+env:
+  RELEASE_NAME: experimental
+
 jobs:
   build:
     name: Build
@@ -22,4 +25,4 @@ jobs:
       - name: Build builder container
         run: docker build -t archzfs-builder build-container
       - name: Run builder container
-        run: docker run --privileged --rm -v "$(pwd):/src" archzfs-builder
+        run: docker run -e RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
