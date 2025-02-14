@@ -80,8 +80,8 @@ build utils
 build dkms
 
 # These are kernel dependant, so they might fail
-build std || failover zfs-linux
 build lts || failover zfs-linux-lts
+build std || failover zfs-linux
 build hardened || failover zfs-linux-hardened
 build zen || failover zfs-linux-zen
 

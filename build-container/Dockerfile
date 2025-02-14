@@ -35,27 +35,27 @@ COPY entrypoint.sh /entrypoint.sh
 COPY systemd-nspawn-wrapper /usr/local/bin/systemd-nspawn
 RUN systemd-machine-id-setup
 
-RUN mkdir -p /add
-ADD https://archive.archlinux.org/packages/l/linux/linux-6.12.10.arch1-1-x86_64.pkg.tar.zst /add/
-ADD https://archive.archlinux.org/packages/l/linux/linux-6.12.10.arch1-1-x86_64.pkg.tar.zst.sig /add/
-ADD https://archive.archlinux.org/packages/l/linux-headers/linux-headers-6.12.10.arch1-1-x86_64.pkg.tar.zst /add/
-ADD https://archive.archlinux.org/packages/l/linux-headers/linux-headers-6.12.10.arch1-1-x86_64.pkg.tar.zst.sig /add/
+# RUN mkdir -p /add
+# ADD https://archive.archlinux.org/packages/l/linux/linux-6.12.10.arch1-1-x86_64.pkg.tar.zst /add/
+# ADD https://archive.archlinux.org/packages/l/linux/linux-6.12.10.arch1-1-x86_64.pkg.tar.zst.sig /add/
+# ADD https://archive.archlinux.org/packages/l/linux-headers/linux-headers-6.12.10.arch1-1-x86_64.pkg.tar.zst /add/
+# ADD https://archive.archlinux.org/packages/l/linux-headers/linux-headers-6.12.10.arch1-1-x86_64.pkg.tar.zst.sig /add/
 
-ADD https://archive.archlinux.org/packages/l/linux-zen/linux-zen-6.12.10.zen1-1-x86_64.pkg.tar.zst /add/
-ADD https://archive.archlinux.org/packages/l/linux-zen/linux-zen-6.12.10.zen1-1-x86_64.pkg.tar.zst.sig /add/
-ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst /add/
-ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst.sig /add/
+# ADD https://archive.archlinux.org/packages/l/linux-zen/linux-zen-6.12.10.zen1-1-x86_64.pkg.tar.zst /add/
+# ADD https://archive.archlinux.org/packages/l/linux-zen/linux-zen-6.12.10.zen1-1-x86_64.pkg.tar.zst.sig /add/
+# ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst /add/
+# ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst.sig /add/
 
-RUN repo-add /add/add.db.tar.gz /add/*.pkg.tar.zst && \
-    chmod 644 /add/* && \
-    cp /usr/share/devtools/pacman.conf.d/extra.conf /add/pacman.conf && \
-    echo "[add]" >> /add/pacman.conf && \
-    echo "SigLevel = Optional TrustAll" >> /add/pacman.conf && \
-    echo "Server = file:///add" >> /add/pacman.conf &&\
-    echo "[add]" >> /etc/pacman.conf && \
-    echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf && \
-    echo "Server = file:///add" >> /etc/pacman.conf
-RUN pacman -Syu --noconfirm
+# RUN repo-add /add/add.db.tar.gz /add/*.pkg.tar.zst && \
+#     chmod 644 /add/* && \
+#     cp /usr/share/devtools/pacman.conf.d/extra.conf /add/pacman.conf && \
+#     echo "[add]" >> /add/pacman.conf && \
+#     echo "SigLevel = Optional TrustAll" >> /add/pacman.conf && \
+#     echo "Server = file:///add" >> /add/pacman.conf &&\
+#     echo "[add]" >> /etc/pacman.conf && \
+#     echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf && \
+#     echo "Server = file:///add" >> /etc/pacman.conf
+# RUN pacman -Syu --noconfirm
 
 USER buildbot
 VOLUME /src
