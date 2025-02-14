@@ -75,14 +75,12 @@ failover() {
     set -x
 }
 
-# DUMMY FIRST FOR TESTING
-build std || failover zfs-linux
-
 # These packages must always build
 build utils
 build dkms
 
 # These are kernel dependant, so they might fail
+build std || failover zfs-linux
 build lts || failover zfs-linux-lts
 build hardened || failover zfs-linux-hardened
 build zen || failover zfs-linux-zen
