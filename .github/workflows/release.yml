@@ -20,6 +20,7 @@ permissions:
 
 env:
   RELEASE_NAME: experimental
+  FAILOVER_RELEASE_NAME: failover
 
 jobs:
   release:
@@ -36,7 +37,7 @@ jobs:
         env:
           GPG_KEY_DATA: "${{ secrets.GPG_KEY_DATA }}"
           GPG_KEY_ID: "${{ vars.GPG_KEY_ID }}"
-        run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID -e RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
+        run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
       - name: Release mainline
         uses: ncipollo/release-action@v1.14.0
         with:
@@ -52,4 +53,21 @@ jobs:
       - uses: rickstaa/action-create-tag@v1.7.2
         with:
           tag: ${{ env.RELEASE_NAME }}
+          force_push_tag: true
+      - name: Release failover
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          name: ${{ env.FAILOVER_RELEASE_NAME }}
+          tag: ${{ env.FAILOVER_RELEASE_NAME }}
+          commit: ${{ github.sha }}
+          artifacts: ./repo/*
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          omitBody: true
+          omitBodyDuringUpdate: true
+          removeArtifacts: true
+          prerelease: true
+      - uses: rickstaa/action-create-tag@v1.7.2
+        with:
+          tag: ${{ env.FAILOVER_RELEASE_NAME }}
           force_push_tag: true

@@ -14,11 +14,15 @@ set -x
 
 FAILOVER_REPO_DIR=""
 FAILOVER_BASE_URL=""
-if [ ! -z "${RELEASE_NAME}" ]; then
+if [ ! -z "${FAILOVER_RELEASE_NAME}" ]; then
     FAILOVER_REPO_DIR="$(mktemp -d)"
     cd "${FAILOVER_REPO_DIR}"
-    FAILOVER_BASE_URL="https://github.com/archzfs/archzfs/releases/download/${RELEASE_NAME}"
-    curl -sL "${FAILOVER_BASE_URL}/archzfs.db.tar.xz" | tar xvJ
+    FAILOVER_BASE_URL="https://github.com/archzfs/archzfs/releases/download/${FAILOVER_RELEASE_NAME}"
+    if ! curl -fsL "${FAILOVER_BASE_URL}/archzfs.db.tar.xz" | tar xvJ; then
+        echo 'Failover not found, failover impossible!'
+        FAILOVER_BASE_URL=""
+        FAILOVER_REPO_DIR=""
+    fi
 fi
 
 sudo chown -R buildbot:buildbot /src
@@ -63,7 +67,7 @@ failover() {
         if [[ "${pkgbase}" == "${failed_pkg}" ]]; then
             set -x
             tmp_file="$(mktemp)"
-            curl -o "${tmp_file}" -L "${FAILOVER_BASE_URL}/${pkgfile}"
+            curl -f -o "${tmp_file}" -L "${FAILOVER_BASE_URL}/${pkgfile}"
             sudo mv "${tmp_file}" "/scratch/.buildroot/root/repo/${pkgfile}"
             set +x
         fi
@@ -86,6 +90,7 @@ build zen || failover zfs-linux-zen
 
 rm -rf /src/repo
 mkdir -p /src/repo
+sudo chmod -v 644 /scratch/.buildroot/root/repo/*.pkg.tar*
 cp -v /scratch/.buildroot/root/repo/*.pkg.tar* /src/repo/
 
 cd /src/repo
