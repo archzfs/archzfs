@@ -9,6 +9,8 @@ if [ ! -z "${GPG_KEY_DATA-}" ]; then
     gpg --import /dev/stdin <<<"${GPG_KEY_DATA}"
 fi
 
+gpg --recv-keys 3A9917BF0DED5C13F69AC68FABEC0A1208037BE9 # ArchZFS release key should always be valid
+
 # Only set -x here so we can't accidently print the GPG key up there
 set -x
 
@@ -21,7 +23,7 @@ if [ ! -z "${FAILOVER_RELEASE_NAME}" ]; then
     db_file="archzfs.db.tar.xz"
     curl -f -o "${db_file}" -L "${FAILOVER_BASE_URL}/${db_file}"
     curl -f -o "${db_file}.sig" -L "${FAILOVER_BASE_URL}/${db_file}.sig"
-    if ! gpg -u "${GPG_KEY_ID}" --verify "${db_file}.sig" "${db_file}"; then
+    if ! gpg --verify "${db_file}.sig" "${db_file}"; then
         echo 'Failover signature verification failed, failover impossible!'
         FAILOVER_BASE_URL=""
         FAILOVER_REPO_DIR=""
