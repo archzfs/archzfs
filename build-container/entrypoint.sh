@@ -21,7 +21,7 @@ if [ ! -z "${FAILOVER_RELEASE_NAME}" ]; then
     db_file="archzfs.db.tar.xz"
     curl -f -o "${db_file}" -L "${FAILOVER_BASE_URL}/${db_file}"
     curl -f -o "${db_file}.sig" -L "${FAILOVER_BASE_URL}/${db_file}.sig"
-    if ! gpg --verify "${db_file}.sig" "${db_file}"; then
+    if ! gpg -u "${GPG_KEY_ID}" --verify "${db_file}.sig" "${db_file}"; then
         echo 'Failover signature verification failed, failover impossible!'
         FAILOVER_BASE_URL=""
         FAILOVER_REPO_DIR=""
