@@ -38,10 +38,6 @@ build() {
 }
 
 failover() {
-    cat /etc/pacman.conf
-    find /scratch -name pacman.conf -print || true
-    cat /scratch/.buildroot/root/etc/pacman.conf
-
     if [ -z "${FAILOVER_REPO_DIR}" ]; then
         echo "No failover repo available, failing because of: $1"
         exit 1
