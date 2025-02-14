@@ -1,0 +1,44 @@
+on:
+  push:
+    branches: [master]
+  
+name: Test release
+
+concurrency:
+  group: release
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_NAME: testing
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.1
+      - name: Build builder container
+        run: docker build -t archzfs-builder build-container
+      - name: Run builder container
+        run: docker run -e RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
+      - name: Release testing
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          name: ${{ env.RELEASE_NAME }}
+          tag: ${{ env.RELEASE_NAME }}
+          commit: ${{ github.sha }}
+          artifacts: ./repo/*
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          omitBody: true
+          omitBodyDuringUpdate: true
+          removeArtifacts: true
+      - uses: rickstaa/action-create-tag@v1.7.2
+        with:
+          tag: ${{ env.RELEASE_NAME }}
+          force_push_tag: true
