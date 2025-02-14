@@ -18,7 +18,7 @@ if [ ! -z "${RELEASE_NAME}" ]; then
     FAILOVER_REPO_DIR="$(mktemp -d)"
     cd "${FAILOVER_REPO_DIR}"
     FAILOVER_BASE_URL="https://github.com/archzfs/archzfs/releases/download/${RELEASE_NAME}"
-    curl -sL "${FAILOVER_BASE_URL}/archzfs.db.tar.xz" | tar xvJ
+    curl -fsL "${FAILOVER_BASE_URL}/archzfs.db.tar.xz" | tar xvJ
 fi
 
 sudo chown -R buildbot:buildbot /src
