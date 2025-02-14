@@ -31,7 +31,7 @@ jobs:
       - name: Build builder container
         run: docker build -t archzfs-builder build-container
       - name: Run builder container
-        run: docker run -e RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
+        run: docker run -e RELEASE_NAME -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
       - name: Release testing
         uses: ncipollo/release-action@v1.14.0
         with:

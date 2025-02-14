@@ -37,7 +37,7 @@ jobs:
         env:
           GPG_KEY_DATA: "${{ secrets.GPG_KEY_DATA }}"
           GPG_KEY_ID: "${{ vars.GPG_KEY_ID }}"
-        run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID -e RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
+        run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID -e FAILOVER_RELEASE_NAME -e RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
       - name: Release mainline
         uses: ncipollo/release-action@v1.14.0
         with:
