@@ -18,7 +18,14 @@ if [ ! -z "${FAILOVER_RELEASE_NAME}" ]; then
     FAILOVER_REPO_DIR="$(mktemp -d)"
     cd "${FAILOVER_REPO_DIR}"
     FAILOVER_BASE_URL="https://github.com/archzfs/archzfs/releases/download/${FAILOVER_RELEASE_NAME}"
-    if ! curl -fsL "${FAILOVER_BASE_URL}/archzfs.db.tar.xz" | tar xvJ; then
+    db_file="archzfs.db.tar.xz"
+    curl -f -o "${db_file}" -L "${FAILOVER_BASE_URL}/${db_file}"
+    curl -f -o "${db_file}.sig" -L "${FAILOVER_BASE_URL}/${db_file}.sig"
+    if ! gpg --verify "${db_file}.sig" "${db_file}"; then
+        echo 'Failover signature verification failed, failover impossible!'
+        FAILOVER_BASE_URL=""
+        FAILOVER_REPO_DIR=""
+    elif ! tar xvJf "${db_file}"; then
         echo 'Failover not found, failover impossible!'
         FAILOVER_BASE_URL=""
         FAILOVER_REPO_DIR=""
