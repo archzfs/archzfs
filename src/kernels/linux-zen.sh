@@ -36,8 +36,6 @@ get_kernel_options() {
         exit 1
     fi
 
-    webpage_output="6.12.10.zen1-1"
-
     kernel_version=${webpage_output}
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_pkgver=$(kernel_version_no_hyphen ${kernel_version})

@@ -91,9 +91,7 @@ build zen || failover zfs-linux-zen
 rm -rf /src/repo
 mkdir -p /src/repo
 cp -v /scratch/.buildroot/root/repo/*.pkg.tar* /src/repo/
-ls -Rla /src/repo # TODO: Remove debug
 chmod 644 /src/repo/*
-ls -Rla /src/repo # TODO: Remove debug
 
 cd /src/repo
 # Ensure we do not have any stray signatures around
