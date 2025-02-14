@@ -23,7 +23,7 @@ if [ ! -z "${FAILOVER_RELEASE_NAME}" ]; then
     db_file="archzfs.db.tar.xz"
     curl -f -o "${db_file}" -L "${FAILOVER_BASE_URL}/${db_file}"
     curl -f -o "${db_file}.sig" -L "${FAILOVER_BASE_URL}/${db_file}.sig"
-    if ! gpg --verify "${db_file}.sig" "${db_file}"; then
+    if ! gpg --trust-model direct --verify "${db_file}.sig" "${db_file}"; then
         echo 'Failover signature verification failed, failover impossible!'
         FAILOVER_BASE_URL=""
         FAILOVER_REPO_DIR=""
@@ -78,7 +78,7 @@ failover() {
             tmp_file="$(mktemp)"
             curl -f -o "${tmp_file}" -L "${FAILOVER_BASE_URL}/${pkgfile}"
             curl -f -o "${tmp_file}.sig" -L "${FAILOVER_BASE_URL}/${pkgfile}.sig"
-            gpg --verify "${tmp_file}.sig" "${tmp_file}"
+            gpg --trust-model direct --verify "${tmp_file}.sig" "${tmp_file}"
             sudo mv "${tmp_file}" "/scratch/.buildroot/root/repo/${pkgfile}"
             set +x
         fi
