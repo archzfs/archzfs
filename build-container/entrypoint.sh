@@ -68,6 +68,8 @@ failover() {
             set -x
             tmp_file="$(mktemp)"
             curl -f -o "${tmp_file}" -L "${FAILOVER_BASE_URL}/${pkgfile}"
+            curl -f -o "${tmp_file}.sig" -L "${FAILOVER_BASE_URL}/${pkgfile}.sig"
+            gpg --verify "${tmp_file}.sig" "${tmp_file}"
             sudo mv "${tmp_file}" "/scratch/.buildroot/root/repo/${pkgfile}"
             set +x
         fi
