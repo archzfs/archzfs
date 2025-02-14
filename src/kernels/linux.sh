@@ -38,6 +38,9 @@ get_kernel_options() {
     if ! get_webpage "https://www.archlinux.org/packages/core/x86_64/linux/" "(?<=<h2>linux )[\d\w\.-]+(?=</h2>)"; then
         exit 1
     fi
+
+    webpage_output="6.12.10.arch1-1"
+
     kernel_version=${webpage_output}
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_pkgver=$(kernel_version_no_hyphen ${kernel_version})

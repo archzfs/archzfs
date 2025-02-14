@@ -35,6 +35,19 @@ COPY entrypoint.sh /entrypoint.sh
 COPY systemd-nspawn-wrapper /usr/local/bin/systemd-nspawn
 RUN systemd-machine-id-setup
 
+RUN mkdir -p /add
+ADD https://archive.archlinux.org/packages/l/linux/linux-6.12.10.arch1-1-x86_64.pkg.tar.zst /add/
+ADD https://archive.archlinux.org/packages/l/linux/linux-6.12.10.arch1-1-x86_64.pkg.tar.zst.sig /add/
+ADD https://archive.archlinux.org/packages/l/linux-headers/linux-headers-6.12.10.arch1-1-x86_64.pkg.tar.zst /add/
+ADD https://archive.archlinux.org/packages/l/linux-headers/linux-headers-6.12.10.arch1-1-x86_64.pkg.tar.zst.sig /add/
+
+ADD https://archive.archlinux.org/packages/l/linux-zen/linux-zen-6.12.10.zen1-1-x86_64.pkg.tar.zst /add/
+ADD https://archive.archlinux.org/packages/l/linux-zen/linux-zen-6.12.10.zen1-1-x86_64.pkg.tar.zst.sig /add/
+ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst /add/
+ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst.sig /add/
+RUN pacman -U /add/*.pkg.tar.zst --noconfirm && \
+    rm -rf /add
+
 USER buildbot
 VOLUME /src
 ENTRYPOINT [ "/entrypoint.sh" ]

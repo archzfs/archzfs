@@ -1,12 +1,13 @@
 on:
-  push:
-    branches: [master]
-  
-name: Test release
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - '**.sh'
+      - '.github/workflows/**'
+      - 'build-container/**'
+      - 'packages/**'
 
-concurrency:
-  group: release
-  cancel-in-progress: true
+name: Test release
 
 permissions:
   contents: write
