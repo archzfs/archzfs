@@ -20,6 +20,7 @@ permissions:
 
 env:
   RELEASE_NAME: experimental
+  FAILOVER_RELEASE: failover
 
 jobs:
   release:

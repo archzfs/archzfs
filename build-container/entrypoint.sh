@@ -14,10 +14,10 @@ set -x
 
 FAILOVER_REPO_DIR=""
 FAILOVER_BASE_URL=""
-if [ ! -z "${RELEASE_NAME}" ]; then
+if [ ! -z "${FAILOVER_RELEASE}" ]; then
     FAILOVER_REPO_DIR="$(mktemp -d)"
     cd "${FAILOVER_REPO_DIR}"
-    FAILOVER_BASE_URL="https://github.com/archzfs/archzfs/releases/download/${RELEASE_NAME}"
+    FAILOVER_BASE_URL="https://github.com/archzfs/archzfs/releases/download/${FAILOVER_RELEASE}"
     if ! curl -fsL "${FAILOVER_BASE_URL}/archzfs.db.tar.xz" | tar xvJ; then
         echo 'Failover not found, failover impossible!'
         FAILOVER_BASE_URL=""
