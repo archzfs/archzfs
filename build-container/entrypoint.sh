@@ -90,8 +90,8 @@ build zen || failover zfs-linux-zen
 
 rm -rf /src/repo
 mkdir -p /src/repo
+sudo chmod -v 644 /scratch/.buildroot/root/repo/*.pkg.tar*
 cp -v /scratch/.buildroot/root/repo/*.pkg.tar* /src/repo/
-chmod 644 /src/repo/*
 
 cd /src/repo
 # Ensure we do not have any stray signatures around
