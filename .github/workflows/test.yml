@@ -31,9 +31,7 @@ jobs:
       - name: Build builder container
         run: docker build -t archzfs-builder build-container
       - name: Run builder container
-        env:
-          GPG_KEY_ID: "${{ vars.GPG_KEY_ID }}"
-        run: docker run -e FAILOVER_RELEASE_NAME -e GPG_KEY_ID --privileged --rm -v "$(pwd):/src" archzfs-builder
+        run: docker run -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
       - name: Release testing
         uses: ncipollo/release-action@v1.15.0
         with:
