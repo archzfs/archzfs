@@ -7,7 +7,11 @@ on:
       - 'build-container/**'
       - 'packages/**'
 
-name: Test release
+name: Test
+
+concurrency:
+  group: test
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -17,7 +21,7 @@ env:
 
 jobs:
   release:
-    name: Release
+    name: Test release
     runs-on: ubuntu-latest
 
     steps:
