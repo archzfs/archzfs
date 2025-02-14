@@ -18,7 +18,7 @@ permissions:
 
 env:
   RELEASE_NAME: testing
-  FAILOVER_RELEASE: failover
+  FAILOVER_RELEASE_NAME: failover
 
 jobs:
   release:
