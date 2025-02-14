@@ -46,7 +46,8 @@ ADD https://archive.archlinux.org/packages/l/linux-zen/linux-zen-6.12.10.zen1-1-
 ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst /add/
 ADD https://archive.archlinux.org/packages/l/linux-zen-headers/linux-zen-headers-6.12.10.zen1-1-x86_64.pkg.tar.zst.sig /add/
 
-RUN repo-add /add/add.db.tar.gz /add/*.pkg.tar.zst
+RUN repo-add /add/add.db.tar.gz /add/*.pkg.tar.zst && \
+    chmod 644 /add/*
 
 RUN echo "[add]" >> /etc/pacman.conf && \
     echo "SigLevel = Optional TrustAll" >> /etc/pacman.conf && \
