@@ -21,14 +21,20 @@ if [ ! -z "${FAILOVER_RELEASE_NAME}" ]; then
     cd "${FAILOVER_REPO_DIR}"
     FAILOVER_BASE_URL="https://github.com/archzfs/archzfs/releases/download/${FAILOVER_RELEASE_NAME}"
     db_file="archzfs.db.tar.xz"
-    curl -f -o "${db_file}" -L "${FAILOVER_BASE_URL}/${db_file}"
-    curl -f -o "${db_file}.sig" -L "${FAILOVER_BASE_URL}/${db_file}.sig"
+    if ! curl -f -o "${db_file}" -L "${FAILOVER_BASE_URL}/${db_file}"; then
+        echo 'Failover database download failed, failover impossible!'
+        FAILOVER_BASE_URL=""
+        FAILOVER_REPO_DIR=""
+    elif ! curl -f -o "${db_file}.sig" -L "${FAILOVER_BASE_URL}/${db_file}.sig"; then
+        echo 'Failover signature download failed, failover impossible!'
+        FAILOVER_BASE_URL=""
+        FAILOVER_REPO_DIR=""
     if ! gpg --verify "${db_file}.sig" "${db_file}"; then
         echo 'Failover signature verification failed, failover impossible!'
         FAILOVER_BASE_URL=""
         FAILOVER_REPO_DIR=""
     elif ! tar xvJf "${db_file}"; then
-        echo 'Failover not found, failover impossible!'
+        echo 'Failover unreadable, failover impossible!'
         FAILOVER_BASE_URL=""
         FAILOVER_REPO_DIR=""
     fi
