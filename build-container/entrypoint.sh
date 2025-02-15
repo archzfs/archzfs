@@ -9,6 +9,8 @@ if [ ! -z "${GPG_KEY_DATA-}" ]; then
     gpg --import /dev/stdin <<<"${GPG_KEY_DATA}"
 fi
 
+gpg --recv-keys 3A9917BF0DED5C13F69AC68FABEC0A1208037BE9 # ArchZFS release key should always be valid
+
 # Only set -x here so we can't accidently print the GPG key up there
 set -x
 
@@ -18,8 +20,21 @@ if [ ! -z "${FAILOVER_RELEASE_NAME}" ]; then
     FAILOVER_REPO_DIR="$(mktemp -d)"
     cd "${FAILOVER_REPO_DIR}"
     FAILOVER_BASE_URL="https://github.com/archzfs/archzfs/releases/download/${FAILOVER_RELEASE_NAME}"
-    if ! curl -fsL "${FAILOVER_BASE_URL}/archzfs.db.tar.xz" | tar xvJ; then
-        echo 'Failover not found, failover impossible!'
+    db_file="archzfs.db.tar.xz"
+    if ! curl -f -o "${db_file}" -L "${FAILOVER_BASE_URL}/${db_file}"; then
+        echo 'Failover database download failed, failover impossible!'
+        FAILOVER_BASE_URL=""
+        FAILOVER_REPO_DIR=""
+    elif ! curl -f -o "${db_file}.sig" -L "${FAILOVER_BASE_URL}/${db_file}.sig"; then
+        echo 'Failover signature download failed, failover impossible!'
+        FAILOVER_BASE_URL=""
+        FAILOVER_REPO_DIR=""
+    elif ! gpg --verify "${db_file}.sig" "${db_file}"; then
+        echo 'Failover signature verification failed, failover impossible!'
+        FAILOVER_BASE_URL=""
+        FAILOVER_REPO_DIR=""
+    elif ! tar xvJf "${db_file}"; then
+        echo 'Failover unreadable, failover impossible!'
         FAILOVER_BASE_URL=""
         FAILOVER_REPO_DIR=""
     fi
@@ -68,6 +83,8 @@ failover() {
             set -x
             tmp_file="$(mktemp)"
             curl -f -o "${tmp_file}" -L "${FAILOVER_BASE_URL}/${pkgfile}"
+            curl -f -o "${tmp_file}.sig" -L "${FAILOVER_BASE_URL}/${pkgfile}.sig"
+            gpg --verify "${tmp_file}.sig" "${tmp_file}"
             sudo mv "${tmp_file}" "/scratch/.buildroot/root/repo/${pkgfile}"
             set +x
         fi
