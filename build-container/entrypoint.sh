@@ -29,7 +29,7 @@ if [ ! -z "${FAILOVER_RELEASE_NAME}" ]; then
         echo 'Failover signature download failed, failover impossible!'
         FAILOVER_BASE_URL=""
         FAILOVER_REPO_DIR=""
-    if ! gpg --verify "${db_file}.sig" "${db_file}"; then
+    elif ! gpg --verify "${db_file}.sig" "${db_file}"; then
         echo 'Failover signature verification failed, failover impossible!'
         FAILOVER_BASE_URL=""
         FAILOVER_REPO_DIR=""
