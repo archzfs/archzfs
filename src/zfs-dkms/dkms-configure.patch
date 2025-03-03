@@ -1,0 +1,17 @@
+diff -ura a/scripts/dkms.mkconf b/scripts/dkms.mkconf
+--- a/scripts/dkms.mkconf	2025-03-03 19:41:03.321389279 +0100
++++ b/scripts/dkms.mkconf	2025-03-03 19:58:45.609878706 +0100
+@@ -29,6 +29,13 @@
+   --disable-dependency-tracking
+   --prefix=/usr
+   --with-config=kernel
++  --sysconfdir=/etc
++  --sbindir=/usr/bin
++  --libdir=/usr/lib
++  --datadir=/usr/share
++  --includedir=/usr/include
++  --with-udevdir=/usr/lib/udev
++  --libexecdir=/usr/lib
+   --with-linux=\$(
+     if [ -e "\${kernel_source_dir/%build/source}" ]
+     then
