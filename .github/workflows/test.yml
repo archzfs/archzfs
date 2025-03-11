@@ -32,12 +32,15 @@ jobs:
         run: docker build -t archzfs-builder build-container
       - name: Run builder container
         run: docker run -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
+      - name: Conditionally set the commit hash for the release action
+        if: github.event.pull_request.head.repo.fork != true
+        run: echo "COMMIT_SHA=${{ github.sha }}" >> $GITHUB_ENV
       - name: Release testing
         uses: ncipollo/release-action@v1.16.0
         with:
           name: ${{ env.RELEASE_NAME }}
           tag: ${{ env.RELEASE_NAME }}
-          commit: ${{ github.sha }}
+          commit: ${{ env.COMMIT_SHA }}
           artifacts: ./repo/*
           allowUpdates: true
           artifactErrorsFailBuild: true
