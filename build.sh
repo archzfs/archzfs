@@ -184,7 +184,7 @@ build_packages() {
         # Cleanup all previously built packages for the current package
         cleanup ${pkg}
 
-        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm64 s"
+        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm s"
         if [[ ${run_cmd_return} -ne 0 ]]; then
             error "A problem occurred building the package"
             exit 1
@@ -278,8 +278,8 @@ fi
 
 
 if have_command "update_chroot"; then
-    msg "Updating the x86_64 clean chroot..."
-    run_cmd "ccm64 u"
+    msg "Updating the clean chroot..."
+    run_cmd "ccm u"
 fi
 
 for (( i = 0; i < ${#modes[@]}; i++ )); do
