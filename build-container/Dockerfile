@@ -26,6 +26,8 @@ RUN mkdir -p /tmp/ccm-install            && \
     rm -rfv /tmp/ccm-install
 
 USER root
+# https://github.com/archzfs/archzfs/issues/595
+ENV SUDO_USER=buildbot
 COPY ccm.conf /home/buildbot/.config/clean-chroot-manager.conf
 RUN ccm p && \
     chown -R buildbot:buildbot /home/buildbot && \
