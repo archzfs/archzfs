@@ -39,7 +39,7 @@ jobs:
           GPG_KEY_ID: "${{ vars.GPG_KEY_ID }}"
         run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
       - name: Release mainline
-        uses: ncipollo/release-action@v1.19.1
+        uses: ncipollo/release-action@v1.20.0
         with:
           name: ${{ env.RELEASE_NAME }}
           tag: ${{ env.RELEASE_NAME }}
@@ -55,7 +55,7 @@ jobs:
           tag: ${{ env.RELEASE_NAME }}
           force_push_tag: true
       - name: Release failover
-        uses: ncipollo/release-action@v1.19.1
+        uses: ncipollo/release-action@v1.20.0
         with:
           name: ${{ env.FAILOVER_RELEASE_NAME }}
           tag: ${{ env.FAILOVER_RELEASE_NAME }}
