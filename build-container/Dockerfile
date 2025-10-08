@@ -18,7 +18,9 @@ RUN useradd aur && \
 USER aur
 RUN mkdir -p /tmp/ccm-install            && \
     cd /tmp/ccm-install                  && \
-    wget https://aur.archlinux.org/cgit/aur.git/snapshot/clean-chroot-manager.tar.gz && \
+    # FIXME: Temporary workaround for https://github.com/archzfs/archzfs/issues/607
+    # wget https://aur.archlinux.org/cgit/aur.git/snapshot/clean-chroot-manager.tar.gz && \
+    wget https://mirrors.uni-plovdiv.net/aur/clean-chroot-manager.tar.gz && \
     tar -xvf clean-chroot-manager.tar.gz && \
     cd clean-chroot-manager              && \
     makepkg -si --noconfirm              && \
