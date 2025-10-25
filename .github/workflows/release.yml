@@ -30,15 +30,19 @@ jobs:
     environment: Release
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
+
       - name: Build builder container
         run: docker build -t archzfs-builder build-container
+
       - name: Run builder container
         env:
           GPG_KEY_DATA: "${{ secrets.GPG_KEY_DATA }}"
           GPG_KEY_ID: "${{ vars.GPG_KEY_ID }}"
         run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
+
       - name: Publish mainline to a temporary release
         uses: ncipollo/release-action@v1.20.0
         with:
@@ -48,26 +52,31 @@ jobs:
           artifacts: ./repo/*
           artifactErrorsFailBuild: true
           bodyFile: ci/releases/body-${{ env.RELEASE_NAME }}.md
+
       - name: Delete the existing mainline release
         env:
           GH_REPO: "${{ github.repository }}"
           GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: gh release delete --yes "${{ env.RELEASE_NAME }}"
+
       - name: Rename the temporary release to mainline
         env:
           GH_REPO: "${{ github.repository }}"
           GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: gh release edit --latest --tag "${{ env.RELEASE_NAME }}" --title "${{ env.RELEASE_NAME }}" "${{ env.TEMP_RELEASE_NAME}}"
+
       - name: Delete the temporary Git tag
         env:
           GH_REPO: "${{ github.repository }}"
           GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/${{ env.TEMP_RELEASE_NAME }}"
+
       - name: Tag the mainline release
         uses: rickstaa/action-create-tag@v1.7.2
         with:
           tag: ${{ env.RELEASE_NAME }}
           force_push_tag: true
+
       - name: Release failover
         uses: ncipollo/release-action@v1.20.0
         with:
@@ -81,6 +90,7 @@ jobs:
           omitBodyDuringUpdate: true
           removeArtifacts: true
           prerelease: true
+
       - name: Tag the failover release
         uses: rickstaa/action-create-tag@v1.7.2
         with:
