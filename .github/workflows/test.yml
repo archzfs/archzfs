@@ -21,17 +21,21 @@ env:
   FAILOVER_RELEASE_NAME: failover
 
 jobs:
-  release:
+  test:
     name: Test release
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
+
       - name: Build builder container
         run: docker build -t archzfs-builder build-container
+
       - name: Run builder container
         run: docker run -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
+
       - name: Release testing
         uses: ncipollo/release-action@v1.20.0
         with:
@@ -45,7 +49,9 @@ jobs:
           omitBodyDuringUpdate: true
           removeArtifacts: true
           prerelease: true
-      - uses: rickstaa/action-create-tag@v1.7.2
+
+      - name: Tag the testing release
+        uses: rickstaa/action-create-tag@v1.7.2
         with:
           tag: ${{ env.RELEASE_NAME }}
           force_push_tag: true
