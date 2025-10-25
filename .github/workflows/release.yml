@@ -43,6 +43,12 @@ jobs:
           GPG_KEY_ID: "${{ vars.GPG_KEY_ID }}"
         run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
 
+      - name: Delete possible leftover temporary release
+        env:
+          GH_REPO: "${{ github.repository }}"
+          GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        run: gh release delete --yes "${{ env.TEMP_RELEASE_NAME }}" || true
+
       - name: Publish mainline to a temporary release
         uses: ncipollo/release-action@v1.20.0
         with:
