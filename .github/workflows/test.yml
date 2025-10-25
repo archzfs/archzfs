@@ -21,7 +21,7 @@ env:
   FAILOVER_RELEASE_NAME: failover
 
 jobs:
-  release:
+  test:
     name: Test release
     runs-on: ubuntu-latest
 
