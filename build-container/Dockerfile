@@ -1,7 +1,16 @@
 FROM archlinux:base-devel
 
+# Set up the mirror from mirror-url
+ARG MIRROR_URL
+ENV MIRROR_URL=$MIRROR_URL
+
+USER root
+RUN echo "Server = ${MIRROR_URL}/archlinux/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist
+
 # The following is adapted from https://github.com/archzfs/archzfs-ci/blob/master/worker/Dockerfile
 RUN pacman -Syu --noconfirm --needed python-pipx python-twisted git wget systemd-sysvcompat openresolv vi
+# Confirm the mirror is set, done after sync
+RUN pacman -Sp linux linux-lts linux-hardened linux-zen linux-headers linux-lts-headers linux-hardened-headers linux-zen-headers
 
 # add buildbot user and give passwordless sudo access (needed for archzfs build scripts)
 RUN groupadd -r buildbot && \
