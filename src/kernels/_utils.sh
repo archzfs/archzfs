@@ -3,7 +3,7 @@ mode_name="utils"
 mode_desc="Select and use the utils packages"
 
 # version
-pkgrel="1"
+pkgrel="2"
 
 # Version for GIT packages
 pkgrel_git="1"
