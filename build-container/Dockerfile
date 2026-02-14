@@ -1,6 +1,5 @@
 FROM archlinux:base-devel
 
-# Set up the mirror from mirror-url
 ARG MIRROR_URL
 ENV MIRROR_URL=$MIRROR_URL
 
