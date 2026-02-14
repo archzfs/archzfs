@@ -1,15 +1,23 @@
 on:
+  workflow_dispatch:
+    inputs:
+      kernel_version:
+        required: false
+    types: [arch-kernel-update]
+
   push:
     branches: [master]
     paths:
       - '**.sh'
       - '.github/workflows/**'
+      - '!.github/workflows/watcher.yml'
       - 'build-container/**'
       - 'packages/**'
   schedule:
     - cron: "4 2 * * *"
 
 name: Release
+run-name: ${{ inputs.kernel_version || 'Manual/Cron' }} release
 
 concurrency:
   group: release
@@ -35,7 +43,12 @@ jobs:
         uses: actions/checkout@v6.0.2
 
       - name: Build builder container
-        run: docker build -t archzfs-builder build-container
+        env:
+          MIRROR_URL: ${{ vars.MIRROR_URL }}
+        run: |
+          docker build \
+          --build-arg MIRROR_URL=${{ env.MIRROR_URL }} \
+          -t archzfs-builder build-container
 
       - name: Run builder container
         env:

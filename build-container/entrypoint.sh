@@ -40,6 +40,13 @@ if [ ! -z "${FAILOVER_RELEASE_NAME}" ]; then
     fi
 fi
 
+if [ ! -z "${MIRROR_URL}" ]; then
+    echo "==> Forcing system mirror to: ${MIRROR_URL}"
+    echo "Server = ${MIRROR_URL}/archlinux/\$repo/os/\$arch" | sudo tee /etc/pacman.d/mirrorlist
+else
+    echo "!! WARNING: MIRROR_URL was not set. Using default mirrors."
+fi
+
 sudo chown -R buildbot:buildbot /src
 cd /src
 

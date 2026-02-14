@@ -31,7 +31,12 @@ jobs:
         uses: actions/checkout@v6.0.2
 
       - name: Build builder container
-        run: docker build -t archzfs-builder build-container
+        env:
+          MIRROR_URL: ${{ vars.MIRROR_URL }}
+        run: |
+          docker build \
+          --build-arg MIRROR_URL=${{ env.MIRROR_URL }} \
+          -t archzfs-builder build-container
 
       - name: Run builder container
         run: docker run -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
