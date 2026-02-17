@@ -1,4 +1,7 @@
 name: Watch for Arch Kernel Updates
+permissions:
+  contents: read
+  actions: write
 
 on:
   push:
