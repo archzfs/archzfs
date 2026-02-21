@@ -76,6 +76,12 @@ jobs:
           if [ -n "$UPDATES" ]; then
             echo "trigger=true" >> $GITHUB_OUTPUT
             echo "updates=$UPDATES" >> $GITHUB_OUTPUT
+
+            # Parse each kernel explicitly
+            echo "$UPDATES" | grep -qE '(^| )linux ' && echo "build_linux=true" >> $GITHUB_OUTPUT
+            echo "$UPDATES" | grep -q 'linux-lts' && echo "build_linux_lts=true" >> $GITHUB_OUTPUT
+            echo "$UPDATES" | grep -q 'linux-hardened' && echo "build_linux_hardened=true" >> $GITHUB_OUTPUT
+            echo "$UPDATES" | grep -q 'linux-zen' && echo "build_linux_zen=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Trigger Release Workflow
@@ -86,4 +92,8 @@ jobs:
           gh workflow run release.yml \
             --repo ${{ github.repository }} \
             --ref master \
-            -f kernel_version="${{ steps.nvcheck.outputs.updates }}"
+            -f kernel_version="${{ steps.nvcheck.outputs.updates }}" \
+            -f build_linux="${{ steps.nvcheck.outputs.build_linux || 'false' }}" \
+            -f build_linux_lts="${{ steps.nvcheck.outputs.build_linux_lts || 'false' }}" \
+            -f build_linux_hardened="${{ steps.nvcheck.outputs.build_linux_hardened || 'false' }}" \
+            -f build_linux_zen="${{ steps.nvcheck.outputs.build_linux_zen || 'false' }}"
