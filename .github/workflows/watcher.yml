@@ -65,6 +65,7 @@ jobs:
           cat oldver.json
 
       - name: Check for updates
+        continue-on-error: true # Continue if grep doesn't match all.
         id: nvcheck
         run: |
           nvchecker -c nvchecker.toml
