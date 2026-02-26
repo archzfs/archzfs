@@ -1,0 +1,89 @@
+name: Watch for Arch Kernel Updates
+permissions:
+  contents: read
+  actions: write
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/watcher.yml'
+      - 'nvchecker.toml'
+  schedule:
+    - cron: '10 * * * *'  # Runs every hour at 10 past the hour.
+  workflow_dispatch:
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.x'
+
+      - name: Install nvchecker
+        run: pip install nvchecker
+
+      - name: Download core.db and extra.db from designated mirror
+        env:
+          MIRROR_URL: ${{ vars.MIRROR_URL }}
+        id: get_mirror_db
+        run: |
+          curl -sS -O $MIRROR_URL/archlinux/core/os/x86_64/core.db
+          curl -sS -O $MIRROR_URL/archlinux/extra/os/x86_64/extra.db
+
+      - name: Generate oldver.json from current GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # || echo is a workaround for repos with no assets (releases)
+          (gh release view --repo ${{ github.repository }} --json assets --jq '.assets[].name' || echo '') > assets.txt
+          
+          get_version() {
+            grep "$1" assets.txt | head -n1 | sed -n 's/.*_\([^-]*\)-.*/\1/p' | sed 's/\.\([0-9]*\)$/-\1/'
+          }
+
+          LINUX_VER=$(get_version 'zfs-linux')
+          LTS_VER=$(get_version 'zfs-linux-lts')
+          HARDENED_VER=$(get_version 'zfs-linux-hardened')
+          ZEN_VER=$(get_version 'zfs-linux-zen')
+
+          cat > oldver.json <<EOF
+          {
+            "linux": "${LINUX_VER:-0.0.0-0}",
+            "linux-lts": "${LTS_VER:-0.0.0-0}",
+            "linux-hardened": "${HARDENED_VER:-0.0.0-0}",
+            "linux-zen": "${ZEN_VER:-0.0.0-0}"
+          }
+          EOF
+
+          echo "Generated oldver.json:"
+          cat oldver.json
+
+      - name: Check for updates
+        id: nvcheck
+        run: |
+          nvchecker -c nvchecker.toml
+          # Produces a string like:
+          # linux 6.18.9.arch1-1 -> 6.18.9.arch1-2 linux-lts 6.12.70-1 -> 6.12.71-1
+          # for the packages that an update is available for
+          UPDATES=$(nvcmp -c nvchecker.toml | tr '\n' ' ')
+
+          if [ -n "$UPDATES" ]; then
+            echo "trigger=true" >> $GITHUB_OUTPUT
+            echo "updates=$UPDATES" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger Release Workflow
+        if: steps.nvcheck.outputs.trigger == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run release.yml \
+            --repo ${{ github.repository }} \
+            --ref master \
+            -f kernel_version="${{ steps.nvcheck.outputs.updates }}"

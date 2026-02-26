@@ -1,0 +1,19 @@
+[__config__]
+oldver = "oldver.json"
+newver = "newver.json"
+
+[linux]
+source = "cmd"
+cmd = "tar -tzf core.db | sed -nE 's|^linux-([0-9].*?)/$|\\1|p'"
+
+[linux-lts]
+source = "cmd"
+cmd = "tar -tzf core.db | sed -nE 's|^linux-lts-([0-9].*?)/$|\\1|p'"
+
+[linux-hardened]
+source = "cmd"
+cmd = "tar -tzf extra.db | sed -nE 's|^linux-hardened-([0-9].*?)/$|\\1|p'"
+
+[linux-zen]
+source = "cmd"
+cmd = "tar -tzf extra.db | sed -nE 's|^linux-zen-([0-9].*?)/$|\\1|p'"
