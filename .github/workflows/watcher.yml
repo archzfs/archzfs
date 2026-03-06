@@ -74,13 +74,15 @@ jobs:
         run: |
           nvchecker -c nvchecker.toml
           # Produces a string like:
-          # linux 6.18.9.arch1-1 -> 6.18.9.arch1-2 linux-lts 6.12.70-1 -> 6.12.71-1
+          # linux 6.18.9.arch1-1 -> 6.18.9.arch1-2 linux-lts 6.12.70-1 -> 6.12.71-1 openzfs 2.4.0 -> 2.4.1
           # for the packages that an update is available for
           UPDATES=$(nvcmp -c nvchecker.toml | tr '\n' ' ')
 
           if [ -n "$UPDATES" ]; then
-            # TODO: Remove ZFS updates from this string, rename var to "kerenl updates"
-            echo "updates=$UPDATES" >> $GITHUB_OUTPUT
+            # Remove ZFS updates
+            KERNEL_UPDATES=$(echo "$UPDATES" | sed 's/openzfs [^ ]* -> [^ ]*//g')
+            # Write the new variable to the GitHub Actions output environment
+            echo "kernel_updates=$KERNEL_UPDATES" >> "$GITHUB_OUTPUT"
 
             # Parse each kernel explicitly
             echo "$UPDATES" | grep -qE '(^| )linux ' && echo "build_linux=true" >> $GITHUB_OUTPUT
@@ -107,7 +109,7 @@ jobs:
           gh workflow run release.yml \
             --repo ${{ github.repository }} \
             --ref master \
-            -f kernel_version="${{ steps.nvcheck.outputs.updates }}" \
+            -f kernel_version="${{ steps.nvcheck.outputs.kernel_updates }}" \
             -f build_linux="${{ steps.nvcheck.outputs.build_linux || 'false' }}" \
             -f build_linux_lts="${{ steps.nvcheck.outputs.build_linux_lts || 'false' }}" \
             -f build_linux_hardened="${{ steps.nvcheck.outputs.build_linux_hardened || 'false' }}" \
