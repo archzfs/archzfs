@@ -37,7 +37,7 @@ jobs:
         run: docker run -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
 
       - name: Release testing
-        uses: ncipollo/release-action@v1.20.0
+        uses: ncipollo/release-action@v1.21.0
         with:
           name: ${{ env.RELEASE_NAME }}
           tag: ${{ env.RELEASE_NAME }}
