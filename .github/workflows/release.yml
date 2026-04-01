@@ -50,7 +50,7 @@ jobs:
         run: gh release delete --yes "${{ env.TEMP_RELEASE_NAME }}" || true
 
       - name: Publish mainline to a temporary release
-        uses: ncipollo/release-action@v1.20.0
+        uses: ncipollo/release-action@v1.21.0
         with:
           name: ${{ env.TEMP_RELEASE_NAME }}
           tag: ${{ env.TEMP_RELEASE_NAME }}
@@ -84,7 +84,7 @@ jobs:
           force_push_tag: true
 
       - name: Release failover
-        uses: ncipollo/release-action@v1.20.0
+        uses: ncipollo/release-action@v1.21.0
         with:
           name: ${{ env.FAILOVER_RELEASE_NAME }}
           tag: ${{ env.FAILOVER_RELEASE_NAME }}
