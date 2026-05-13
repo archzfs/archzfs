@@ -7,7 +7,7 @@ ${zfs_set_commit}
 pkgver=${zfs_pkgver}
 pkgrel=${zfs_pkgrel}
 pkgdesc="Kernel module support files for the Zettabyte File System."
-makedepends=("python" "python-setuptools" "python-cffi" ${zfs_makedepends})
+makedepends=("python" "python-setuptools" "python-cffi" "libaio" ${zfs_makedepends})
 optdepends=("python: pyzfs and extra utilities", "python-cffi: pyzfs")
 arch=("x86_64")
 url="http://openzfs.org/"
