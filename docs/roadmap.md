@@ -107,13 +107,16 @@ should be demonstrated there before entering this production repository.
 **Status: Priority; implementation proposed in
 [archzfs-mirror PR #1](https://github.com/archzfs/archzfs-mirror/pull/1)**
 
-The Plovdiv HTTPS/rsync endpoint is online, but the proposed synchronization
-tooling is unfinished and not deployed, so it is not currently refreshed from
-production releases automatically. Refine the Tier 1/Tier 2 implementation,
-preserve its staging, locking, managed-deletion, API-limit, and archive safety
-properties, and verify release and package signatures before downloaded assets
-become visible. Add deployment, recovery, monitoring, and retention
-documentation, then deploy and observe it on the Plovdiv server.
+The public mirror hosted by the
+[Computer-Assisted Research and Teaching Laboratory](https://cart.uni-plovdiv.net/)
+at the [University of Plovdiv](https://uni-plovdiv.bg/) is online, but the
+proposed synchronization tooling is unfinished and not deployed, so it is not
+currently refreshed from production releases automatically. Refine the Tier 1
+and Tier 2 implementation, preserve its staging, locking, managed-deletion,
+API-limit, and archive safety properties, and verify release and package
+signatures before downloaded assets become visible. Add deployment, recovery,
+monitoring, and retention documentation, then deploy and observe it on the
+University-hosted mirror.
 
 This work is a high priority because it improves an existing service without
 first changing production package-selection or release-trigger behavior.
