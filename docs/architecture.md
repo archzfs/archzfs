@@ -88,9 +88,16 @@ release tag's Git commit as permanent artifact identity.
 ### archzfs-testing
 
 `archzfs/archzfs-testing` is a staging fork for release-infrastructure changes.
-It can carry watcher, selective-build, or update-automation work that has not
-been merged into production. Its releases are staging artifacts and are not
-interchangeable with signed releases from this repository.
+Its `master` branch is intended to start unrelated experiments at the same
+source commit as production, then diverge only for the active test. Watcher,
+selective-build, or update-automation work may run there before being proposed
+for production.
+
+Source synchronization does not copy repository settings, credentials,
+environments, releases, tags, or workflow enabled state. Testing releases are
+staging artifacts and are not interchangeable with signed releases from this
+repository. The destructive synchronization and verification procedure is
+documented in [staging.md](staging.md).
 
 ### archzfs-keyring
 
