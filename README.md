@@ -7,7 +7,10 @@ Welcome to the ArchZFS project. This repo contains everything used to deploy ZFS
 
 ## Overview
 
-Take a look at the [wiki](https://github.com/archzfs/archzfs/wiki) for more information
+Take a look at the [wiki](https://github.com/archzfs/archzfs/wiki) for user
+documentation. The [architecture](docs/architecture.md) document describes the
+current build and release system. Contributors and automation agents should
+also read the repository's [agent instructions](AGENTS.md).
 
 ## Licenses
 
