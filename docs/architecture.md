@@ -110,9 +110,12 @@ User documentation must not imply that keyring-package deployment is complete.
 
 `archzfs/archzfs-mirror` is intended to provide reusable tooling that
 synchronizes GitHub Releases to mirrors. Its implementation is not part of this
-repository's production publication path. The public
-[Plovdiv mirror](https://mirrors.uni-plovdiv.net/archzfs/) is operated
-separately; its availability does not make unfinished reusable mirror tooling
+repository's production publication path. The
+[Computer-Assisted Research and Teaching Laboratory](https://cart.uni-plovdiv.net/)
+at the [University of Plovdiv](https://uni-plovdiv.bg/) separately hosts a
+[public mirror](https://mirrors.uni-plovdiv.net/archzfs/). The replacement
+synchronization tooling is not deployed, so automatic freshness is not assured;
+the endpoint's availability does not make unfinished reusable mirror tooling
 production code.
 
 ### Generated package repositories

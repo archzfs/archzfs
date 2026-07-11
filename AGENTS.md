@@ -99,6 +99,27 @@
 - Call out generated files, release behavior, signing implications, destructive
   operations, and validation that could not be performed.
 
+## Documentation Coordination
+
+- When package, release, signing, mirror, repository-role, or user-facing
+  behavior changes, review this repository's README and `docs/`, the public
+  [ArchZFS organization `.github` repository](https://github.com/archzfs/.github),
+  and the ArchZFS Wiki for affected claims.
+- The organization `.github` repository is a separate Git repository, not the
+  `.github/` directory in this checkout. GitHub does not copy its profile or
+  default community files into repository clones. Inspect it through GitHub or
+  a separately cloned checkout, and verify that checkout's remote before use.
+- Do not place repository-critical operational instructions only in the
+  organization `.github` repository.
+- Update source-controlled documentation in the same change when practical.
+  Cross-repository documentation requires separate linked PRs; state
+  dependencies and merge order explicitly.
+- GitHub Wiki changes have no normal pull-request path. Prepare them in a local
+  Wiki clone on a named branch, commit the proposed pages, and provide the diff
+  and summary for review. Push Wiki `master` only with explicit authorization.
+- PRs affecting public behavior should state which documentation surfaces were
+  reviewed, which were updated, and any coordinated follow-up still required.
+
 ## Historical Boundaries
 
 - GitHub Actions and GitHub Releases are the supported production path.
