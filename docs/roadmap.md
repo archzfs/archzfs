@@ -1,19 +1,19 @@
 # ArchZFS Roadmap
 
-Last reviewed: 2026-07-11
+Last reviewed: 2026-07-12
 
-This document records maintainer direction and open design work. It is not a
-release schedule, and nothing described as staging, proposed, or requiring
-design is deployed production behavior. See [architecture.md](architecture.md)
-for the current system.
+This document records the current maintainer's working direction and open design
+work. It is not a release schedule, and nothing described as staging, proposed,
+or requiring design is deployed production behavior. See
+[architecture.md](architecture.md) for the current system.
 
 Status terms used below:
 
 - **Deployed**: available through the production ArchZFS system.
 - **Staging**: implemented or exercised outside production, primarily in
   `archzfs-testing`.
-- **Priority**: accepted as important current work, but not necessarily designed
-  or implemented completely.
+- **Priority**: identified by the current maintainer as important current work,
+  but not necessarily agreed project-wide, designed, or implemented completely.
 - **Design needed**: desired outcome with unresolved policy or implementation.
 - **Historical**: retained context, not a supported direction.
 
@@ -211,9 +211,11 @@ path until the package and migration instructions are deployed.
 **Status: Design needed**
 
 Define authoritative sources, signature checks, and retention for official Arch
-kernel packages included in stable. Coordinate that policy with mirror archives
-and the separately maintained historical packages at `kernels.archzfs.com`, but
-do not make a self-contained stable repository depend on that external service.
+kernel packages included in stable. Treat `kernels.archzfs.com` only as a
+historical lead: its HTTPS endpoint is currently unusable because its certificate
+does not match the hostname, and its maintenance and retention status must be
+established before it can be considered in distribution planning. A
+self-contained stable repository must not depend on it.
 
 Resolve the remaining `archzfs.com` domain, redirect, user-migration, and archive
 questions tracked in [issue #599](https://github.com/archzfs/archzfs/issues/599).
