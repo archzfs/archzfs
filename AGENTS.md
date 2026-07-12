@@ -102,9 +102,10 @@
 ## Documentation Coordination
 
 - When package, release, signing, mirror, repository-role, or user-facing
-  behavior changes, review this repository's README and `docs/`, the public
-  [ArchZFS organization `.github` repository](https://github.com/archzfs/.github),
-  and the ArchZFS Wiki for affected claims.
+  behavior changes, review this repository's README, `docs/`, and applicable
+  `ci/releases/body-*.md` files, the public [ArchZFS organization `.github`
+  repository](https://github.com/archzfs/.github), and the ArchZFS Wiki for
+  affected claims.
 - The organization `.github` repository is a separate Git repository, not the
   `.github/` directory in this checkout. GitHub does not copy its profile or
   default community files into repository clones. Inspect it through GitHub or
