@@ -43,8 +43,10 @@ production setting is equivalent.
   staging command.
 - Preserve active experiment commits on a named remote branch before resetting
   testing `master`.
-- Disable mutating and scheduled workflows before synchronization. Verify their
-  state again afterward; workflow files and enabled state are separate concerns.
+- Disable mutating and scheduled workflows, then disable repository-level
+  Actions before synchronization. Keep Actions disabled until workflows
+  introduced by the synchronized tree have been inventoried and any mutating or
+  scheduled workflows have been disabled.
 - Never copy the production private signing key into the staging repository.
   Unsigned staging assets are expected unless a distinct non-production trust
   design is introduced and documented.
@@ -62,7 +64,9 @@ or unresolved experiment still depends on testing `master`.
 Useful read-only commands include:
 
 ```sh
-gh repo view archzfs/archzfs-testing --json nameWithOwner,parent,defaultBranchRef
+gh api repos/archzfs/archzfs-testing \
+  --jq '{full_name, fork, parent: .parent.full_name, default_branch, permissions}'
+gh auth status
 gh workflow list --all --repo archzfs/archzfs-testing
 gh run list --repo archzfs/archzfs-testing
 git remote -v
@@ -73,18 +77,45 @@ git log --oneline --left-right origin/master...archzfs/master
 The final command assumes the production repository is configured locally as
 the `archzfs` remote. Inspect remote URLs rather than assuming remote names.
 
+Abort unless the destination is exactly `archzfs/archzfs-testing`, reports
+`fork: true`, has `archzfs/archzfs` as its parent, and uses `master` as its
+default branch. The authenticated identity must have repository administration
+and contents-write access for the complete procedure.
+
+A GitHub CLI OAuth token or classic personal access token that adds or updates
+files under `.github/workflows/` requires the `workflow` scope in addition to
+repository write access. Repository administration does not substitute for that
+token scope. If `gh auth status` does not report it, stop and obtain explicit
+authorization before changing authentication.
+
 Before a reset, preserve relevant testing `master` history on a descriptive
 branch such as `experiment/kernel-watcher` or
 `archive/kernel-watcher-2026-07-11`. Push and verify that branch before
 continuing. Keep it until the corresponding production work is merged or
 abandoned explicitly.
 
-### 2. Disable Mutating Workflows
+### 2. Record Settings and Disable Actions
 
-List workflows first because the available files depend on the current
-experiment. Disable release, watcher, update, or other workflows that publish,
-delete, dispatch privileged work, or run on a schedule. For example, when those
-files exist:
+Record the current repository Actions policy, default workflow-token
+permissions, active runs, and per-workflow enabled states. Inspect `master`
+branch protection and repository rulesets; do not attempt the force-sync unless
+the reset is permitted or an explicitly authorized bypass is available.
+
+```sh
+gh api repos/archzfs/archzfs-testing/branches/master
+gh api repos/archzfs/archzfs-testing/rulesets
+gh api repos/archzfs/archzfs-testing/actions/permissions
+gh api repos/archzfs/archzfs-testing/actions/permissions/workflow
+gh workflow list --all --repo archzfs/archzfs-testing
+gh run list --repo archzfs/archzfs-testing
+```
+
+Let mutating runs finish before proceeding. Canceling a run is itself a
+state-changing operation and requires explicit authorization.
+
+Disable release, watcher, update, or other currently present workflows that
+publish, delete, dispatch privileged work, or run on a schedule. For example,
+when those files exist:
 
 ```sh
 gh workflow disable release.yml --repo archzfs/archzfs-testing
@@ -92,8 +123,17 @@ gh workflow disable watcher.yml --repo archzfs/archzfs-testing
 gh workflow disable update-zfs.yml --repo archzfs/archzfs-testing
 ```
 
-Do not synchronize while a mutating run is active. Canceling a run is itself a
-state-changing operation and requires the same environment review.
+Then disable Actions for the entire repository so workflows introduced by the
+synchronized production tree cannot start before they are reviewed:
+
+```sh
+gh api --method PUT \
+  repos/archzfs/archzfs-testing/actions/permissions \
+  -F enabled=false
+```
+
+Keep the recorded settings available for the restore step. Do not assume the
+current values or hard-code a permissive replacement policy.
 
 ### 3. Force-Sync the Default Branch
 
@@ -108,6 +148,13 @@ gh repo sync archzfs/archzfs-testing \
   --force
 ```
 
+The command first uses GitHub's fork-only upstream-merge operation and may fall
+back to moving the destination ref directly. That fallback cannot transfer
+missing Git objects; it can only reference commits already in the destination's
+object network. Continuous synchronization of new production commits therefore
+requires preserving `archzfs-testing` as a GitHub fork of `archzfs`. If the
+testing repository is recreated, recreate it as a fork.
+
 `--force` hard-resets the destination branch to the source branch. It does not
 synchronize or clean releases, tags, Actions variables, secrets, environments,
 permissions, workflow enabled state, caches, branch protection, or repository
@@ -121,6 +168,13 @@ gh api repos/archzfs/archzfs/commits/master --jq .sha
 gh api repos/archzfs/archzfs-testing/commits/master --jq .sha
 gh workflow list --all --repo archzfs/archzfs-testing
 ```
+
+While repository Actions remain disabled, inventory every workflow introduced
+by the synchronized tree and disable each mutating or scheduled workflow. After
+the commit SHAs and workflow states are verified, restore the exact recorded
+repository Actions policy and default workflow-token permissions. Explicitly
+enable only the workflow needed for the authorized experiment; do not broadly
+enable all synchronized workflows.
 
 Prefer a fresh clone or worktree for the synchronized source. Do not hard-reset
 an existing local checkout until its uncommitted work and local-only commits
@@ -139,8 +193,9 @@ production. A test with such an overlay is evidence for the shared code below
 it, not proof that the production workflow was tested byte-for-byte.
 
 Testing workflows currently depend on `master` push, schedule, or dispatch
-behavior. Advance testing `master` to the experiment only after the required
-workflow is enabled and the destination has been rechecked. Enabling a synced
+behavior. Advance testing `master` to the experiment only after the destination
+has been rechecked, the repository Actions policy has been restored, and the
+single required workflow has been explicitly enabled. Enabling a synced
 production workflow may also restore its schedule, so disable it again when the
 experiment is complete.
 
