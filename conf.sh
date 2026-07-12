@@ -2,11 +2,14 @@
 #
 # FIXME: reset all kernel configs set to pkgrel=1 when this changes
 #
-openzfs_version="2.4.2"
+openzfs_version="2.4.3"
+
+# RC packages are currently disabled. These retained values are not production
+# release inputs; review the complete RC path before updating or re-enabling it.
 openzfs_rc_version="2.4.0-rc1"
 
 # The OpenZFS source hashes are from github.com/openzfs/zfs/releases
-zfs_src_hash="7e260d0e6af295bea4c5e241cac0a1aef07b58d8dd8035f7898ade3b1bbec78f"
+zfs_src_hash="1f08f2d154f5189b5f1382848a32667b3d34066145b474c49cd3d41a5fba59a7"
 zfs_rc_src_hash="0068102a4162d7445b80218b882ff54e1acf3cfbeef909d53bd984ddcd9339b1"
 
 zfs_initcpio_install_hash="d19476c6a599ebe3415680b908412c8f19315246637b3a61e811e2e0961aea78"
