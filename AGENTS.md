@@ -71,9 +71,9 @@
 - Do not run `repo.sh`, `push.sh`, `mirror.sh`, signing commands, remote rsync,
   or release workflows without explicit authorization and environment review.
   These paths can move, delete, sign, commit, push, or publish artifacts.
-- Do not run `testing/test.sh` on an unreviewed environment. Its VM setup erases
-  `/dev/vda`, depends on hard-coded NFS resources, and has unfinished acceptance
-  checks.
+- Do not run `testing/test.sh` on an unreviewed environment. Guest setup wipes
+  the test VM's `/dev/vda`, depends on hard-coded NFS resources, and has
+  unfinished acceptance checks.
 - Do not force-sync `archzfs-testing` until active work is preserved and
   mutating workflows are disabled. `gh repo sync --force` hard-resets its target
   branch; follow `docs/staging.md` and verify the destination repository.
