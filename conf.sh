@@ -1,6 +1,8 @@
 # OpenZFS stable version
 #
 # FIXME: reset all kernel configs set to pkgrel=1 when this changes
+# FIXME: remove the Linux-Maximum workaround in src/zfs/PKGBUILD.sh and
+# src/zfs-dkms/PKGBUILD.sh once the selected release declares Linux 7.1 or later
 #
 openzfs_version="2.4.3"
 
