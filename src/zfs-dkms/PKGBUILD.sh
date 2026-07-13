@@ -19,6 +19,13 @@ groups=("${archzfs_package_group}")
 conflicts=("zfs" "zfs-headers" "spl" "spl-headers")
 ${zfs_replaces}
 
+prepare() {
+    cd "${zfs_workdir}"
+    # openzfs/zfs#18682 confirms Linux 7.1 support after the 2.4.3 release.
+    sed -i 's/^Linux-Maximum: 7.0$/Linux-Maximum: 7.1/' META
+    grep -qx 'Linux-Maximum: 7.1' META
+}
+
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh
