@@ -1,8 +1,8 @@
 # ArchZFS Architecture
 
 This document describes the currently deployed ArchZFS system. Proposed release
-channels and unfinished infrastructure belong in roadmap documentation, not in
-this current-state reference.
+channels and unfinished infrastructure are tracked in the
+[project roadmap](roadmap.md), not in this current-state reference.
 
 ## Repository Responsibilities
 
