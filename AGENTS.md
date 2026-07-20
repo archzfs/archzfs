@@ -60,6 +60,17 @@
 - The Actions workflow named `Test` performs an unsigned package build and
   updates the shared mutable `testing` release. It does not run the legacy
   QEMU tests or an OpenZFS runtime/data-integrity suite.
+- Long package-build checks may run automatically for changes that cannot affect
+  their workflow, inputs, or outputs. After inspecting the changed paths and
+  relevant workflow dependencies, do not wait synchronously merely for such a
+  check to complete. Confirm that the run reached its expected long-running
+  step, report its pending status and URL, and do not claim that it passed or
+  cancel it.
+- Wait for or investigate a check when the change can affect it, when it fails
+  unexpectedly, or when its result is required for a requested merge, release,
+  or readiness decision. Documentation-only changes commonly qualify for
+  non-blocking treatment, but file type alone is not sufficient; verify the
+  dependency boundary first.
 - For shell-only changes, at minimum run `bash -n` on each changed Bash script
   and `git diff --check`. The initcpio hook declares ash/dash compatibility, so
   Bash syntax alone is insufficient for changes to that file.
@@ -98,6 +109,31 @@
   exploratory narration.
 - Call out generated files, release behavior, signing implications, destructive
   operations, and validation that could not be performed.
+
+## Documentation Coordination
+
+- When package, release, signing, mirror, repository-role, or user-facing
+  behavior changes, review this repository's README, `docs/`, and applicable
+  `ci/releases/body-*.md` files, the public [ArchZFS organization `.github`
+  repository](https://github.com/archzfs/.github), and the ArchZFS Wiki for
+  affected claims.
+- The organization `.github` repository is a separate Git repository, not the
+  `.github/` directory in this checkout. GitHub does not copy its profile or
+  default community files into repository clones. Inspect it through GitHub or
+  a separately cloned checkout, and verify that checkout's remote before use.
+- Do not place repository-critical operational instructions only in the
+  organization `.github` repository.
+- Update source-controlled documentation in the same change when practical.
+  Cross-repository documentation requires separate linked PRs; state
+  dependencies and merge order explicitly.
+- GitHub Wiki changes have no normal pull-request path. Prepare them in a local
+  Wiki clone on a named branch, commit the proposed pages, and provide the diff
+  and summary for review. Verify new or changed link targets before publication
+  and check rendered links afterward. If a target intentionally depends on
+  unmerged work, add an explicit dependency notice and tracked cleanup. Push
+  Wiki `master` only with explicit authorization.
+- PRs affecting public behavior should state which documentation surfaces were
+  reviewed, which were updated, and any coordinated follow-up still required.
 
 ## Historical Boundaries
 
