@@ -1,9 +1,15 @@
 # ArchZFS Agent Instructions
 
-## Repository Role
+## Repository Identity
 
-- This is the production control repository for ArchZFS package generation,
-  builds, signing, and GitHub Releases publication.
+- These instructions are canonical in `archzfs/archzfs` and may be copied
+  unchanged into the disposable `archzfs-testing` fork. Identify the current
+  GitHub repository before release or synchronization work.
+- In `archzfs/archzfs`, this tree is the production control repository for
+  package generation, builds, signing, and GitHub Releases publication.
+- In `archzfs/archzfs-testing`, `master`, experiment branches, tags, and releases
+  are staging resources. They remain mutating shared infrastructure and still
+  require explicit authorization before reset, publication, or deletion.
 - Treat current workflows and scripts as authoritative over the old wiki,
   `TODO.rst`, and legacy deployment comments.
 - `archzfs-testing` is the staging fork for release-infrastructure changes.
@@ -65,9 +71,12 @@
 - Do not run `repo.sh`, `push.sh`, `mirror.sh`, signing commands, remote rsync,
   or release workflows without explicit authorization and environment review.
   These paths can move, delete, sign, commit, push, or publish artifacts.
-- Do not run `testing/test.sh` on an unreviewed environment. Its VM setup erases
-  `/dev/vda`, depends on hard-coded NFS resources, and has unfinished acceptance
-  checks.
+- Do not run `testing/test.sh` on an unreviewed environment. Guest setup wipes
+  the test VM's `/dev/vda`, depends on hard-coded NFS resources, and has
+  unfinished acceptance checks.
+- Do not force-sync `archzfs-testing` until active work is preserved and
+  mutating workflows are disabled. `gh repo sync --force` hard-resets its target
+  branch; follow `docs/staging.md` and verify the destination repository.
 - Releases and tags named `testing`, `experimental`, and `failover` are mutable
   and may be force-moved. Do not use their tag commits as immutable provenance.
 - Preserve create-then-promote publication for fixed-name release channels. In
@@ -106,3 +115,5 @@
   referenced by `build-container/entrypoint.sh`.
 - Read `docs/architecture.md` before changing package ownership, release
   publication, signing, failover, or cross-repository behavior.
+- Read `docs/staging.md` before synchronizing `archzfs-testing` or using it to
+  validate release-infrastructure changes.
