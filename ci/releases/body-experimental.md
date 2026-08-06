@@ -4,19 +4,16 @@ This is the current official repository of the ArchZFS project. It is built the 
 
 ## Using the repository
 
-### Without PGP verification
+### With PGP verification (recommended)
 
-The repository and the packages in it are PGP signed, but the signing system is still being developed and may be subject to change. Until this is finalized, one way to use the repo is with signature validation turned off.
+The repository database and packages are PGP signed. An installable [`archzfs-keyring`](https://github.com/archzfs/archzfs-keyring) package is in development. For now, manually import and locally sign the current ArchZFS signing key as described below.
 
-Add the following to `/etc/pacman.conf`:
-```ini
-[archzfs]
-# TODO: Change this to `Required` once it's announced that the signing system is finalized.
-SigLevel = Never
-Server = https://github.com/archzfs/archzfs/releases/download/experimental
+Review the full fingerprint before choosing to trust it, then initialize the Pacman keyring, retrieve the key, and sign it locally:
 ```
-
-### With PGP verification
+# pacman-key --init
+# pacman-key --recv-keys 3A9917BF0DED5C13F69AC68FABEC0A1208037BE9
+# pacman-key --lsign-key 3A9917BF0DED5C13F69AC68FABEC0A1208037BE9
+```
 
 Add the following to `/etc/pacman.conf`:
 ```ini
@@ -25,9 +22,13 @@ SigLevel = Required
 Server = https://github.com/archzfs/archzfs/releases/download/experimental
 ```
 
-Import the current ArchZFS signing key and sign it locally:
-```
-# pacman-key --init
-# pacman-key --recv-keys 3A9917BF0DED5C13F69AC68FABEC0A1208037BE9
-# pacman-key --lsign-key 3A9917BF0DED5C13F69AC68FABEC0A1208037BE9
+### Without PGP verification
+
+You can use the repository without signature verification by configuring Pacman as shown below. This is not recommended: Pacman will not verify the authenticity of the repository database or packages.
+
+Add the following to `/etc/pacman.conf` instead:
+```ini
+[archzfs]
+SigLevel = Never
+Server = https://github.com/archzfs/archzfs/releases/download/experimental
 ```
