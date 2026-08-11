@@ -98,6 +98,15 @@
   protects the whole run as a containment measure; make build work cancellable
   only after separating it from publication and pinning failover inputs to a
   complete generation.
+- Keep release-body publication metadata-only. It must read the body from the
+  current trusted default branch and must not replace assets, move tags, enter
+  the signing environment, use signing material, or share package-release
+  concurrency.
+- Preserve release-body reconciliation after package-release completion. An
+  older package-workflow checkout must not permanently restore stale notes.
+- `_experimental` is mutable temporary publication state. An interrupted run
+  may leave a temporary release or tag; inspect it and clean it up safely before
+  reuse.
 - Preserve failover database/package signature verification when changing the
   builder. A downloaded package is not eligible for reuse merely because its
   filename matches.
