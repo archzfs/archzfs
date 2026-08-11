@@ -317,7 +317,8 @@ for (( i = 0; i < ${#modes[@]}; i++ )); do
     for func in "${update_funcs[@]}"; do
         debug "Evaluating '${func}'"
 
-        # skip git packages if -s was used
+        # Production does not publish RC or Git packages. Review their
+        # generators and source-version assumptions before enabling them.
         if [[ ${only_stable} -eq 1 && ( ${func} =~ git_pkgbuilds$ || ${func} =~ rc_pkgbuilds$ ) ]]; then
             debug "Skipping '${func}' (non stable)"
             continue

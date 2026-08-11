@@ -21,6 +21,18 @@ sha256sums=("${zfs_src_hash}")
 license=("CDDL")
 depends=("kmod" "${zfs_utils_pkgname}" ${linux_depends})
 
+prepare() {
+    cd "${zfs_workdir}"
+    case "\${_zfsver}" in
+        2.4.2|2.4.3)
+            # These releases contain Linux 7.1 compatibility, but their
+            # metadata predates the support marker.
+            sed -Ei 's/^Linux-Maximum: (7\.0|99\.99)$/Linux-Maximum: 7.1/' META
+            grep -qx 'Linux-Maximum: 7.1' META
+            ;;
+    esac
+}
+
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh

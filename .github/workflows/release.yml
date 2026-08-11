@@ -14,7 +14,7 @@ name: Release
 
 concurrency:
   group: release
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -33,7 +33,7 @@ jobs:
     steps:
 
       - name: Checkout code
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
 
       - name: Build builder container
         run: docker build -t archzfs-builder build-container
