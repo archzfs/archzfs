@@ -93,6 +93,11 @@
 - Preserve create-then-promote publication for fixed-name release channels. In
   addition to reducing exposure to incomplete uploads, creating a fresh release
   updates the date shown by GitHub; updating assets in place does not.
+- While fixed-name package publication uses delete-then-rename promotion, its
+  release-mutating critical section must not be canceled. The current workflow
+  protects the whole run as a containment measure; make build work cancellable
+  only after separating it from publication and pinning failover inputs to a
+  complete generation.
 - Preserve failover database/package signature verification when changing the
   builder. A downloaded package is not eligible for reuse merely because its
   filename matches.
