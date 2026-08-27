@@ -42,6 +42,14 @@ build() {
     [[ -f /etc/zfs/zpool.cache ]] && cp "/etc/zfs/zpool.cache" "${BUILDROOT}/etc/zfs/zpool.cache.org"
     [[ -f /etc/modprobe.d/zfs.conf ]] && add_file "/etc/modprobe.d/zfs.conf"
     [[ -f /etc/fstab ]] && add_file "/etc/fstab"
+
+    [[ -f /etc/zfs/initramfs-tools-load-key ]] && add_file "/etc/zfs/initramfs-tools-load-key"
+    if [[ -d /etc/zfs/initramfs-tools-load-key.d ]]; then
+        add_dir "/etc/zfs/initramfs-tools-load-key.d"
+        for load_key_provider in /etc/zfs/initramfs-tools-load-key.d/*; do
+            [[ -f "${load_key_provider}" ]] && add_file "${load_key_provider}"
+        done
+    fi
 }
 
 help() {
