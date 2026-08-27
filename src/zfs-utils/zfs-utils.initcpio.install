@@ -102,6 +102,24 @@ Examples:
 
         zfs=tank/root rw
 
+Alternate key loading:
+
+    If present, /etc/zfs/initramfs-tools-load-key and regular files in
+    /etc/zfs/initramfs-tools-load-key.d/ are copied into the initramfs and
+    sourced before the normal key-loading path. These providers may load the
+    key for the encryption root required during boot.
+
+    Providers receive ENCRYPTIONROOT and KEYLOCATION. ZFS and ZPOOL are set to
+    the zfs and zpool commands. A successful provider must return successfully
+    and leave the encryption root key available. Provider failure is non-fatal.
+
+    A minimal provider that reads a local keylocation file as the prompt key:
+
+        [ "${KEYLOCATION%%://*}" = "file" ] || return 1
+        keyfile="${KEYLOCATION#file://}"
+        [ -r "${keyfile}" ] || return 1
+        "${ZFS}" load-key -L prompt "${ENCRYPTIONROOT}" < "${keyfile}"
+
 If you want to set properties for zfs-on-linux module, you should add them to
 /etc/modprobe.d/zfs.conf and then rebuild initcpio.
 
