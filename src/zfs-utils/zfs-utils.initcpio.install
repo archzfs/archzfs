@@ -161,7 +161,7 @@ TPM2 provider:
     to write it to a temporary file on /run, encrypt it, then remove it:
 
         umask 077
-        systemd-ask-password --no-tty "ZFS passphrase:" > /run/zfs.key
+        systemd-ask-password -n --no-tty "ZFS passphrase:" > /run/zfs.key
         systemd-creds encrypt --with-key=tpm2 --tpm2-device=auto \
             --name=zfs-key /run/zfs.key /etc/zfs/zfs-key.creds
         rm /run/zfs.key
