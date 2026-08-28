@@ -145,6 +145,24 @@ Alternate key loading:
     in /etc/zfs/initramfs-tools-load-key.files. Empty lines and lines starting
     with # are ignored.
 
+TPM2 provider:
+
+    zfs-utils includes a systemd-creds TPM2 provider example at
+    /usr/share/doc/zfs-utils/initramfs-tools-load-key.d/tpm2-systemd-creds.
+    To enable it, copy it to:
+
+        /etc/zfs/initramfs-tools-load-key.d/tpm2-systemd-creds
+
+    Then create a TPM2 credential at /etc/zfs/zfs-key.creds and list it in:
+
+        /etc/zfs/initramfs-tools-load-key.files
+
+    The TPM2 provider is not a mkinitcpio hook. Keep zfs in HOOKS and rebuild
+    the initramfs after enabling the provider.
+
+    The provider only tries to unlock the boot root dataset. Other encrypted
+    datasets continue through the normal key-loading path.
+
 If you want to set properties for zfs-on-linux module, you should add them to
 /etc/modprobe.d/zfs.conf and then rebuild initcpio.
 
