@@ -157,11 +157,26 @@ TPM2 provider:
 
         /etc/zfs/initramfs-tools-load-key.files
 
+    Avoid putting the ZFS passphrase directly in shell history. One option is
+    to write it to a temporary file on /run, encrypt it, then remove it:
+
+        umask 077
+        systemd-ask-password --no-tty "ZFS passphrase:" > /run/zfs.key
+        systemd-creds encrypt --with-key=tpm2 --tpm2-device=auto \
+            --name=zfs-key /run/zfs.key /etc/zfs/zfs-key.creds
+        rm /run/zfs.key
+        printf '%s\n' /etc/zfs/zfs-key.creds \
+            > /etc/zfs/initramfs-tools-load-key.files
+
     The TPM2 provider is not a mkinitcpio hook. Keep zfs in HOOKS and rebuild
     the initramfs after enabling the provider.
 
     The provider only tries to unlock the boot root dataset. Other encrypted
     datasets continue through the normal key-loading path.
+
+    Without a PCR policy, this protects against unlocking a detached disk but
+    does not attest the boot chain. Choose PCR policy, recovery, and passphrase
+    rotation procedures for your own threat model.
 
 If you want to set properties for zfs-on-linux module, you should add them to
 /etc/modprobe.d/zfs.conf and then rebuild initcpio.
