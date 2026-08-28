@@ -14,10 +14,12 @@ url="http://openzfs.org/"
 source=("${zfs_src_target}"
         "zfs-utils.initcpio.install"
         "zfs-utils.initcpio.hook"
+        "zfs-utils.initcpio.tpm2-provider"
         "zfs-utils.initcpio.zfsencryptssh.install")
 sha256sums=("${zfs_src_hash}"
             "${zfs_initcpio_install_hash}"
             "${zfs_initcpio_hook_hash}"
+            "${zfs_initcpio_tpm2_provider_hash}"
             "${zfs_initcpio_zfsencryptssh_install}")
 license=("CDDL")
 groups=("${archzfs_package_group}")
@@ -54,6 +56,9 @@ package() {
     # Install the support files
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.hook "\${pkgdir}"/usr/lib/initcpio/hooks/zfs
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.install "\${pkgdir}"/usr/lib/initcpio/install/zfs
+    install -D -m644 \\
+        "\${srcdir}"/zfs-utils.initcpio.tpm2-provider \\
+        "\${pkgdir}"/usr/share/doc/zfs-utils/initramfs-tools-load-key.d/tpm2-systemd-creds
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.zfsencryptssh.install "\${pkgdir}"/usr/lib/initcpio/install/zfsencryptssh
     install -D -m644 contrib/bash_completion.d/zfs "\${pkgdir}"/usr/share/bash-completion/completions/zfs
 }

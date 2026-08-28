@@ -51,6 +51,10 @@ build() {
         for load_key_provider in /etc/zfs/initramfs-tools-load-key.d/*; do
             [[ -f "${load_key_provider}" ]] && add_file "${load_key_provider}"
         done
+
+        if [[ -f /etc/zfs/initramfs-tools-load-key.d/tpm2-systemd-creds ]]; then
+            add_binary systemd-creds
+        fi
     fi
 
     if [[ -f /etc/zfs/initramfs-tools-load-key.files ]]; then

@@ -1,0 +1,22 @@
+# Unlock the boot root encryption root with a systemd-creds TPM2 credential.
+
+creds="${zfs_tpm2_credential:-/etc/zfs/zfs-key.creds}"
+credname="${zfs_tpm2_credential_name:-zfs-key}"
+pool="${DATASET%%/*}"
+
+bootfs="$("${ZPOOL}" get -H -o value bootfs "${pool}" 2>/dev/null)" ||
+    return 1
+
+if [ "${bootfs}" != "${DATASET}" ]; then
+    mountpoint="$(
+        "${ZFS}" get -H -o value mountpoint "${DATASET}" 2>/dev/null
+    )" ||
+        return 1
+    [ "${mountpoint}" = "/" ] || return 1
+fi
+
+[ -r "${creds}" ] || return 1
+command -v systemd-creds >/dev/null 2>&1 || return 1
+
+systemd-creds decrypt --name="${credname}" "${creds}" - |
+    "${ZFS}" load-key -L prompt "${ENCRYPTIONROOT}"
