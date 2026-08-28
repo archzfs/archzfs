@@ -9,8 +9,9 @@ ZPOOL_IMPORT_FLAGS=""
 ZFS_BOOT_ONLY=""
 
 zfs_try_load_key_provider() {
-    ENCRYPTIONROOT=$1
-    KEYLOCATION=$2
+    DATASET=$1
+    ENCRYPTIONROOT=$2
+    KEYLOCATION=$3
     ZFS=zfs
     ZPOOL=zpool
 
@@ -99,7 +100,10 @@ zfs_decrypt_fs() {
     fi
 
     # Try optional alternate key-loading providers before interactive fallback.
-    zfs_try_load_key_provider "${encryptionroot}" "${keylocation}" || true
+    zfs_try_load_key_provider \
+        "${dataset}" \
+        "${encryptionroot}" \
+        "${keylocation}" || true
 
     # Loop until key is loaded here or by another vector (SSH, for instance)
     while [ "$(zfs get -H -o value keystatus "${encryptionroot}")" != "available" ]; do

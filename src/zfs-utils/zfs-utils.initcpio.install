@@ -109,9 +109,10 @@ Alternate key loading:
     sourced before the normal key-loading path. These providers may load the
     key for the encryption root required during boot.
 
-    Providers receive ENCRYPTIONROOT and KEYLOCATION. ZFS and ZPOOL are set to
-    the zfs and zpool commands. A successful provider must return successfully
-    and leave the encryption root key available. Provider failure is non-fatal.
+    Providers receive DATASET, ENCRYPTIONROOT, and KEYLOCATION. ZFS and ZPOOL
+    are set to the zfs and zpool commands. A successful provider must return
+    successfully and leave the encryption root key available. Provider failure
+    is non-fatal.
 
     A minimal provider that reads a local keylocation file as the prompt key:
 
