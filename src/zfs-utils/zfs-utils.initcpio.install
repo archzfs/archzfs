@@ -1,6 +1,8 @@
 #!/bin/bash
 
 build() {
+    local load_key_file
+
     map add_module \
         zavl \
         znvpair \
@@ -49,6 +51,13 @@ build() {
         for load_key_provider in /etc/zfs/initramfs-tools-load-key.d/*; do
             [[ -f "${load_key_provider}" ]] && add_file "${load_key_provider}"
         done
+    fi
+
+    if [[ -f /etc/zfs/initramfs-tools-load-key.files ]]; then
+        while read -r load_key_file; do
+            [[ "${load_key_file}" = "" || "${load_key_file}" = "#"* ]] && continue
+            [[ -f "${load_key_file}" ]] && add_file "${load_key_file}"
+        done < /etc/zfs/initramfs-tools-load-key.files
     fi
 }
 
@@ -120,6 +129,10 @@ Alternate key loading:
         keyfile="${KEYLOCATION#file://}"
         [ -r "${keyfile}" ] || return 1
         "${ZFS}" load-key -L prompt "${ENCRYPTIONROOT}" < "${keyfile}"
+
+    Additional payload files required by providers can be listed one per line
+    in /etc/zfs/initramfs-tools-load-key.files. Empty lines and lines starting
+    with # are ignored.
 
 If you want to set properties for zfs-on-linux module, you should add them to
 /etc/modprobe.d/zfs.conf and then rebuild initcpio.
