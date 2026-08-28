@@ -129,6 +129,8 @@ generate_package_files() {
         run_cmd_no_output "rm -f ${zfs_utils_pkgbuild_path}/*.patch"
         msg2 "Removing old bash completion file"
         run_cmd_no_output "rm -f ${zfs_utils_pkgbuild_path}/zfs-utils.bash-completion-r1"
+        msg2 "Removing old TPM2 key provider file"
+        run_cmd_no_output "rm -f ${zfs_utils_pkgbuild_path}/zfs-utils.initcpio.tpm2-provider"
         msg2 "Copying zfs-utils patches (if any)"
         run_cmd_no_output "find ${script_dir}/src/zfs-utils -name \*.patch -exec cp {} ${zfs_utils_pkgbuild_path} \;"
         msg2 "Creating zfs-utils PKGBUILD"
@@ -139,6 +141,8 @@ generate_package_files() {
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/*.hook ${zfs_utils_pkgbuild_path}/"
         msg2 "Copying zfs-utils hook install files"
         run_cmd_no_output "cp ${script_dir}/src/zfs-utils/*.install ${zfs_utils_pkgbuild_path}/"
+        msg2 "Copying zfs-utils TPM2 key provider"
+        run_cmd_no_output "cp ${script_dir}/src/zfs-utils/zfs-utils.initcpio.tpm2-provider ${zfs_utils_pkgbuild_path}/"
     elif [[ "${kernel_name}" == "dkms" ]]; then
         msg2 "Removing old zfs patches (if any)"
         run_cmd_no_output "rm -f ${zfs_dkms_pkgbuild_path}/*.patch"
@@ -268,6 +272,10 @@ if have_command "update_sums"; then
     run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.install"
     azsha3=$(echo ${run_cmd_output} | awk '{ print $1 }')
     run_cmd_no_output "sed -e 's/^zfs_initcpio_install_hash.*/zfs_initcpio_install_hash=\"${azsha3}\"/g' -i ${script_dir}/conf.sh"
+
+    run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.tpm2-provider"
+    azsha4=$(echo ${run_cmd_output} | awk '{ print $1 }')
+    run_cmd_no_output "sed -e 's/^zfs_initcpio_tpm2_provider_hash.*/zfs_initcpio_tpm2_provider_hash=\"${azsha4}\"/g' -i ${script_dir}/conf.sh"
 
     run_cmd_show_and_capture_output "sha256sum ${script_dir}/src/zfs-utils/zfs-utils.initcpio.zfsencryptssh.install"
     azsha3=$(echo ${run_cmd_output} | awk '{ print $1 }')
