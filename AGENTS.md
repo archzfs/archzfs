@@ -32,6 +32,83 @@
 - `build.sh -U` rewrites initcpio hashes in `conf.sh`; review those changes as
   release inputs rather than incidental formatting.
 
+## Local and External Package Evidence
+
+- Treat locally installed packages, files, caches, and Pacman databases as
+  presumptively untrusted, mutable observations for discovery or corroboration,
+  not authoritative package evidence.
+- Before relying on local content, record the package name,
+  epoch/version/release, architecture, any reported or claimed origin, and
+  whether that exact generation is under investigation. A version or source
+  mismatch normally ends that local file's relevance to exact-content claims
+  about the generation; matching versions alone do not establish identical
+  files.
+- `pacman -Qo` reports ownership recorded by the local package database, and
+  `pacman -Qkk` is only a preliminary comparison against local package metadata.
+  Neither independently proves provenance or pristine contents. Presume files
+  under `/etc`, Pacman backup files, hooks, and other configuration surfaces may
+  have been modified locally until shown otherwise.
+- Do not infer current official Arch package availability, ownership, or
+  repository membership only from configured local mirrors or Pacman databases;
+  they may be stale or include third-party repositories. Use current
+  `archlinux.org` package metadata, official repository databases, official file
+  lists, or another current source with comparable official provenance that is
+  identified in the evidence record.
+- Match evidence to the claim. Intended ArchZFS policy comes from source files
+  such as `conf.sh`, `src/kernels/*.sh`, and templates under `src/zfs*`;
+  generated recipes come from output regenerated from a recorded
+  control-repository commit; published contents come from exact package
+  archives, repository databases, and detached signatures; upstream behavior
+  comes from source pinned to the generation under review, such as an archive
+  matching the hash recorded in `conf.sh` or a release tag or commit whose
+  upstream provenance has been verified and recorded. Account for downstream
+  patches and configure options. Upstream source does not prove what a
+  downstream package shipped, and a package archive does not prove current
+  source policy.
+- Establish artifact identity and authenticity independently of the installed
+  file before relying on its contents. For published production ArchZFS
+  artifacts, verify repository database and package signatures against the full
+  release-key fingerprint referenced by `build-container/entrypoint.sh`. For
+  official Arch packages, use current official Arch keyring and trust metadata
+  obtained through an authoritative path. A digest identifies exact bytes for
+  comparison; it does not authenticate their source. A cached archive remains
+  eligible evidence when these checks succeed and its identity matches the
+  generation under review.
+- For mutable fixed-name releases, do not treat the release tag commit as
+  immutable provenance; see **Operational Safety**. Identify signed assets by
+  filename, package version, digest, and verified signature. Tie unsigned
+  `testing` assets to their source commit and workflow run as well as their
+  filename, version, and digest. Record whether each was built by that run or
+  reused from signed `failover`. For reused assets, record the verified failover
+  identity; they do not validate candidate package contents. Unsigned assets do
+  not validate production signing or published production contents.
+- Record package identities and versions, artifact names and URLs, signature
+  verification, digests, commits or tags, and discrepancies in durable task
+  evidence and in any applicable pull request or review. Preserve conflicting
+  evidence rather than hiding or silently reconciling it.
+- For exact package-content claims, including package boundaries, dependencies,
+  and initramfs inputs, inspect the verified archive's `.PKGINFO`, `.BUILDINFO`,
+  `.MTREE`, file boundaries, scripts, and ELF objects as applicable. Compare
+  local files against that archive or pinned source rather than extrapolating
+  from the host. Treat existing `packages/*/*` worktrees and `repo/` output as
+  mutable local generation results until they are regenerated or otherwise tied
+  to the recorded commit.
+- Validate proposed package contents by regenerating the intended recipe,
+  obtaining a clean-chroot build artifact, and inspecting that archive. Review
+  **Builds and Checks** before running a local build; its privileged container,
+  network access, and checkout-ownership changes are not lightweight side
+  effects.
+- For boot, initramfs, kernel-module, pool-availability, and data-integrity
+  decisions, require verified artifacts and safe tests in a clean or disposable
+  environment. No supported runtime or data-integrity harness currently exists
+  in this repository, and `testing/test.sh` is not one; see **Operational
+  Safety**. Build success and local-only evidence are insufficient. If safe
+  runtime evidence cannot be obtained, report the gap and do not close the
+  safety gate.
+- If authoritative evidence is unavailable, label the result as a local
+  observation, retain the uncertainty, and do not use it alone to close a
+  correctness or safety gate.
+
 ## Builds and Checks
 
 - The closest local equivalent to CI is:
