@@ -74,7 +74,7 @@ package_${zfs_utils_pkgname}() {
     groups=("${archzfs_package_group}")
     provides=("zfs-utils" "spl-utils")
     install=zfs-utils.install
-    conflicts=("zfs-utils" "spl-utils")
+    ${zfs_utils_conflicts}
     ${zfs_utils_replaces}
     backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs' 'etc/modules-load.d/zfs.conf')
 
