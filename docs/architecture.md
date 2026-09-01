@@ -25,6 +25,10 @@ DKMS, and the standard, LTS, hardened, and zen Arch kernels. Git, RC, archiso,
 and VFIO package paths remain in the source tree but are not part of the normal
 production build.
 
+The generated `zfs-utils` repository contains one split package base. It emits
+the core `zfs-utils` child and the optional `zfs-tests` child; `zfs-tests` is not
+a separate generated source repository.
+
 ## Production Build
 
 `.github/workflows/release.yml` runs on relevant pushes to `master` and on a
@@ -38,7 +42,8 @@ The container performs the following sequence:
 2. Download and verify the signed repository database from the mutable
    `failover` release.
 3. Recreate the clean build chroot and generate stable PKGBUILDs.
-4. Build `zfs-utils` and `zfs-dkms`; either failure aborts the release.
+4. Build the `zfs-utils` package base and `zfs-dkms`; either failure aborts the
+   release. The utility package base emits both `zfs-utils` and `zfs-tests`.
 5. Build modules for LTS, standard, hardened, and zen kernels.
 6. When an individual kernel build fails, reuse matching packages from
    `failover` only after verifying their detached signatures.
