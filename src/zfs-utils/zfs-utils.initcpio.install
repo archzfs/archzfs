@@ -1,6 +1,8 @@
 #!/bin/bash
 
 build() {
+    local load_key_file
+
     map add_module \
         zavl \
         znvpair \
@@ -42,6 +44,32 @@ build() {
     [[ -f /etc/zfs/zpool.cache ]] && cp "/etc/zfs/zpool.cache" "${BUILDROOT}/etc/zfs/zpool.cache.org"
     [[ -f /etc/modprobe.d/zfs.conf ]] && add_file "/etc/modprobe.d/zfs.conf"
     [[ -f /etc/fstab ]] && add_file "/etc/fstab"
+
+    [[ -f /etc/zfs/initramfs-tools-load-key ]] && add_file "/etc/zfs/initramfs-tools-load-key"
+    if [[ -d /etc/zfs/initramfs-tools-load-key.d ]]; then
+        add_dir "/etc/zfs/initramfs-tools-load-key.d"
+        for load_key_provider in /etc/zfs/initramfs-tools-load-key.d/*; do
+            [[ -f "${load_key_provider}" ]] && add_file "${load_key_provider}"
+        done
+
+        if [[ -f /etc/zfs/initramfs-tools-load-key.d/tpm2-systemd-creds ]]; then
+            add_binary systemd-creds
+            map add_file \
+                /usr/lib/libtss2-esys.so.0 \
+                /usr/lib/libtss2-mu.so.0 \
+                /usr/lib/libtss2-rc.so.0 \
+                /usr/lib/libtss2-sys.so.1 \
+                /usr/lib/libtss2-tcti-device.so.0 \
+                /usr/lib/libtss2-tctildr.so.0
+        fi
+    fi
+
+    if [[ -f /etc/zfs/initramfs-tools-load-key.files ]]; then
+        while read -r load_key_file; do
+            [[ "${load_key_file}" = "" || "${load_key_file}" = "#"* ]] && continue
+            [[ -f "${load_key_file}" ]] && add_file "${load_key_file}"
+        done < /etc/zfs/initramfs-tools-load-key.files
+    fi
 }
 
 help() {
@@ -93,6 +121,62 @@ Examples:
     This will setup your root using tank/root zfs pool.
 
         zfs=tank/root rw
+
+Alternate key loading:
+
+    If present, /etc/zfs/initramfs-tools-load-key and regular files in
+    /etc/zfs/initramfs-tools-load-key.d/ are copied into the initramfs and
+    sourced before the normal key-loading path. These providers may load the
+    key for the encryption root required during boot.
+
+    Providers receive DATASET, ENCRYPTIONROOT, and KEYLOCATION. ZFS and ZPOOL
+    are set to the zfs and zpool commands. A successful provider must return
+    successfully and leave the encryption root key available. Provider failure
+    is non-fatal.
+
+    A minimal provider that reads a local keylocation file as the prompt key:
+
+        [ "${KEYLOCATION%%://*}" = "file" ] || return 1
+        keyfile="${KEYLOCATION#file://}"
+        [ -r "${keyfile}" ] || return 1
+        "${ZFS}" load-key -L prompt "${ENCRYPTIONROOT}" < "${keyfile}"
+
+    Additional payload files required by providers can be listed one per line
+    in /etc/zfs/initramfs-tools-load-key.files. Empty lines and lines starting
+    with # are ignored.
+
+TPM2 provider:
+
+    zfs-utils includes a systemd-creds TPM2 provider example at
+    /usr/share/doc/zfs-utils/initramfs-tools-load-key.d/tpm2-systemd-creds.
+    To enable it, copy it to:
+
+        /etc/zfs/initramfs-tools-load-key.d/tpm2-systemd-creds
+
+    Then create a TPM2 credential at /etc/zfs/zfs-key.creds and list it in:
+
+        /etc/zfs/initramfs-tools-load-key.files
+
+    Avoid putting the ZFS passphrase directly in shell history. One option is
+    to write it to a temporary file on /run, encrypt it, then remove it:
+
+        umask 077
+        systemd-ask-password -n --no-tty "ZFS passphrase:" > /run/zfs.key
+        systemd-creds encrypt --with-key=tpm2 --tpm2-device=auto \
+            --name=zfs-key /run/zfs.key /etc/zfs/zfs-key.creds
+        rm /run/zfs.key
+        printf '%s\n' /etc/zfs/zfs-key.creds \
+            > /etc/zfs/initramfs-tools-load-key.files
+
+    The TPM2 provider is not a mkinitcpio hook. Keep zfs in HOOKS and rebuild
+    the initramfs after enabling the provider.
+
+    The provider only tries to unlock the boot root dataset. Other encrypted
+    datasets continue through the normal key-loading path.
+
+    Without a PCR policy, this protects against unlocking a detached disk but
+    does not attest the boot chain. Choose PCR policy, recovery, and passphrase
+    rotation procedures for your own threat model.
 
 If you want to set properties for zfs-on-linux module, you should add them to
 /etc/modprobe.d/zfs.conf and then rebuild initcpio.

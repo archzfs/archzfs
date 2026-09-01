@@ -1,0 +1,44 @@
+# Unlock the boot root encryption root with a systemd-creds TPM2 credential.
+
+creds="${zfs_tpm2_credential:-/etc/zfs/zfs-key.creds}"
+credname="${zfs_tpm2_credential_name:-zfs-key}"
+pool="${DATASET%%/*}"
+cmdline_root=""
+
+for cmdline_arg in $(cat /proc/cmdline 2>/dev/null); do
+    case "${cmdline_arg}" in
+        zfs=bootfs | zfs=auto | root=zfs)
+            ;;
+        zfs=*)
+            cmdline_root="${cmdline_arg#zfs=}"
+            break
+            ;;
+        root=ZFS=*)
+            cmdline_root="${cmdline_arg#root=ZFS=}"
+            break
+            ;;
+    esac
+done
+
+if [ -n "${cmdline_root}" ]; then
+    [ "${cmdline_root}" = "${DATASET}" ] || return 1
+else
+    bootfs="$("${ZPOOL}" get -H -o value bootfs "${pool}" 2>/dev/null)" ||
+        bootfs=""
+
+    [ "${bootfs}" = "${DATASET}" ] || bootfs=""
+fi
+
+if [ -z "${cmdline_root}" ] && [ -z "${bootfs}" ]; then
+    mountpoint="$(
+        "${ZFS}" get -H -o value mountpoint "${DATASET}" 2>/dev/null
+    )" ||
+        return 1
+    [ "${mountpoint}" = "/" ] || return 1
+fi
+
+[ -r "${creds}" ] || return 1
+command -v systemd-creds >/dev/null 2>&1 || return 1
+
+systemd-creds decrypt --name="${credname}" "${creds}" - |
+    "${ZFS}" load-key -L prompt "${ENCRYPTIONROOT}"
