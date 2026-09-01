@@ -123,6 +123,7 @@ package_${zfs_tests_pkgname}() {
         "glibc"
         "grep"
         "gzip"
+        "inetutils"
         "kmod"
         "ksh"
         "libaio"
