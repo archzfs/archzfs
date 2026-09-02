@@ -1,4 +1,4 @@
-This is the current official repository of the ArchZFS project. It is built the same way and provides the same set of packages as the now stale `archzfs.com` repository. Except for the different PGP signing key, it can be used as a direct replacement for the old repo.
+This is the current official repository of the ArchZFS project. It replaces the now stale `archzfs.com` repository.
 
 **Important:** While testing the repo is encouraged, we still advise you to be cautious and start with non-critical systems.
 
