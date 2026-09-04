@@ -3,7 +3,7 @@ mode_name="utils"
 mode_desc="Select and use the utils packages"
 
 # version
-pkgrel="1"
+pkgrel="2"
 
 # Version for GIT packages
 pkgrel_git="1"
@@ -28,6 +28,9 @@ update_utils_pkgbuilds() {
     zfs_pkgver=${openzfs_version}
     zfs_pkgrel=${pkgrel}
     zfs_utils_pkgname="zfs-utils"
+    zfs_utils_conflicts='conflicts=("spl-utils")'
+    zfs_tests_pkgname="zfs-tests"
+    zfs_tests_relations='conflicts=("zfs-tests-git")'
     # Paths are relative to build.sh
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     zfs_src_target="https://github.com/openzfs/zfs/releases/download/zfs-\${pkgver}/zfs-\${pkgver}.tar.gz"
@@ -54,6 +57,10 @@ update_utils_git_pkgbuilds() {
     zfs_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgrel=${pkgrel_git}
     zfs_utils_pkgname="zfs-utils-git"
+    zfs_utils_conflicts='conflicts=("zfs-utils" "spl-utils")'
+    zfs_tests_pkgname="zfs-tests-git"
+    zfs_tests_relations='provides=("zfs-tests")
+    conflicts=("zfs-tests")'
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     zfs_src_hash="SKIP"
     zfs_makedepends="\"git\""
