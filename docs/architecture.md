@@ -67,7 +67,9 @@ files and checkout ownership; it is not a hermetic read-only test.
 Production publication first uploads all assets to the temporary
 `_experimental` release. After upload succeeds, the workflow removes the old
 `experimental` release, renames the temporary release, force-moves the
-`experimental` tag, and replaces assets in `failover`.
+`experimental` tag, and replaces assets in `failover`. Package publication uses
+`ci/releases/body-<channel>.md` from its own checkout as the source-controlled
+release body.
 
 This create-then-promote process was introduced by
 [PR #611](https://github.com/archzfs/archzfs/pull/611) for two related reasons.
@@ -77,6 +79,20 @@ does not refresh the displayed release date when assets are updated in place.
 Creating a new release before renaming it gives users a meaningful publication
 date. Future fixed-name channels need to preserve both properties or replace
 them deliberately; the current sequence reduces risk but is not fully atomic.
+
+`.github/workflows/release-body.yml` updates the existing `experimental`
+release notes without replacing assets, moving tags, changing release state, or
+entering the `Release` environment. It has separate concurrency and no access to
+signing material. The workflow explicitly checks out the body from current
+`master`, defers while package publication is active, and runs after every
+package `Release` completion regardless of its conclusion. This reconciliation
+prevents an older package-workflow checkout from leaving stale notes after
+promotion, but it does not make delete-then-rename publication atomic.
+
+Editing notes on the existing release intentionally does not refresh GitHub's
+displayed package-release date. Introducing this split changes `release.yml` and
+therefore triggers one package release; subsequent body-only changes use the
+metadata workflow instead.
 
 The fixed names are channels rather than immutable versions:
 
@@ -108,8 +124,9 @@ documented in [staging.md](staging.md).
 
 `archzfs/archzfs-keyring` contains the intended Pacman web-of-trust key material
 for ArchZFS. Production currently signs with the release key represented there,
-but an installable keyring package is not yet part of the production release.
-User documentation must not imply that keyring-package deployment is complete.
+but an installable keyring package and supported publication and update path are
+not yet deployed. The distribution design remains open; user documentation must
+not imply that keyring-package deployment is complete.
 
 ### archzfs-mirror
 

@@ -1,0 +1,76 @@
+name: Release body
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'ci/releases/body-experimental.md'
+      - '.github/workflows/release-body.yml'
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+    branches: [master]
+
+concurrency:
+  group: release-body
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  update:
+    name: Update experimental release body
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out current release body
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Update experimental release body
+        shell: bash
+        env:
+          GH_REPO: "${{ github.repository }}"
+          GH_TOKEN: "${{ github.token }}"
+        run: |
+          set -euo pipefail
+
+          body=ci/releases/body-experimental.md
+          [[ -s "$body" ]] || {
+            echo "::error file=$body::Release body is missing or empty"
+            exit 1
+          }
+
+          active_release_runs() {
+            gh run list \
+              --workflow release.yml \
+              --branch master \
+              --status in_progress \
+              --limit 1 \
+              --json databaseId \
+              --jq 'length'
+          }
+
+          active_runs="$(active_release_runs)"
+          if (( active_runs > 0 )); then
+            echo "::notice::Package release is active; its completion will reconcile the body"
+            exit 0
+          fi
+
+          if gh release edit experimental --notes-file "$body"; then
+            exit 0
+          fi
+
+          active_runs="$(active_release_runs)"
+          if (( active_runs > 0 )); then
+            echo "::notice::Package release started during the update; deferring reconciliation"
+            exit 0
+          fi
+
+          echo "::error::Could not update the experimental release body"
+          exit 1
