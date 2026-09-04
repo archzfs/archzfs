@@ -17,3 +17,9 @@ cmd = "tar -tzf extra.db | sed -nE 's|^linux-hardened-([0-9].*?)/$|\\1|p'"
 [linux-zen]
 source = "cmd"
 cmd = "tar -tzf extra.db | sed -nE 's|^linux-zen-([0-9].*?)/$|\\1|p'"
+
+[openzfs]
+source = "github"
+github = "openzfs/zfs"
+use_max_release = true
+prefix = "zfs-"

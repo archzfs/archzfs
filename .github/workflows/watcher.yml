@@ -1,4 +1,4 @@
-name: Watch for Arch Kernel Updates
+name: Watch for Upstream Updates
 permissions:
   contents: read
   actions: write
@@ -52,12 +52,16 @@ jobs:
           HARDENED_VER=$(get_version 'zfs-linux-hardened')
           ZEN_VER=$(get_version 'zfs-linux-zen')
 
+          # Extract current OpenZFS version from conf.sh
+          ZFS_VER=$(grep '^openzfs_version=' conf.sh | cut -d'"' -f2)
+
           cat > oldver.json <<EOF
           {
             "linux": "${LINUX_VER:-0.0.0-0}",
             "linux-lts": "${LTS_VER:-0.0.0-0}",
             "linux-hardened": "${HARDENED_VER:-0.0.0-0}",
-            "linux-zen": "${ZEN_VER:-0.0.0-0}"
+            "linux-zen": "${ZEN_VER:-0.0.0-0}",
+            "openzfs": "${ZFS_VER:-0.0.0}"
           }
           EOF
 
@@ -70,31 +74,67 @@ jobs:
         run: |
           nvchecker -c nvchecker.toml
           # Produces a string like:
-          # linux 6.18.9.arch1-1 -> 6.18.9.arch1-2 linux-lts 6.12.70-1 -> 6.12.71-1
+          # linux 6.18.9.arch1-1 -> 6.18.9.arch1-2 linux-lts 6.12.70-1 -> 6.12.71-1 openzfs 2.4.0 -> 2.4.1
           # for the packages that an update is available for
           UPDATES=$(nvcmp -c nvchecker.toml | tr '\n' ' ')
 
           if [ -n "$UPDATES" ]; then
-            echo "trigger=true" >> $GITHUB_OUTPUT
-            echo "updates=$UPDATES" >> $GITHUB_OUTPUT
+            # Remove ZFS updates
+            KERNEL_UPDATES=$(echo "$UPDATES" | sed 's/openzfs [^ ]* -> [^ ]*//g')
+            # Write the new variable to the GitHub Actions output environment
+            echo "kernel_updates=$KERNEL_UPDATES" >> "$GITHUB_OUTPUT"
 
             # Parse each kernel explicitly
             echo "$UPDATES" | grep -qE '(^| )linux ' && echo "build_linux=true" >> $GITHUB_OUTPUT
             echo "$UPDATES" | grep -q 'linux-lts' && echo "build_linux_lts=true" >> $GITHUB_OUTPUT
             echo "$UPDATES" | grep -q 'linux-hardened' && echo "build_linux_hardened=true" >> $GITHUB_OUTPUT
             echo "$UPDATES" | grep -q 'linux-zen' && echo "build_linux_zen=true" >> $GITHUB_OUTPUT
+
+            if echo "$UPDATES" | grep -q 'openzfs'; then
+              echo "update_openzfs=true" >> $GITHUB_OUTPUT
+              ZFS_NEW=$(echo "$UPDATES" | sed -n 's/.*openzfs [^ ]* -> \([^ ]*\).*/\1/p')
+              echo "openzfs_version=$ZFS_NEW" >> $GITHUB_OUTPUT
+            fi
           fi
 
-      - name: Trigger Release Workflow
-        if: steps.nvcheck.outputs.trigger == 'true'
+      - name: Trigger Kernel Release Workflow
+        if: >
+          steps.nvcheck.outputs.build_linux == 'true' || 
+          steps.nvcheck.outputs.build_linux_lts == 'true' || 
+          steps.nvcheck.outputs.build_linux_hardened == 'true' || 
+          steps.nvcheck.outputs.build_linux_zen == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh workflow run release.yml \
             --repo ${{ github.repository }} \
             --ref master \
-            -f kernel_version="${{ steps.nvcheck.outputs.updates }}" \
+            -f kernel_version="${{ steps.nvcheck.outputs.kernel_updates }}" \
             -f build_linux="${{ steps.nvcheck.outputs.build_linux || 'false' }}" \
             -f build_linux_lts="${{ steps.nvcheck.outputs.build_linux_lts || 'false' }}" \
             -f build_linux_hardened="${{ steps.nvcheck.outputs.build_linux_hardened || 'false' }}" \
             -f build_linux_zen="${{ steps.nvcheck.outputs.build_linux_zen || 'false' }}"
+
+      - name: Trigger OpenZFS Update PR
+        if: steps.nvcheck.outputs.update_openzfs == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEW_ZFS_VERSION: ${{ steps.nvcheck.outputs.openzfs_version }}
+        run: |
+          # Check if an open PR already exists for this specific branch
+          PR_EXISTS=$(gh pr list \
+            --repo ${{ github.repository }} \
+            --state open \
+            --head "update-openzfs-$NEW_ZFS_VERSION" \
+            --json number \
+            --jq 'length')
+
+          if [ "$PR_EXISTS" -gt "0" ]; then
+            echo "An open PR for OpenZFS $NEW_ZFS_VERSION already exists. Skipping workflow trigger."
+          else
+            echo "No existing PR found. Triggering update-zfs.yml for version $NEW_ZFS_VERSION."
+            gh workflow run update-zfs.yml \
+              --repo ${{ github.repository }} \
+              --ref master \
+              -f version="$NEW_ZFS_VERSION"
+          fi
