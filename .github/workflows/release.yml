@@ -3,7 +3,21 @@ on:
     inputs:
       kernel_version:
         required: false
-    types: [arch-kernel-update]
+      # Set build_linux, etc to default to true for the cron job.
+      # That can be removed when we are comfortable with watcher, and make default false.
+      build_linux:
+        required: false
+        default: 'true'
+      build_linux_lts:
+        required: false
+        default: 'true'
+      build_linux_hardened:
+        required: false
+        default: 'true'
+      build_linux_zen:
+        required: false
+        default: 'true'
+
 
   push:
     branches: [master]
@@ -54,7 +68,16 @@ jobs:
         env:
           GPG_KEY_DATA: "${{ secrets.GPG_KEY_DATA }}"
           GPG_KEY_ID: "${{ vars.GPG_KEY_ID }}"
-        run: docker run -e GPG_KEY_DATA -e GPG_KEY_ID -e FAILOVER_RELEASE_NAME --privileged --rm -v "$(pwd):/src" archzfs-builder
+          BUILD_LINUX: "${{ inputs.build_linux }}"
+          BUILD_LINUX_LTS: "${{ inputs.build_linux_lts }}"
+          BUILD_LINUX_HARDENED: "${{ inputs.build_linux_hardened }}"
+          BUILD_LINUX_ZEN: "${{ inputs.build_linux_zen }}"
+        run: |
+          docker run \
+          -e GPG_KEY_DATA -e GPG_KEY_ID \
+          -e FAILOVER_RELEASE_NAME \
+          -e BUILD_LINUX -e BUILD_LINUX_LTS -e BUILD_LINUX_HARDENED -e BUILD_LINUX_ZEN \
+          --privileged --rm -v "$(pwd):/src" archzfs-builder
 
       - name: Delete possible leftover temporary release
         env:
