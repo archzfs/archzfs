@@ -1,0 +1,56 @@
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New OpenZFS version'
+        required: true
+
+name: Update OpenZFS
+run-name: Create PR to update OpenZFS to ${{ inputs.version }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Get release hash from GitHub
+        id: get_hash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          FILENAME="zfs-${VERSION}.tar.gz"
+
+          DIGEST=$(gh api "repos/openzfs/zfs/releases/tags/zfs-${VERSION}" \
+            --jq ".assets[] | select(.name == \"$FILENAME\") | .digest")
+
+          HASH=${DIGEST#sha256:}
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Update conf.sh
+        env:
+          VERSION: ${{ inputs.version }}
+          HASH: ${{ steps.get_hash.outputs.hash }}
+        run: |
+          
+          # Replace version and hash in conf.sh
+          sed -i "s/^openzfs_version=\".*\"/openzfs_version=\"${VERSION}\"/" conf.sh
+          sed -i "s/^zfs_src_hash=\".*\"/zfs_src_hash=\"${HASH}\"/" conf.sh
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8.1.0
+        with:
+          token: ${{ github.token }}
+          commit-message: "chore: update OpenZFS to ${{ inputs.version }}"
+          title: "Update OpenZFS to ${{ inputs.version }}"
+          body: |
+            Automated PR triggered by nvchecker. Updates `openzfs_version` to **${{ inputs.version }}**.
+          branch: "update-openzfs-${{ inputs.version }}"
+          base: master
+

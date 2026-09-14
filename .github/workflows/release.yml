@@ -25,6 +25,7 @@ on:
       - '**.sh'
       - '.github/workflows/**'
       - '!.github/workflows/watcher.yml'
+      - '!.github/workflows/update-zfs.yml'
       - 'build-container/**'
       - 'packages/**'
   schedule:
