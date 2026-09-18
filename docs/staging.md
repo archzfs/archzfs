@@ -314,10 +314,10 @@ boundary is not a reason to grant untrusted code broader credentials.
 
 ## Cleanup
 
-Restore changed release text from the captured API string rather than
+Restore changed release text from the API string captured in step 1 rather than
 reconstructed Markdown, which may normalize or add a trailing newline. After
 restoration, compare the API representation, tag target, and asset inventory
-with the snapshot and retain any intentional discrepancy in the evidence.
+with that snapshot and retain any intentional discrepancy in the evidence.
 
 After verification, disable mutating and testing-only staging workflows,
 including temporary completion probes, and verify their disabled state. Ensure
