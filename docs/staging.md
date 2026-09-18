@@ -262,6 +262,28 @@ Keep links to the workflow runs and releases in the production PR description.
 If failure-path testing would require deliberately breaking or deleting shared
 staging resources, describe and authorize that test separately.
 
+### Completion-Event Probes
+
+When a change specifically needs to validate `workflow_run` completion handling
+but the upstream workflow must not mutate staging state, a testing-only overlay
+may add a permissionless no-op workflow with the exact top-level `name`
+expected by the downstream workflow. Give the probe only `workflow_dispatch`
+and `permissions: {}`, and keep the real mutating workflow disabled. This tests
+event delivery and downstream reconciliation, not the real workflow's build,
+publication, signing, or concurrency behavior.
+
+The probe file must be present on the default branch before GitHub will register
+and dispatch it. Preserve the production candidate separately from the overlay,
+wait for registration, resolve the probe's workflow ID, and dispatch by ID to
+avoid ambiguity when workflows share a display name. Do not treat successful
+dispatch as proof that the intended run started: identify the resulting run by
+workflow ID or path, source SHA, event, and creation time, then verify the
+downstream run and its inputs independently.
+
+Advancing staging `master` through the head of an open staging pull request can
+cause GitHub to record that pull request as merged. Treat that as an expected
+staging-side effect when applicable and record it in the experiment evidence.
+
 ## Production Pull Request
 
 Preserve the exact production-intended candidate commits after staging. Push
@@ -284,11 +306,25 @@ boundary is not a reason to grant untrusted code broader credentials.
 
 ## Cleanup
 
-After verification, disable mutating staging workflows and ensure no unexpected
-scheduled run remains active. Retain the experiment branch and evidence until
-the production PR is resolved. Before unrelated work begins, repeat the
-inventory and force-sync procedure rather than accumulating experiments on
-testing `master`.
+Before release mutation, preserve the exact API representation needed to prove
+and restore the affected staging state. For each release, record its ID, tag,
+name, draft and prerelease flags, exact body string, and creation, publication,
+and update timestamps. Record the tag object and target, plus every asset's ID,
+name, size, timestamps, and available digest. Editing a fixed-name release can
+change its update timestamp without changing its publication timestamp, so
+compare both.
+
+Restore release text from the captured API string rather than reconstructed
+Markdown, which may normalize or add a trailing newline. After restoration,
+compare the API representation, tag target, and asset inventory with the
+snapshot and retain any intentional discrepancy in the evidence.
+
+After verification, disable mutating and testing-only staging workflows,
+including temporary completion probes, and verify their disabled state. Ensure
+no unexpected scheduled run remains active before resetting the default branch.
+Retain the experiment branch and evidence until the production PR is resolved.
+Before unrelated work begins, repeat the inventory and force-sync procedure
+rather than accumulating experiments on testing `master`.
 
 Releases and tags may be cleaned when a test requires it, but they are shared
 staging state and need explicit authorization. Branch synchronization alone does
