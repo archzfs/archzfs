@@ -197,17 +197,18 @@
 - Keep descriptions proportional to the change. Do not restate the diff,
   document details already clear from the code, or overwhelm reviewers with
   exploratory narration.
+- Call out generated files, release behavior, signing implications, destructive
+  operations, and validation that could not be performed.
 - After updating a long-lived pull request, compare its recorded base SHA,
   commit count, and changed-file set with a fresh three-dot comparison against
   the current base branch. A clean local diff does not prove that GitHub has
-  refreshed the pull request's historical comparison base.
+  refreshed the pull request's historical comparison base. If they differ,
+  stop and obtain explicit authorization before refreshing the comparison.
 - Changing a pull request's base, including a temporary retarget used to refresh
   that comparison base, is a state-changing operation that requires explicit
   authorization. It can affect comments and review state. Recheck the final
   base and head SHAs, commits, files, review requests, and checks; delete a
   temporary base branch only after confirming that nothing still uses it.
-- Call out generated files, release behavior, signing implications, destructive
-  operations, and validation that could not be performed.
 
 ## Documentation Coordination
 
