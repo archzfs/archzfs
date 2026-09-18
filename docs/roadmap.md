@@ -199,11 +199,14 @@ code satisfy stable policy.
 **Status: Priority; packaging proposed in
 [archzfs-keyring PR #1](https://github.com/archzfs/archzfs-keyring/pull/1)**
 
-Complete the ArchZFS keyring package, its review and release procedure, and its
-integration into the production repository. The intended trust model should use
-maintainer keys to certify the release key rather than asking each user to make
-that release key locally trusted. Preserve the current release-key verification
-path until the package and migration instructions are deployed.
+Complete the ArchZFS keyring package and its review and release procedure.
+Define a supported publication, installation, and update path, test migration
+from the current configuration, and document key rotation, revocation, and
+recovery. Whether the package is distributed through the current repository
+remains an open design decision. The intended trust model should use maintainer
+keys to certify the release key rather than asking each user to make that key
+locally trusted. Preserve the current release-key verification path until the
+package and migration instructions are deployed.
 
 ## Distribution and Retention
 
