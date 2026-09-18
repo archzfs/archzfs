@@ -137,9 +137,9 @@ current values or hard-code a permissive replacement policy.
 
 ### 3. Force-Sync the Default Branch
 
-The normal fork-sync operation only fast-forwards when possible. Testing
-`master` normally has unique experiment commits, so exact parity requires the
-explicitly destructive form:
+The normal fork-sync operation may fast-forward or merge the upstream branch
+into a divergent fork. Testing `master` normally has unique experiment commits,
+so request the explicitly destructive form:
 
 ```sh
 gh repo sync archzfs/archzfs-testing \
@@ -148,33 +148,52 @@ gh repo sync archzfs/archzfs-testing \
   --force
 ```
 
-The command first uses GitHub's fork-only upstream-merge operation and may fall
-back to moving the destination ref directly. That fallback cannot transfer
-missing Git objects; it can only reference commits already in the destination's
-object network. Continuous synchronization of new production commits therefore
-requires preserving `archzfs-testing` as a GitHub fork of `archzfs`. If the
-testing repository is recreated, recreate it as a fork.
+Do not treat command success as proof of exact synchronization. For a remote
+fork, GitHub CLI first calls GitHub's upstream-merge endpoint. At least through
+GitHub CLI 2.101.0, a cleanly mergeable divergence can return success after
+creating a merge commit without reaching the forced-reference fallback, even
+when `--force` was specified.
 
-`--force` hard-resets the destination branch to the source branch. It does not
-synchronize or clean releases, tags, Actions variables, secrets, environments,
-permissions, workflow enabled state, caches, branch protection, or repository
-metadata.
-
-After synchronization, compare the remote commit SHAs rather than relying on a
-successful command alone:
+Immediately compare the exact remote commit SHAs:
 
 ```sh
 gh api repos/archzfs/archzfs/commits/master --jq .sha
 gh api repos/archzfs/archzfs-testing/commits/master --jq .sha
-gh workflow list --all --repo archzfs/archzfs-testing
 ```
 
+If they differ, keep Actions disabled. Reverify that the destination is exactly
+`archzfs/archzfs-testing`, is a fork of `archzfs/archzfs`, and uses `master` as
+its default branch. Also reverify the archive branch, active and queued runs,
+and the production commit before making another destructive change. Record any
+unexpected merge commit in the task evidence. Then move only the staging
+`master` ref to the independently verified production SHA:
+
+```sh
+gh api --method PATCH \
+  repos/archzfs/archzfs-testing/git/refs/heads/master \
+  -f sha='<verified-production-master-sha>' \
+  -F force=true
+```
+
+The target commit must already be available in the fork's Git object network.
+The preceding fork-sync attempt normally imports it, but the low-level ref
+operation cannot transfer a missing Git object. Continuous synchronization of
+new production commits therefore requires preserving `archzfs-testing` as a
+GitHub fork of `archzfs`. If the testing repository is recreated, recreate it
+as a fork.
+
+Query both remote SHAs again. Do not restore repository-level Actions unless
+they are identical. Branch synchronization does not synchronize or clean
+releases, tags, Actions variables, secrets, environments, permissions, workflow
+enabled state, caches, branch protection, or repository metadata.
+
 While repository Actions remain disabled, inventory every workflow introduced
-by the synchronized tree and disable each mutating or scheduled workflow. After
-the commit SHAs and workflow states are verified, restore the exact recorded
-repository Actions policy and default workflow-token permissions. Explicitly
-enable only the workflow needed for the authorized experiment; do not broadly
-enable all synchronized workflows.
+by the synchronized tree with
+`gh workflow list --all --repo archzfs/archzfs-testing`, and disable each
+mutating or scheduled workflow. After the commit SHAs and workflow states are
+verified, restore the exact recorded repository Actions policy and default
+workflow-token permissions. Explicitly enable only the workflow needed for the
+authorized experiment; do not broadly enable all synchronized workflows.
 
 Prefer a fresh clone or worktree for the synchronized source. Do not hard-reset
 an existing local checkout until its uncommitted work and local-only commits
